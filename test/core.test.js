@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createCore, countPassedTests, isTestCommand, changedLines, MILESTONE_STEPS, GOAL_START, GOAL_INCREMENT } = require('../bridge/core.js');
+const { createCore, plainText, countPassedTests, isTestCommand, changedLines, MILESTONE_STEPS, GOAL_START, GOAL_INCREMENT } = require('../bridge/core.js');
 
 const START = new Date(2026, 9, 7, 10, 0, 0).getTime();
 const STREAK_MS = 180000;
@@ -56,7 +56,7 @@ test('Stop でタスク完了になり、同じ指示では二重に数えない
   assert.equal(s.today.tasks, 1);
   assert.equal(s.today.goal.done, 1);
   assert.equal(agentOf(core, 'p1').state, 'done');
-  assert.deepEqual(agentOf(core, 'p1').ops, [{ text: 'README.md を読み込み', ok: true }]);
+  assert.deepEqual(agentOf(core, 'p1').flow.map((f) => [f.kind, f.text, f.ok]), [['op', 'README.md を読み込み', true]]);
   assert.equal(types().filter((t) => t === 'task').length, 1);
   assert.ok(s.feed.some((f) => f.text === 'タスク完了: README を直して'));
 });
@@ -225,4 +225,95 @@ test('テスト実行の判定と通過件数の読み取り', () => {
   assert.equal(changedLines('Write', { content: 'a\nb\nc\n' }), 3);
   assert.equal(changedLines('MultiEdit', { edits: [{ new_string: 'a' }, { new_string: 'b\nc' }] }), 3);
   assert.equal(changedLines('Read', { file_path: 'x' }), 0);
+});
+
+test('コマンドは説明の言葉で出し、説明が無いときだけコマンドそのものを出す', () => {
+  const { core } = setup();
+  core.setHerdrAgents([herdr('p1', 'working')]);
+  prompt(core, 'p1', 'PR を出して');
+  core.handleHook('p1', { hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'gh pr create --fill', description: 'PR を作成' }, tool_use_id: 'b1' });
+  assert.equal(agentOf(core, 'p1').activity, 'PR を作成');
+  core.handleHook('p1', { hook_event_name: 'PostToolUse', tool_name: 'Bash', tool_input: { command: 'gh pr create --fill', description: 'PR を作成' }, tool_use_id: 'b1', tool_response: {} });
+  runTool(core, 'p1', 'Bash', { command: 'git status' });
+  assert.deepEqual(agentOf(core, 'p1').flow.map((f) => f.text), ['PR を作成', '$ git status']);
+});
+
+test('Claude の説明文はカードに出て流れに積まれ、新しい指示で消える', () => {
+  const { core, clock } = setup();
+  core.setHerdrAgents([herdr('p1', 'working', { sessionId: 'sid-1' })]);
+  core.addNarration('sid-1', '前からあった説明', { initial: true });
+  assert.equal(agentOf(core, 'p1').say, '前からあった説明');
+  assert.deepEqual(agentOf(core, 'p1').flow, [], '開く前からあった説明は流れに足さない');
+
+  prompt(core, 'p1', 'ログインを直して');
+  assert.equal(agentOf(core, 'p1').say, '');
+  core.addNarration('sid-1', '## 調査\n\n原因は **トークンの期限** でした。`auth.ts` を直します。\n\n| a | b |\n|---|---|');
+  runTool(core, 'p1', 'Edit', { file_path: 'auth.ts', new_string: 'x' });
+  stop(core, 'p1');
+  clock.t += 500;
+  core.addNarration('sid-1', '直しました。');
+
+  const a = agentOf(core, 'p1');
+  assert.equal(a.say, '直しました。', '完了後に届いた最後の説明も残る');
+  assert.equal(a.sayAt, clock.t);
+  assert.deepEqual(a.flow.map((f) => [f.kind, f.text]), [['say', '原因は トークンの期限 でした。auth.ts を直します。'], ['op', 'auth.ts を編集'], ['say', '直しました。']]);
+  core.addNarration('unknown', '知らないセッション');
+  core.addNarration('sid-1', '```\ncode only\n```');
+  assert.equal(agentOf(core, 'p1').say, '直しました。', '地の文が無い説明では上書きしない');
+});
+
+test('説明文から見出し・表・コードの塊を落とす', () => {
+  assert.equal(plainText('# 見出し\n- 一つ目\n1. 二つ目\n> 引用 [リンク](https://example.com)\n---\n```js\nconst a = 1;\n```\n終わり'), '一つ目 二つ目 引用 リンク 終わり');
+  assert.equal(plainText(''), '');
+});
+
+test('フックが届かないセッションは会話記録から操作を数え、届いているセッションでは二重に数えない', () => {
+  const { core } = setup();
+  core.setHerdrAgents([herdr('p1', 'idle', { sessionId: 'sid-1' }), herdr('p2', 'working', { name: 'api', sessionId: 'sid-2' })]);
+  core.handleDerived('sid-1', { hook_event_name: 'UserPromptSubmit', prompt: '一覧を作って' });
+  core.setHerdrAgents([herdr('p1', 'working', { sessionId: 'sid-1' }), herdr('p2', 'working', { name: 'api', sessionId: 'sid-2' })]);
+  core.handleDerived('sid-1', { hook_event_name: 'PreToolUse', tool_name: 'Read', tool_input: { file_path: 'a.ts' }, tool_use_id: 't1' });
+  assert.equal(agentOf(core, 'p1').activity, 'a.ts を読み込み中');
+  core.handleDerived('sid-1', { hook_event_name: 'PostToolUse', tool_name: 'Read', tool_input: { file_path: 'a.ts' }, tool_use_id: 't1', tool_response: {} });
+  let a = agentOf(core, 'p1');
+  assert.equal(a.title, '一覧を作って');
+  assert.equal(a.turnSteps, 1);
+  assert.equal(a.state, 'think');
+  core.setHerdrAgents([herdr('p1', 'idle', { sessionId: 'sid-1' }), herdr('p2', 'working', { name: 'api', sessionId: 'sid-2' })]);
+  assert.equal(agentOf(core, 'p1').state, 'done', 'タスクの区切りは herdr の状態で決める');
+
+  prompt(core, 'p2', 'x');
+  runTool(core, 'p2', 'Read', { file_path: 'b.ts' });
+  core.handleDerived('sid-2', { hook_event_name: 'PostToolUse', tool_name: 'Read', tool_input: { file_path: 'b.ts' }, tool_use_id: 'dup', tool_response: {} });
+  assert.equal(agentOf(core, 'p2').turnSteps, 1);
+  assert.equal(core.snapshot().today.steps, 2);
+});
+
+test('時間帯ごとのステップ・直近 1 分のステップ・完了したタスクの一覧が積み上がり、保存から戻せる', () => {
+  const { core, clock, events } = setup();
+  core.setHerdrAgents([herdr('p1', 'working')]);
+  prompt(core, 'p1', '一つ目');
+  runTool(core, 'p1', 'Read', { file_path: 'a' });
+  clock.t += 30000;
+  runTool(core, 'p1', 'Read', { file_path: 'b' });
+  clock.t += 5000;
+  stop(core, 'p1');
+  let t = core.snapshot().today;
+  assert.equal(t.hours[10], 2);
+  assert.equal(t.hours.length, 24);
+  assert.deepEqual(t.recent, [START, START + 30000]);
+  assert.deepEqual(t.done, [{ t: clock.t, name: 'web-app', title: '一つ目', steps: 2, seconds: 35 }]);
+  const task = events.find((e) => e.type === 'task');
+  assert.deepEqual([task.steps, task.seconds], [2, 35]);
+  assert.deepEqual(events.filter((e) => e.type === 'step').map((e) => e.run), [1, 2]);
+
+  clock.t += 40000;
+  assert.deepEqual(core.snapshot().today.recent, [START + 30000], '1 分より前のステップは勢いに数えない');
+
+  const again = createCore({ now: () => clock.t, streakMs: STREAK_MS });
+  assert.equal(again.importStats(core.exportStats()), true);
+  t = again.snapshot().today;
+  assert.equal(t.hours[10], 2);
+  assert.equal(t.done.length, 1);
+  assert.deepEqual(t.done[0], { t: START + 35000, name: 'web-app', title: '', steps: 2, seconds: 35 }, '指示文は保存しない');
 });

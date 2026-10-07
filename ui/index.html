@@ -32,7 +32,7 @@ header{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px}
 .logo{display:flex;align-items:center;gap:12px;padding-right:6px}
 .logo h1{margin:0;font-family:var(--f-head);font-weight:400;font-size:30px;letter-spacing:.02em;line-height:1}
 .logo p{margin:4px 0 0;font-size:13px;color:var(--sub);font-weight:800}
-.steps{flex:1 1 300px;min-width:250px;box-shadow:6px 6px 0 var(--test);padding:10px 16px;display:flex;flex-direction:column;gap:7px}
+.steps{position:relative;flex:1 1 300px;min-width:250px;box-shadow:6px 6px 0 var(--test);padding:10px 16px;display:flex;flex-direction:column;gap:7px}
 .steps .head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:14px;font-weight:800}
 .steps .num{display:inline-block;font-family:var(--f-num);font-size:32px;color:var(--test);line-height:1}
 .bar{background:var(--well);border:3px solid #000;border-radius:12px;overflow:hidden}
@@ -57,6 +57,12 @@ header{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px}
 .counts{display:flex;gap:10px;flex-wrap:wrap}
 .count{border:3px solid #000;box-shadow:4px 4px 0 #000;border-radius:14px;padding:4px 12px;display:flex;align-items:baseline;gap:8px;font-size:12px;font-weight:800}
 .count b{font-family:var(--f-num);font-weight:400;font-size:22px}
+.pace{flex:0 0 auto;display:flex;align-items:center;gap:10px;background:var(--card);border:3px solid #000;box-shadow:4px 4px 0 var(--edit);border-radius:14px;padding:4px 12px;font-size:12px;font-weight:800}
+.pace b{font-family:var(--f-num);font-weight:400;font-size:22px;color:var(--edit)}
+.pace .eq{display:flex;align-items:flex-end;gap:3px;height:26px}
+.pace .eq i{transform-origin:50% 100%;display:block;width:6px;min-height:3px;height:3px;background:var(--edit);border:1px solid #000;border-radius:2px;transition:height .5s cubic-bezier(.2,.9,.3,1.6)}
+.pace.live .eq i{animation:eq .7s ease-in-out infinite alternate}
+.pace.live .eq i:nth-child(odd){animation-duration:.5s}
 .ticker{flex:1 1 300px;min-width:0;background:var(--test);color:#2A1E00;border:3px solid #000;box-shadow:4px 4px 0 #000;border-radius:14px;overflow:hidden;display:flex;align-items:center}
 .ticker .tag{flex:0 0 auto;align-self:stretch;display:flex;align-items:center;background:#2A1E00;color:var(--test);font-size:12px;font-weight:800;padding:0 10px}
 .ticker .view{flex:1 1 auto;overflow:hidden}
@@ -88,33 +94,39 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .card:hover{transform:translate(-3px,-3px) rotate(-.4deg)}
 .card.sel{box-shadow:8px 8px 0 #FFFFFF}
 .card.is-wait{animation:waitpulse 1s ease-in-out infinite}
+.card.is-work::before{content:'';position:absolute;top:0;left:0;width:34%;height:6px;background:var(--c);border-bottom:2px solid #000;animation:runner 1.3s linear infinite}
+.card.zap{animation:zap .5s ease-out}
 .card.boing{animation:boing .7s cubic-bezier(.2,.9,.3,1.8)}
 .card .top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
 .selbtn{flex:1 1 auto;min-width:0;min-height:44px;text-align:left;background:transparent;border:none;padding:0;display:flex;flex-direction:column;gap:8px;cursor:pointer}
 .cname{font-family:var(--f-num);font-size:20px;line-height:1.1;overflow-wrap:anywhere}
 .cbranch{font-family:var(--f-mono);font-size:12px;color:var(--sub);overflow-wrap:anywhere}
 .chip{flex:0 0 auto;display:inline-block;background:var(--c);color:var(--fg);font-family:var(--f-head);font-size:14px;padding:6px 12px;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;animation:wiggle 2.4s ease-in-out infinite}
-.card .mid{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px}
+.card .mid{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
 .big{flex:0 0 auto;white-space:nowrap;font-family:var(--f-num);font-size:44px;line-height:.9;color:var(--c)}
 .big small{font-family:'M PLUS Rounded 1c','Hiragino Sans',sans-serif;font-weight:800;font-size:15px;margin-left:6px}
 .bignum{display:inline-block}
-.side{flex:1 1 auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-bottom:4px}
+.side{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
 .fire{display:inline-flex;align-items:center;gap:4px;background:var(--error);color:#2A0414;border:2px solid #000;border-radius:10px;padding:2px 9px 2px 5px;font-size:12px;font-weight:800}
 .fire svg{animation:flame .5s ease-in-out infinite alternate;transform-origin:50% 100%}
 .day{font-size:13px;font-weight:800;color:var(--test)}
-.track{height:18px;background:var(--well);border:2px solid #000;border-radius:7px;overflow:hidden}
+.track{height:14px;background:var(--well);border:2px solid #000;border-radius:7px;overflow:hidden}
 .track>div{height:100%;width:0;background-color:var(--c);transition:width .4s}
 .stripes{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.3) 0 8px,rgba(255,255,255,0) 8px 16px);background-size:22.6px 22.6px;animation:stripes .6s linear infinite}
-.texts{display:flex;flex-direction:column;gap:4px;min-width:0}
-.ctitle{font-size:15px;font-weight:800;line-height:1.4;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-.cact{font-family:var(--f-mono);font-size:13px;color:var(--soft);line-height:1.5;min-height:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.cstep{font-size:14px;color:var(--soft);font-weight:800}
+.cask{font-size:12px;font-weight:800;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.csay{font-size:15px;font-weight:800;line-height:1.45;height:4.35em;padding:0 0 0 10px;border-left:5px solid var(--c);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.csay.none{color:var(--mute)}
+.cact{display:flex;align-items:center;gap:8px;min-height:22px;font-size:13px;font-weight:800;color:var(--soft)}
+.cact .mark{flex:0 0 auto;width:18px;height:18px;border-radius:6px;border:2px solid #000;background:var(--c);color:var(--fg);font-size:10px;display:flex;align-items:center;justify-content:center}
+.cact .what{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cact.off .mark{visibility:hidden}
+.cstep{font-size:12px;color:var(--soft);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .eta{font-family:var(--f-num);font-size:14px;border:2px solid #000;border-radius:10px;padding:4px 10px;box-shadow:3px 3px 0 #000;background:#FFFFFF;color:#1A0838}
 .eta.wait{background:var(--wait);color:#2A1200}
 .eta.done{background:var(--done);color:#102400}
 .card .btns .deny{flex:1}
 .card .btns .approve{flex:2;font-size:17px}
+.bit{position:absolute;width:9px;height:9px;border:2px solid #000;border-radius:2px;pointer-events:none;animation:sparkfly .6s cubic-bezier(.1,.7,.3,1) forwards}
 .pop{position:absolute;top:58px;right:18px;border:3px solid #000;box-shadow:4px 4px 0 #000;font-family:var(--f-head);padding:6px 14px;border-radius:14px;pointer-events:none;white-space:nowrap;background:var(--test);color:#2A1E00;font-size:17px;animation:pop 1.7s cubic-bezier(.2,.9,.3,1.4) forwards}
 .pop.bigpop{background:var(--done);color:#102400;font-size:24px}
 .stamp{position:absolute;right:16px;bottom:14px;background:var(--done);color:#102400;border:4px solid #000;box-shadow:5px 5px 0 #000;font-family:var(--f-head);font-size:30px;padding:4px 16px;border-radius:14px;transform:rotate(-9deg);pointer-events:none;animation:stamp .5s cubic-bezier(.2,.9,.3,1.8)}
@@ -142,11 +154,32 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .ops li.cur .mark{background:var(--c);color:var(--fg)}
 .ops li.cur .label{color:#FFFFFF}
 .ops li.cur .state{color:var(--c)}
+.ops li.say .mark{background:var(--think);color:#1A0838}
+.ops li.say{align-items:flex-start}
+.ops li.say .label{font-family:inherit;font-weight:800;color:#FFFFFF;white-space:normal;line-height:1.4;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.ops li.say .state{color:var(--think)}
 .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
 .facts div{background:var(--well);border:2px solid #000;border-radius:14px;padding:5px 10px}
 .facts dt{font-size:12px;color:var(--sub);font-weight:800}
 .facts dd{margin:0;font-family:var(--f-num);font-size:18px}
 .missions{box-shadow:6px 6px 0 var(--edit)}
+.shelf{box-shadow:6px 6px 0 var(--done)}
+.ph{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ph b{font-family:var(--f-num);font-weight:400;font-size:22px;color:var(--done)}
+.bricks{display:flex;flex-wrap:wrap-reverse;gap:4px;align-content:flex-start}
+.brick{width:22px;height:14px;border:2px solid #000;border-radius:4px;background:var(--done)}
+.brick.new{animation:drop .6s cubic-bezier(.2,.9,.3,1.6)}
+.donerow{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:2px dashed var(--dash);font-size:13px}
+.donerow .at{flex:0 0 auto;font-family:var(--f-num);font-size:12px;color:var(--sub)}
+.donerow .who{flex:0 0 auto;max-width:34%;font-family:var(--f-num);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.donerow .txt{flex:1 1 auto;min-width:0;color:var(--soft);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.donerow .n{flex:0 0 auto;font-family:var(--f-num);font-size:12px;color:var(--test)}
+.hoursbox{box-shadow:6px 6px 0 var(--test)}
+.hours{display:flex;align-items:flex-end;gap:2px;height:64px;border-bottom:3px solid #000}
+.hours i{flex:1 1 0;min-width:0;min-height:2px;height:2px;background:var(--think);border:1px solid #000;border-bottom:none;border-radius:3px 3px 0 0;transition:height .5s cubic-bezier(.2,.9,.3,1.4)}
+.hours i.now{background:var(--test)}
+.axis{display:flex;justify-content:space-between;font-family:var(--f-num);font-size:11px;color:var(--sub)}
+.panel h3{margin:4px 0 0;font-family:var(--f-head);font-weight:400;font-size:14px}
 .mission{display:flex;flex-direction:column;gap:5px}
 .mission .mrow{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:14px;font-weight:800}
 .mission .tag{font-size:12px;font-weight:800;border:2px solid #000;border-radius:8px;padding:2px 8px;white-space:nowrap;background:var(--well);color:var(--soft)}
@@ -154,7 +187,6 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .thin{height:12px;background:var(--well);border:2px solid #000;border-radius:7px;overflow:hidden}
 .thin>div{height:100%;width:0;background:var(--edit);transition:width .4s}
 .mission.ok .thin>div{background:var(--done)}
-.rank{box-shadow:6px 6px 0 var(--error)}
 .rankrow{display:flex;align-items:center;gap:10px}
 .rankrow .pos{flex:0 0 auto;width:28px;height:28px;border-radius:9px;border:2px solid #000;display:flex;align-items:center;justify-content:center;font-family:var(--f-num);font-size:14px;color:#1A0838;background:var(--mute)}
 .rankrow .rname{font-family:var(--f-num);font-size:14px;flex:0 0 104px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -165,19 +197,22 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .rankrow:nth-child(1) .thin>div{background:var(--test)}
 .rankrow:nth-child(2) .pos{background:var(--soft)}
 .rankrow:nth-child(3) .pos{background:var(--wait)}
-.feed{box-shadow:6px 6px 0 var(--think);gap:4px}
-.feed h2{margin-bottom:4px}
-.ev{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:2px dashed var(--dash)}
-.ev .dot{flex:0 0 auto;width:12px;height:12px;border-radius:4px;border:2px solid #000}
-.ev .who{font-family:var(--f-num);font-size:12px;flex:0 0 auto;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ev .txt{font-size:13px;color:var(--soft);flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ev .age{font-size:12px;color:var(--sub);flex:0 0 auto}
 .none{font-size:13px;color:var(--sub);font-weight:800}
 
 .flash{position:fixed;inset:0;z-index:25;pointer-events:none;animation:flash .45s ease-out forwards}
 .banner{position:fixed;top:30%;left:50%;z-index:30;pointer-events:none;text-align:center;padding:18px 36px;border:4px solid #000;border-radius:24px;box-shadow:10px 10px 0 #000;transform:translateX(-50%) rotate(-3deg);width:max-content;max-width:86%;animation:banner 1.9s cubic-bezier(.2,.9,.3,1.3) forwards}
 .banner .t{font-family:var(--f-head);font-size:clamp(26px,6.5vw,52px);line-height:1.1}
 .banner .s{font-size:clamp(14px,3.6vw,18px);font-weight:800;margin-top:6px;overflow-wrap:anywhere}
+.banner .n{font-family:var(--f-num);font-size:clamp(18px,4.4vw,30px);margin-top:6px}
+.banner.mega{padding:26px 48px;box-shadow:14px 14px 0 #000;animation-duration:3.2s}
+.banner.mega .t{font-size:clamp(34px,9vw,84px)}
+.ring{position:fixed;left:50%;top:38%;z-index:26;width:120px;height:120px;margin:-60px 0 0 -60px;border:10px solid var(--rc);border-radius:50%;pointer-events:none;animation:ring .9s cubic-bezier(.1,.7,.3,1) forwards}
+.fall{position:fixed;top:-24px;z-index:28;width:12px;height:18px;border:2px solid #000;border-radius:3px;pointer-events:none;animation:fall var(--dur) cubic-bezier(.3,.2,.6,1) forwards}
+.plus1{position:absolute;right:14px;top:-8px;font-family:var(--f-num);font-size:20px;color:var(--test);-webkit-text-stroke:1.5px #000;pointer-events:none;animation:plus .7s cubic-bezier(.2,.9,.3,1.4) forwards}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg i{position:absolute;bottom:-30px;width:14px;height:14px;border:2px solid #000;border-radius:4px;opacity:.28;animation:rise var(--dur) linear infinite;animation-delay:var(--delay)}
+.wrap{position:relative;z-index:1}
+.roll{animation:roll .45s cubic-bezier(.2,.9,.3,1.8)}
 .toast{position:fixed;top:24px;right:24px;z-index:35;background:#FFFFFF;color:#1A0838;border:3px solid #000;box-shadow:6px 6px 0 var(--think);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:12px;pointer-events:none;max-width:86%;animation:toast 3.4s cubic-bezier(.2,.9,.3,1.3) forwards}
 .toast .cap{font-size:12px;font-weight:800;color:#5A3A9A}
 .toast .t{font-family:var(--f-head);font-size:17px}
@@ -204,11 +239,21 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 @keyframes flash{0%{opacity:.75}100%{opacity:0}}
 @keyframes plus{0%{opacity:0;transform:translateY(10px) scale(.5)}20%{opacity:1;transform:translateY(-6px) scale(1.3)}100%{opacity:0;transform:translateY(-30px) scale(1)}}
 @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes runner{from{transform:translateX(-100%)}to{transform:translateX(295%)}}
+@keyframes zap{0%{filter:brightness(1.9);transform:scale(1.035)}100%{filter:brightness(1);transform:scale(1)}}
+@keyframes sparkfly{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1.2)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(.5)}}
+@keyframes eq{from{transform:scaleY(.72)}to{transform:scaleY(1.08)}}
+@keyframes drop{0%{opacity:0;transform:translateY(-46px) rotate(-18deg) scale(1.6)}100%{opacity:1;transform:translateY(0) rotate(0) scale(1)}}
+@keyframes ring{0%{opacity:1;transform:scale(.2)}100%{opacity:0;transform:scale(14)}}
+@keyframes fall{0%{opacity:1;transform:translate(0,0) rotate(0)}85%{opacity:1}100%{opacity:0;transform:translate(var(--dx),115vh) rotate(var(--rot))}}
+@keyframes rise{from{transform:translateY(0) rotate(0)}to{transform:translateY(-115vh) rotate(360deg)}}
+@keyframes roll{0%{transform:translateY(70%) scale(.6);opacity:.2}60%{transform:translateY(-14%) scale(1.25);opacity:1}100%{transform:translateY(0) scale(1)}}
 @keyframes confetti{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),260px) rotate(var(--rot))}}
 @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
 </style>
 </head>
 <body>
+<div class="bg" id="bg" aria-hidden="true"></div>
 <div id="root">
 <div class="wrap">
 
@@ -217,7 +262,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
     <svg class="spark" width="42" height="42" viewBox="0 0 40 40" fill="#FFE53B" stroke="#000000" stroke-width="2.5" stroke-linejoin="round" aria-hidden="true"><path d="M20 2 L25 15 L38 20 L25 25 L20 38 L15 25 L2 20 L15 15 Z"></path></svg>
     <div><h1>DOPADOPA</h1><p>Claude Code セッション ライブボード</p></div>
   </div>
-  <div class="box steps">
+  <div class="box steps" id="stepsBox">
     <div class="head"><span>今日完了したステップ</span><span class="num" id="stepsNum">0</span></div>
     <div class="bar" style="height:22px"><div class="stripes" id="mileBar" style="background-color:var(--test);transition:width .5s cubic-bezier(.2,.9,.3,1.3)"></div></div>
     <span class="note" id="mileText"></span>
@@ -256,6 +301,10 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
     <div class="count" style="background:var(--done);color:#102400"><span>今日の完了タスク</span><b id="stTasks">0</b></div>
     <div class="count" style="background:var(--think);color:#1A0838" id="stTestsBox" hidden><span>テスト通過</span><b id="stTests">0</b></div>
   </div>
+  <div class="pace" id="pace">
+    <span>勢い<br>直近 1 分</span><b id="paceNum">0</b><span>ステップ</span>
+    <div class="eq" id="paceBars" aria-hidden="true"></div>
+  </div>
   <div class="ticker">
     <span class="tag">最新の出来事</span>
     <div class="view"><div class="marquee"><span id="tickA"></span><span id="tickB" aria-hidden="true"></span></div></div>
@@ -282,17 +331,28 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
     </dl>
     <div class="drow"><span class="eta" id="dEta"></span><button type="button" class="btn open" id="dOpen">herdr で開く</button></div>
   </section>
-  <section class="panel missions" aria-label="ほかの目標"><h2>ほかの目標</h2><div id="missions" style="display:flex;flex-direction:column;gap:10px"></div></section>
-  <section class="panel rank" aria-label="セッション別 今日の完了ステップ"><h2>セッション別 今日の完了ステップ</h2><div id="rank" style="display:flex;flex-direction:column;gap:10px"></div><span class="none" id="rankNone">まだステップはありません</span></section>
-  <section class="panel feed" aria-label="最近の出来事"><h2>最近の出来事</h2><div id="feed"></div><span class="none" id="feedNone">まだ出来事はありません</span></section>
+  <section class="panel shelf" aria-label="今日完了したタスク">
+  <div class="ph"><h2>今日完了したタスク</h2><b id="doneNum">0</b></div>
+  <div class="bricks" id="bricks" aria-hidden="true"></div>
+  <div id="doneList"></div>
+  <span class="none" id="doneNone">まだ完了したタスクはありません</span>
+</section>
+<section class="panel hoursbox" aria-label="時間帯ごとのステップ">
+  <h2>時間帯ごとのステップ</h2>
+  <div class="hours" id="hours" role="img" aria-label="時間帯ごとのステップ数"></div>
+  <div class="axis" aria-hidden="true"><span>0時</span><span>6時</span><span>12時</span><span>18時</span><span>24時</span></div>
+  <h3>セッション別 今日の完了ステップ</h3>
+  <div id="rank" style="display:flex;flex-direction:column;gap:8px"></div><span class="none" id="rankNone">まだステップはありません</span>
+</section>
+<section class="panel missions" aria-label="ほかの目標"><h2>ほかの目標</h2><div id="missions" style="display:flex;flex-direction:column;gap:10px"></div></section>
 </div>
 </main>
 
 </div>
 <template id="flameIcon"><svg width="16" height="18" viewBox="0 0 16 18" aria-hidden="true"><path d="M8 1 C9 5 14 7 14 12 A6 6 0 0 1 2 12 C2 9 4 8 5 5 C6 7 7 7 8 1 Z" fill="#FFE53B" stroke="#000000" stroke-width="1.6" stroke-linejoin="round"></path></svg></template>
-<div id="fx"></div>
 <div class="sr" id="live" aria-live="polite"></div>
 </div>
+<div id="fx"></div>
 
 <script>
 'use strict';
@@ -308,7 +368,6 @@ const STATES = {
   idle: { label: '待機中', color: '#9C8AC8', fg: '#1A0838' },
 };
 const WORKING = new Set(['think', 'edit', 'run', 'test', 'error']);
-const FEED_COLORS = { think: '#C08BFF', wait: '#FF8A1F', done: '#9DFF3A', error: '#FF3D8B' };
 const SFX = {
   step: [[988, .05], [1319, .09]],
   clear: [[523, .09], [659, .09], [784, .09], [1047, .25]],
@@ -321,6 +380,22 @@ const SFX = {
 const CONFETTI_COLORS = ['#9DFF3A', '#2EE6FF', '#FF8A1F', '#C08BFF', '#FFE53B', '#FF3D8B'];
 const CONFETTI_COUNT = 22;
 const BANNER_MS = 1900;
+const MEGA_BANNER_MS = 3200;
+const FALL_COUNT = 70;
+const MEGA_FALL_COUNT = 150;
+const FALL_MS = 2600;
+const RING_MS = 900;
+const SPARK_COUNT = 9;
+const SPARK_MS = 600;
+const ZAP_MS = 500;
+const PLUS1_MS = 700;
+// 連続するほど音を高くする。この回数で 1 オクターブ上がり、そこで頭打ち
+const PITCH_RUN_STEPS = 24;
+const PACE_BARS = 12;
+const PACE_BAR_FULL = 4;
+const BG_SHAPES = 14;
+const DONE_ROWS = 4;
+const HOURS = 24;
 const BANNER_GAP_MS = 3000;
 const FLASH_GAP_MS = 1000;
 const TOAST_MS = 3400;
@@ -328,8 +403,7 @@ const POP_MS = 1700;
 const STAMP_MS = 8000;
 const PARTY_MS = 1800;
 const PLUS_MS = 900;
-const FEED_ROWS = 5;
-const DETAIL_OPS = 4;
+const DETAIL_FLOW = 6;
 // これより狭い画面（スマホ幅）は縮めると読めなくなるので、従来どおり縦スクロールにする
 const FIT_MIN_WIDTH = 900;
 const FIT_MIN_PERCENT = 50;
@@ -387,11 +461,11 @@ function restart(el, cls) {
   void el.offsetWidth;
   el.classList.add(cls);
 }
-function setNumber(el, value) {
+function setNumber(el, value, cls = 'bump') {
   const v = num(value);
   if (el.textContent === v) return;
   el.textContent = v;
-  restart(el, 'bump');
+  restart(el, cls);
 }
 function width(el, pct) {
   const v = Math.max(0, Math.min(100, Math.round(pct))) + '%';
@@ -404,7 +478,7 @@ function temporary(el, parent, ms) {
 }
 
 // ---------------------------------------------------------------- 音（Web Audio の合成音のみ）
-function play(names) {
+function play(names, rate = 1) {
   if (!soundOn || !audio) return;
   const seen = new Set();
   let offset = 0;
@@ -418,7 +492,7 @@ function play(names) {
       const osc = audio.createOscillator();
       const gain = audio.createGain();
       osc.type = type || 'square';
-      osc.frequency.value = freq;
+      osc.frequency.value = freq * rate;
       gain.gain.setValueAtTime(0.045, t);
       gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       osc.connect(gain); gain.connect(audio.destination);
@@ -468,16 +542,37 @@ function flash(color) {
   temporary(el, $('fx'), 500);
 }
 let bannerAt = 0;
-function banner(title, sub, color, fg, force) {
+function banner(title, sub, color, fg, { force = false, stat = '', mega = false } = {}) {
   const now = Date.now();
   if (!force && now - bannerAt < BANNER_GAP_MS) return;
   bannerAt = now;
   for (const old of $('fx').querySelectorAll('.banner')) old.remove();
-  const el = h('div', 'banner');
+  const el = h('div', mega ? 'banner mega' : 'banner');
   el.style.background = color; el.style.color = fg;
   el.append(h('div', 't', title), h('div', 's', sub));
-  temporary(el, $('fx'), BANNER_MS);
-  text($('live'), title + ' ' + sub);
+  if (stat) el.append(h('div', 'n', stat));
+  temporary(el, $('fx'), mega ? MEGA_BANNER_MS : BANNER_MS);
+  text($('live'), [title, sub, stat].filter(Boolean).join(' '));
+}
+// 画面全体に降る紙吹雪。位置は番号から決め、毎回同じ散らばり方にする（乱数で偏らせない）
+function fall(count) {
+  if (reduceMotion.matches) return;
+  for (let i = 0; i < count; i++) {
+    const p = h('span', 'fall');
+    p.style.left = ((i * 61) % 100) + '%';
+    p.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    p.style.animationDelay = ((i % 12) * 0.06).toFixed(2) + 's';
+    p.style.setProperty('--dur', (1.5 + (i % 5) * 0.22).toFixed(2) + 's');
+    p.style.setProperty('--dx', (((i * 37) % 240) - 120) + 'px');
+    p.style.setProperty('--rot', (((i * 73) % 1080) - 540) + 'deg');
+    temporary(p, $('fx'), FALL_MS + 800);
+  }
+}
+function ring(color) {
+  if (reduceMotion.matches) return;
+  const el = h('div', 'ring');
+  el.style.setProperty('--rc', color);
+  temporary(el, $('fx'), RING_MS);
 }
 function toast(label) {
   for (const old of $('fx').querySelectorAll('.toast')) old.remove();
@@ -514,6 +609,26 @@ function celebrate(key) {
   }
   temporary(party, card, PARTY_MS);
 }
+function stepBurst(key) {
+  if (reduceMotion.matches) return;
+  temporary(h('span', 'plus1', '+1'), $('stepsBox'), PLUS1_MS);
+  const card = cardOf(key);
+  if (!card) return;
+  restart(card, 'zap');
+  setTimeout(() => card.classList.remove('zap'), ZAP_MS);
+  const from = card._r.bignum;
+  for (let i = 0; i < SPARK_COUNT; i++) {
+    const p = h('span', 'bit');
+    const angle = (i / SPARK_COUNT) * Math.PI * 2;
+    p.style.left = (from.offsetLeft + from.offsetWidth / 2) + 'px';
+    p.style.top = (from.offsetTop + from.offsetHeight / 2) + 'px';
+    p.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    p.style.setProperty('--dx', Math.round(Math.cos(angle) * 70) + 'px');
+    p.style.setProperty('--dy', Math.round(Math.sin(angle) * 54) + 'px');
+    p.style.setProperty('--rot', (i * 80 - 240) + 'deg');
+    temporary(p, card, SPARK_MS);
+  }
+}
 function goalPlus() {
   if (reduceMotion.matches) return;
   temporary(h('span', 'plus', '+1 件'), $('goalPlus'), PLUS_MS);
@@ -523,25 +638,30 @@ function onEvent(e) {
   switch (e.kind) {
     case 'step':
       cardPop(e.key, '+1 ステップ完了', false);
-      play(['step']);
+      stepBurst(e.key);
+      play(['step'], 2 ** (Math.min(e.run || 0, PITCH_RUN_STEPS) / PITCH_RUN_STEPS));
       break;
     case 'task':
       cardPop(e.key, 'タスク完了！', true);
       celebrate(e.key);
       goalPlus();
-      banner('タスク完了！', [e.name, e.title].filter(Boolean).join(' ・ '), '#9DFF3A', '#102400', false);
+      banner('タスク完了！', [e.name, e.title].filter(Boolean).join(' ・ '), '#9DFF3A', '#102400', { stat: `${num(e.steps || 0)} ステップ ・ ${fmt(e.seconds || 0)}` });
+      fall(FALL_COUNT);
       shake(false); flash('#9DFF3A'); play(['clear']);
       break;
     case 'milestone':
-      banner(`今日 ${num(e.steps)} ステップ完了！`, `次の区切りは ${num(e.next)} ステップ`, '#FFE53B', '#2A1E00', true);
+      banner(`今日 ${num(e.steps)} ステップ完了！`, `次の区切りは ${num(e.next)} ステップ`, '#FFE53B', '#2A1E00', { force: true, mega: true });
+      fall(MEGA_FALL_COUNT); ring('#FFE53B');
       shake(true); flash('#FFE53B'); play(['big']);
       break;
     case 'goal':
-      banner('今日の目標を達成！', `タスク ${e.target} 件完了 ・ 次の目標は ${e.next} 件`, '#FF3D8B', '#2A0414', true);
+      banner('今日の目標を達成！', `タスク ${e.target} 件完了 ・ 次の目標は ${e.next} 件`, '#FF3D8B', '#2A0414', { force: true, mega: true });
+      fall(MEGA_FALL_COUNT); ring('#FF3D8B');
       shake(true); flash('#FF3D8B'); play(['big']);
       break;
     case 'streak':
-      banner(`${e.streak} ステップ連続！`, '止まらずに進んでいます', '#FF3D8B', '#2A0414', false);
+      banner(`${e.streak} ステップ連続！`, '止まらずに進んでいます', '#FF3D8B', '#2A0414');
+      ring('#FF3D8B');
       shake(false); flash('#FF3D8B');
       break;
     case 'blocked': play(['wait']); break;
@@ -609,9 +729,15 @@ function factsLine(a) {
 }
 function activityOf(a) {
   if (a.state === 'wait') return a.ask ? `「${a.ask}」の実行許可を待っています` : (a.notice || 'あなたの対応を待っています');
-  if (a.state === 'done') return factsLine(a);
-  if (a.state === 'idle') return '';
-  return a.activity || '実装方針を組み立て中';
+  if (a.state === 'done' || a.state === 'idle') return '';
+  return a.activity || '次の操作を考えています';
+}
+// Claude の説明文がまだ無いときに、説明文の場所へ出す言葉
+function sayOf(a) {
+  if (a.say) return a.say;
+  if (a.state === 'idle') return '指示を待っています';
+  if (a.state === 'done') return '説明文なしで完了しました';
+  return 'まだ説明文はありません';
 }
 
 function createCard() {
@@ -620,6 +746,7 @@ function createCard() {
   const sel = h('button', 'selbtn'); sel.type = 'button'; sel.dataset.act = 'select';
   sel.append(h('span', 'cname'), h('span', 'cbranch'));
   top.append(sel, h('span', 'chip'));
+  const act = h('div', 'cact'); act.append(h('span', 'mark', '▶'), h('span', 'what'));
   const mid = h('div', 'mid');
   const big = h('span', 'big');
   big.append(h('span', 'bignum', '0'), h('small', '', 'ステップ'));
@@ -627,15 +754,14 @@ function createCard() {
   const fire = h('span', 'fire');
   fire.append($('flameIcon').content.cloneNode(true), h('span', 'firetxt'));
   fire.hidden = true;
-  side.append(fire, h('span', 'day'));
+  side.append(fire, h('span', 'eta'));
   mid.append(big, side);
   const track = h('div', 'track'); track.append(h('div'));
-  const texts = h('div', 'texts'); texts.append(h('span', 'ctitle'), h('span', 'cact'));
-  const foot = h('div', 'foot'); foot.append(h('span', 'cstep'), h('span', 'eta'));
-  el.append(top, mid, track, texts, foot, responseButtons(false));
+  el.append(top, h('div', 'cask'), h('div', 'csay'), act, mid, track, h('div', 'cstep'), responseButtons(false));
   el._r = {
-    sel, name: sel.children[0], branch: sel.children[1], chip: top.children[1], bignum: big.children[0], fire, firetxt: fire.lastChild,
-    day: side.children[1], fill: track.firstChild, title: texts.children[0], act: texts.children[1], step: foot.children[0], eta: foot.children[1], btns: el.lastChild,
+    sel, name: sel.children[0], branch: sel.children[1], chip: top.children[1], ask: el.children[1], say: el.children[2],
+    act, what: act.children[1], bignum: big.children[0], fire, firetxt: fire.lastChild,
+    step: el.children[6], eta: side.children[1], fill: track.firstChild, btns: el.lastChild,
   };
   return el;
 }
@@ -647,20 +773,24 @@ function updateCard(el, a) {
   el.style.setProperty('--fg', st.fg);
   el.classList.toggle('sel', a.key === selectedKey);
   el.classList.toggle('is-wait', a.state === 'wait');
+  el.classList.toggle('is-work', WORKING.has(a.state));
   r.sel.setAttribute('aria-label', `${a.name} の詳細を表示`);
   r.sel.setAttribute('aria-pressed', String(a.key === selectedKey));
   text(r.name, a.name);
   text(r.branch, a.branch);
   text(r.chip, st.label);
-  setNumber(r.bignum, a.turnSteps);
+  text(r.ask, a.title ? `指示: ${a.title}` : '');
+  text(r.say, sayOf(a));
+  r.say.classList.toggle('none', !a.say);
+  const what = activityOf(a);
+  text(r.what, what);
+  r.act.classList.toggle('off', !what);
+  setNumber(r.bignum, a.turnSteps, 'roll');
   r.fire.hidden = !a.showRun;
   text(r.firetxt, `${a.run}ステップ連続で進行中`);
-  text(r.day, `今日 ${num(a.daySteps)} ステップ完了`);
+  text(r.step, [`今日 ${num(a.daySteps)} ステップ完了`, factsLine(a)].filter(Boolean).join(' ・ '));
   width(r.fill, a.state === 'idle' ? 0 : 100);
   r.fill.classList.toggle('stripes', WORKING.has(a.state));
-  text(r.title, a.title || '指示を待っています');
-  text(r.act, activityOf(a));
-  text(r.step, a.state === 'done' ? '' : factsLine(a));
   const eta = etaOf(a, now);
   text(r.eta, eta.label);
   if (r.eta.className !== eta.cls) r.eta.className = eta.cls;
@@ -707,7 +837,10 @@ function renderDetail(a) {
   const eta = etaOf(a, now);
   text($('dEta'), eta.label);
   if ($('dEta').className !== eta.cls) $('dEta').className = eta.cls;
-  const rows = a.ops.slice(-DETAIL_OPS).map((op, i) => ({ id: 'op' + i + op.text, text: op.text, cls: op.ok ? '' : 'ng', mark: op.ok ? '✓' : '×', state: op.ok ? '完了' : '失敗' }));
+  // 説明文と操作を起きた順に並べ、「何を考えて・何をしたか」の流れとして見せる
+  const rows = a.flow.slice(-DETAIL_FLOW).map((f) => (f.kind === 'say'
+    ? { id: f.t + f.text, text: f.text, cls: 'say', mark: '”', state: '説明' }
+    : { id: f.t + f.text, text: f.text, cls: f.ok ? '' : 'ng', mark: f.ok ? '✓' : '×', state: f.ok ? '完了' : '失敗' }));
   if (WORKING.has(a.state) && a.activity) rows.push({ id: 'cur', text: a.activity, cls: 'cur', mark: '▶', state: '進行中' });
   if (a.state === 'wait') rows.push({ id: 'cur', text: activityOf(a), cls: 'cur', mark: '▶', state: a.canRespond ? '許可待ち' : 'あなた待ち' });
   reconcile($('dOps'), rows, (r) => r.id, () => {
@@ -726,13 +859,28 @@ function renderDetail(a) {
   $('dOpen').dataset.key = a.key;
 }
 
-function age(ms) {
-  const d = Math.max(0, Math.round(ms / 1000));
-  if (d < 2) return 'たった今';
-  if (d < 60) return d + '秒前';
-  if (d < 3600) return Math.floor(d / 60) + '分前';
-  return Math.floor(d / 3600) + '時間前';
+// 直近 1 分を等分し、区間ごとのステップ数を棒の高さにする（右端がいま）
+function renderPace(now) {
+  const t = snap.today;
+  const span = t.paceWindow / PACE_BARS;
+  const counts = new Array(PACE_BARS).fill(0);
+  let total = 0;
+  for (const at of t.recent) {
+    const back = Math.floor((now - at) / span);
+    if (back < 0 || back >= PACE_BARS) continue;
+    counts[PACE_BARS - 1 - back]++;
+    total++;
+  }
+  text($('paceNum'), total);
+  $('pace').classList.toggle('live', total > 0);
+  const bars = $('paceBars');
+  while (bars.children.length < PACE_BARS) bars.append(h('i'));
+  [...bars.children].forEach((el, i) => {
+    const v = Math.round(Math.min(1, counts[i] / PACE_BAR_FULL) * 100) + '%';
+    if (el.style.height !== v) el.style.height = v;
+  });
 }
+const clock = (ms) => { const d = new Date(ms); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
 function renderClock() {
   if (!snap) return;
   const now = serverNow();
@@ -740,7 +888,7 @@ function renderClock() {
   const left = t.streak > 0 ? Math.max(0, t.streakDeadline - now) : 0;
   width($('streakBar'), t.streakWindow ? (left / t.streakWindow) * 100 : 0);
   text($('streakText'), t.streak === 0 ? 'どれかのステップが終わると始まります' : `バーが空になると 0 に戻ります ・ 最高 ${num(t.best)}`);
-  for (const el of $('feed').children) text(el.children[3], age(now - Number(el.dataset.t)));
+  renderPace(now);
   for (const a of snap.agents) {
     const card = cardOf(a.key);
     if (card) text(card._r.eta, etaOf(a, now).label);
@@ -756,7 +904,7 @@ function renderClock() {
 
 function render(s) {
   const t = s.today;
-  setNumber($('stepsNum'), t.steps);
+  setNumber($('stepsNum'), t.steps, 'roll');
   const nextMile = (Math.floor(t.steps / t.milestone) + 1) * t.milestone;
   width($('mileBar'), ((t.steps % t.milestone) / t.milestone) * 100);
   text($('mileText'), `次の区切り ${num(nextMile)} ステップまで あと ${num(nextMile - t.steps)}`);
@@ -812,14 +960,35 @@ function render(s) {
   });
   [...$('rank').children].forEach((el, i) => text(el.children[0], i + 1));
 
-  $('feedNone').hidden = s.feed.length > 0;
-  reconcile($('feed'), s.feed.slice(0, FEED_ROWS), (e) => e.id, (e) => {
-    const el = h('div', 'ev');
-    el.dataset.t = e.t;
-    const dot = h('span', 'dot'); dot.style.background = FEED_COLORS[e.kind] || '#9C8AC8';
-    el.append(dot, h('span', 'who', e.name), h('span', 'txt', e.text), h('span', 'age'));
+  setNumber($('doneNum'), t.tasks);
+  $('doneNone').hidden = t.done.length > 0;
+  // 積み木は今日完了したタスク 1 件につき 1 個。初回の表示では落とす演出を付けない
+  const firstPaint = $('bricks').dataset.ready !== '1';
+  reconcile($('bricks'), t.done.slice().reverse(), (d) => d.t + d.name, () => h('i', firstPaint ? 'brick' : 'brick new'), (el, d) => {
+    const color = CONFETTI_COLORS[[...d.name].reduce((n, ch) => n + ch.charCodeAt(0), 0) % CONFETTI_COLORS.length];
+    if (el.style.background !== color) el.style.background = color;
+  });
+  $('bricks').dataset.ready = '1';
+  reconcile($('doneList'), t.done.slice(0, DONE_ROWS), (d) => d.t + d.name, () => {
+    const el = h('div', 'donerow');
+    el.append(h('span', 'at'), h('span', 'who'), h('span', 'txt'), h('span', 'n'));
     return el;
-  }, () => {});
+  }, (el, d) => {
+    text(el.children[0], clock(d.t)); text(el.children[1], d.name);
+    text(el.children[2], d.title || 'タスク完了'); text(el.children[3], `${num(d.steps)} ステップ`);
+  });
+
+  const hours = $('hours');
+  while (hours.children.length < HOURS) hours.append(h('i'));
+  const peak = Math.max(1, ...t.hours);
+  const thisHour = new Date(serverNow()).getHours();
+  [...hours.children].forEach((el, i) => {
+    const v = Math.round((t.hours[i] / peak) * 100) + '%';
+    if (el.style.height !== v) el.style.height = v;
+    el.classList.toggle('now', i === thisHour);
+  });
+  hours.setAttribute('aria-label', `時間帯ごとのステップ数。いまの時間帯は ${num(t.hours[thisHour])}、最も多い時間帯は ${num(peak === 1 && !t.hours.some(Boolean) ? 0 : peak)}`);
+
   renderClock();
   fit();
 }
@@ -871,6 +1040,15 @@ function connect() {
       if (res.status === 403) { es.close(); text($('conn'), 'ブリッジが再起動されました。herdr のメニューから「dopadopa: ボードを開く」で開き直してください'); }
     } catch { /* ブリッジが止まっている間は EventSource が再接続を続ける */ }
   };
+}
+// 背景をゆっくり昇る小さな四角。何も起きていない時間も画面を止めない
+for (let i = 0; i < BG_SHAPES; i++) {
+  const el = h('i');
+  el.style.left = ((i * 71 + 5) % 100) + '%';
+  el.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+  el.style.setProperty('--dur', (16 + (i % 5) * 4) + 's');
+  el.style.setProperty('--delay', (-(i * 37) % 20) + 's');
+  $('bg').append(el);
 }
 connect();
 setInterval(renderClock, 1000);

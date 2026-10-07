@@ -16,8 +16,14 @@ const GOAL_INCREMENT = 5;
 const FAST_APPROVAL_SECONDS = 10;
 const DEFAULT_STREAK_MS = 3 * 60 * 1000;
 const FEED_MAX = 200;
-const OPS_MAX = 6;
+const FLOW_MAX = 14;
 const TITLE_MAX = 60;
+const SAY_MAX = 280;
+const OP_TEXT_MAX = 70;
+const PACE_WINDOW_MS = 60 * 1000;
+const HOURS_IN_DAY = 24;
+const DONE_MAX = 200;
+const DONE_SHOWN = 30;
 
 const MISSIONS = [
   { id: 'fast', label: '許可待ちを10秒以内に承認する（2回）', target: 2 },
@@ -67,6 +73,23 @@ function countPassedTests(text) {
   return 0;
 }
 
+// Claude の説明文は Markdown で書かれる。カードに出すのは地の文だけなので、見出し・表・コードの塊を落とす
+function plainText(markdown) {
+  const kept = [];
+  let inCode = false;
+  for (const raw of String(markdown || '').split('\n')) {
+    const line = raw.trim();
+    if (line.startsWith('```')) { inCode = !inCode; continue; }
+    if (inCode || !line || line.startsWith('#') || line.startsWith('|') || /^[-=*_]{3,}$/.test(line)) continue;
+    kept.push(line
+      .replace(/^(?:[-*+]|\d+\.)\s+/, '')
+      .replace(/^>\s?/, '')
+      .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/(\*\*|__|`)/g, ''));
+  }
+  return kept.join(' ').replace(/\s+/g, ' ').trim();
+}
+
 function countLines(s) {
   const t = String(s || '');
   return t ? t.replace(/\n$/, '').split('\n').length : 0;
@@ -88,11 +111,14 @@ function describe(tool, input = {}, finished = false) {
   if (EDIT_TOOLS.has(tool)) return `${base} を編集${ing}`;
   switch (tool) {
     case 'Read': return `${base} を読み込み${ing}`;
-    case 'Bash': return `$ ${firstLine(input.command).slice(0, 70)}`;
+    // Bash には人が読める説明（description）が付く。無いときだけコマンドそのものを出す
+    case 'Bash': return input.description ? String(input.description).replace(/\s+/g, ' ').trim().slice(0, OP_TEXT_MAX) : `$ ${firstLine(input.command).slice(0, OP_TEXT_MAX)}`;
     case 'Grep': return `「${String(input.pattern || '').slice(0, 30)}」を検索${ing}`;
     case 'Glob': return `ファイルを探索${ing}`;
     case 'WebFetch': case 'WebSearch': return `Web を調査${ing}`;
-    case 'Agent': case 'Task': return `サブエージェントに依頼${ing}`;
+    case 'Agent': case 'Task': return input.description ? `サブエージェントに依頼${ing}: ${String(input.description).slice(0, OP_TEXT_MAX)}` : `サブエージェントに依頼${ing}`;
+    case 'AskUserQuestion': return 'あなたへの質問';
+    case 'Skill': return input.skill ? `手順書「${String(input.skill).slice(0, 30)}」を読み込み${ing}` : `手順書を読み込み${ing}`;
     default: return tool || '';
   }
 }
@@ -117,6 +143,7 @@ function blankToday(day) {
     streak: 0, best: 0, streakDeadline: 0,
     goal: { target: GOAL_START, done: 0 },
     fast: 0, claimed: {}, perSession: {},
+    hours: new Array(HOURS_IN_DAY).fill(0), done: [],
   };
 }
 
@@ -126,6 +153,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
   const feed = [];
   let feedSeq = 0;
   let today = blankToday(dayKeyOf(now()));
+  let recent = []; // 直近 1 分のステップの時刻。「勢い」の表示に使い、保存はしない
 
   function blankAgent(key) {
     return {
@@ -133,12 +161,16 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       status: 'unknown', hooked: false, terminalTitle: '',
       title: '', activity: '', notice: '', mode: 'think', failing: false,
       turnOpen: false, turnStartedAt: null, doneAt: null, blockedSince: null, responded: false,
-      turnSteps: 0, run: 0, lines: 0, tests: 0, ops: [], pending: new Map(),
+      turnSteps: 0, run: 0, lines: 0, tests: 0, say: '', sayAt: null, flow: [], pending: new Map(),
     };
   }
   function getAgent(key) {
     if (!agents.has(key)) agents.set(key, blankAgent(key));
     return agents.get(key);
+  }
+  function pushFlow(a, entry) {
+    a.flow.push({ ...entry, t: now() });
+    if (a.flow.length > FLOW_MAX) a.flow.shift();
   }
   function pushFeed(name, text, kind) {
     feed.unshift({ id: ++feedSeq, t: now(), name, text, kind });
@@ -171,7 +203,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     a.turnOpen = true;
     a.turnStartedAt = now();
     a.doneAt = null;
-    a.turnSteps = 0; a.lines = 0; a.tests = 0; a.ops = [];
+    a.turnSteps = 0; a.lines = 0; a.tests = 0; a.flow = []; a.say = ''; a.sayAt = null;
     a.failing = false;
     a.pending.clear();
     if (title !== undefined) a.title = title;
@@ -186,8 +218,11 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     today.tasks++;
     today.goal.done++;
     const title = a.title || a.terminalTitle;
+    const seconds = a.turnStartedAt ? Math.round((a.doneAt - a.turnStartedAt) / 1000) : 0;
+    today.done.push({ t: a.doneAt, name: a.name, title, steps: a.turnSteps, seconds });
+    if (today.done.length > DONE_MAX) today.done.shift();
     pushFeed(a.name, title ? `タスク完了: ${title}` : 'タスク完了', 'done');
-    send('task', a, { title, tasks: today.tasks });
+    send('task', a, { title, tasks: today.tasks, steps: a.turnSteps, seconds });
     if (today.goal.done >= today.goal.target) {
       const reached = today.goal.target;
       today.goal.target += GOAL_INCREMENT;
@@ -204,7 +239,10 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     today.streak++;
     today.streakDeadline = now() + streakMs;
     if (today.streak > today.best) today.best = today.streak;
-    send('step', a, { steps: today.steps });
+    today.hours[new Date(now()).getHours()]++;
+    recent.push(now());
+    recent = recent.filter((t) => t > now() - PACE_WINDOW_MS);
+    send('step', a, { steps: today.steps, run: a.run, turnSteps: a.turnSteps });
     if (today.steps % MILESTONE_STEPS === 0) {
       pushFeed('今日完了したステップ', `今日 ${today.steps} ステップ完了`, 'done');
       send('milestone', null, { steps: today.steps, next: today.steps + MILESTONE_STEPS });
@@ -276,11 +314,13 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     return 'session:' + (sid || 'unknown');
   }
 
-  function handleHook(pane, ev) {
+  // derived = 会話記録から組み立てた出来事。フックが届いているセッションでは二重に数えないよう捨てる
+  function handleHook(pane, ev, { derived = false } = {}) {
     if (!ev || typeof ev !== 'object' || !ev.hook_event_name) return;
     rollover();
     const a = getAgent(resolveKey(pane, ev));
-    a.hooked = true;
+    if (derived && a.hooked) return;
+    if (!derived) a.hooked = true;
     if (!a.cwd && ev.cwd) { a.cwd = ev.cwd; a.name = path.basename(ev.cwd) || a.name; }
     const tool = ev.tool_name;
     const input = ev.tool_input || {};
@@ -288,7 +328,10 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
 
     switch (ev.hook_event_name) {
       case 'UserPromptSubmit': {
-        openTurn(a, String(ev.prompt || '').replace(/\s+/g, ' ').trim().slice(0, TITLE_MAX));
+        const title = String(ev.prompt || '').replace(/\s+/g, ' ').trim().slice(0, TITLE_MAX);
+        // フックなしのセッションは herdr の状態で先に区切りが始まっていることがある。そのときは数字を消さず題だけ入れる
+        if (derived && a.turnOpen && a.turnSteps === 0) a.title = title;
+        else openTurn(a, title);
         a.activity = '';
         if (paneless) setStatus(a, 'working');
         pushFeed(a.name, a.title ? `新しいタスクを開始: ${a.title}` : '新しいタスクを開始', 'think');
@@ -304,8 +347,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       }
       case 'PostToolUse': {
         a.pending.delete(ev.tool_use_id);
-        a.ops.push({ text: describe(tool, input, true), ok: true });
-        if (a.ops.length > OPS_MAX) a.ops.shift();
+        pushFlow(a, { kind: 'op', text: describe(tool, input, true), ok: true });
         a.lines += changedLines(tool, input);
         if (isTestCommand(tool, input)) {
           const passed = countPassedTests(ev.tool_response?.stdout);
@@ -318,8 +360,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       case 'PostToolUseFailure': {
         a.pending.delete(ev.tool_use_id);
         if (ev.is_interrupt) break;
-        a.ops.push({ text: describe(tool, input, true), ok: false });
-        if (a.ops.length > OPS_MAX) a.ops.shift();
+        pushFlow(a, { kind: 'op', text: describe(tool, input, true), ok: false });
         a.run = 0;
         if (isTestCommand(tool, input)) {
           const passed = countPassedTests(ev.error);
@@ -345,6 +386,23 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
         break;
     }
     onChange();
+  }
+
+  // ---------------------------------------------------------------- 会話記録（Claude の説明文）
+  // initial = ボードを開いた時点で既にあった最後の説明文。流れには足さず、カードの表示だけ埋める
+  function addNarration(sessionId, markdown, { initial = false } = {}) {
+    const a = agents.get(sessionToKey.get(sessionId));
+    if (!a) return;
+    const text = plainText(markdown).slice(0, SAY_MAX);
+    if (!text || (initial && a.say)) return;
+    a.say = text;
+    a.sayAt = now();
+    if (!initial) pushFlow(a, { kind: 'say', text });
+    onChange();
+  }
+  function handleDerived(sessionId, ev) {
+    const key = sessionToKey.get(sessionId);
+    if (key) handleHook(key, ev, { derived: true });
   }
 
   // ---------------------------------------------------------------- 承認・拒否の記録
@@ -412,7 +470,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
         blockedSince: a.blockedSince, turnStartedAt: a.turnOpen || a.doneAt ? a.turnStartedAt : null, doneAt: a.doneAt,
         turnSteps: a.turnSteps, daySteps: today.perSession[a.name] || 0,
         run: a.run, showRun: a.run >= RUN_BADGE_MIN && WORKING_STATES.has(state),
-        lines: a.lines, tests: a.tests, ops: a.ops.slice(),
+        lines: a.lines, tests: a.tests, say: a.say, sayAt: a.sayAt, flow: a.flow.slice(),
       };
     });
     list.sort((x, y) => order[x.state] - order[y.state] || x.name.localeCompare(y.name) || x.key.localeCompare(y.key));
@@ -425,6 +483,9 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
         milestone: MILESTONE_STEPS,
         goal: { target: today.goal.target, done: today.goal.done },
         missions: MISSIONS.map((m) => ({ id: m.id, label: m.label, target: m.target, value: Math.min(vals[m.id], m.target), done: !!today.claimed[m.id] })),
+        hours: today.hours.slice(),
+        done: today.done.slice(-DONE_SHOWN).reverse(),
+        recent: recent.filter((t) => t > now() - PACE_WINDOW_MS), paceWindow: PACE_WINDOW_MS,
         rank: Object.entries(today.perSession).map(([name, steps]) => ({ name, steps })).sort((x, y) => y.steps - x.steps || x.name.localeCompare(y.name)),
       },
       agents: list,
@@ -434,7 +495,10 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
 
   // ---------------------------------------------------------------- 保存
   function exportStats() {
-    return JSON.parse(JSON.stringify(today));
+    const stats = JSON.parse(JSON.stringify(today));
+    // ファイルに残すのは件数とフォルダ名だけ。指示文（題）は保存しない
+    stats.done = stats.done.map(({ title, ...rest }) => rest);
+    return stats;
   }
   function importStats(saved) {
     if (!saved || typeof saved !== 'object' || saved.day !== dayKeyOf(now())) return false;
@@ -449,13 +513,18 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       claimed: saved.claimed && typeof saved.claimed === 'object' ? { ...saved.claimed } : {},
       perSession: {},
     };
+    if (Array.isArray(saved.hours) && saved.hours.length === HOURS_IN_DAY) today.hours = saved.hours.map((v) => num(v, 0));
+    if (Array.isArray(saved.done)) {
+      today.done = saved.done.filter((d) => d && typeof d === 'object').slice(-DONE_MAX)
+        .map((d) => ({ t: num(d.t, 0), name: String(d.name || ''), title: String(d.title || ''), steps: num(d.steps, 0), seconds: num(d.seconds, 0) }));
+    }
     if (saved.perSession && typeof saved.perSession === 'object') {
       for (const [k, v] of Object.entries(saved.perSession)) today.perSession[k] = num(v, 0);
     }
     return true;
   }
 
-  return { handleHook, setHerdrAgents, setPaneStatus, recordResponse, canRespond, tick, snapshot, exportStats, importStats, agents, dayKey: () => today.day };
+  return { handleHook, handleDerived, addNarration, setHerdrAgents, setPaneStatus, recordResponse, canRespond, tick, snapshot, exportStats, importStats, agents, dayKey: () => today.day };
 }
 
-module.exports = { createCore, dayKeyOf, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };
+module.exports = { createCore, dayKeyOf, plainText, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };
