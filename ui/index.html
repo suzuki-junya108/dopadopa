@@ -3,142 +3,850 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>dopadopa</title>
+<meta name="referrer" content="no-referrer">
+<title>dopadopa ライブボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0B0B11;--card:#17171F;--line:#262632;--text:#F2F2F5;--sub:#A3A3B5;--think:#B18CFF;--work:#4D9DFF;--wait:#FF9F1C;--done:#C6F432;--err:#FF5C7A}
+:root{
+  --bg:#120A24;--card:#1E1238;--well:#0B0618;--text:#FFFFFF;--sub:#C9B8F0;--soft:#E2D8FA;--mute:#9C8AC8;--dash:#3A2766;
+  --think:#C08BFF;--edit:#2EE6FF;--test:#FFE53B;--wait:#FF8A1F;--error:#FF3D8B;--done:#9DFF3A;
+  --f-head:'Dela Gothic One','Hiragino Sans',sans-serif;
+  --f-num:Bungee,'Dela Gothic One',sans-serif;
+  --f-mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN",system-ui,sans-serif}
-.wrap{max-width:1400px;margin:0 auto;padding:24px}
-header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}
-h1{margin:0;font-size:26px;letter-spacing:-.02em}
-.stats{display:flex;gap:10px;flex-wrap:wrap}
-.stat{background:var(--card);border-radius:14px;padding:8px 14px;min-width:90px}
-.stat b{display:block;font-size:24px}.stat span{font-size:12px;color:var(--sub)}
-.asks{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
-.ask{background:var(--wait);color:#2A1500;border-radius:16px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;font-weight:700}
-.main{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
-.grid{flex:999 1 560px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
-.card{position:relative;overflow:hidden;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px;transition:transform .2s}
-.card:hover{transform:translateY(-3px)}
-.card.blocked{border-color:var(--wait);animation:glow 1.4s infinite}
-.card.done{border-color:var(--done)}
-.top{display:flex;gap:12px;align-items:flex-start}
-.top .who{flex:1;min-width:0}
-.name{font-size:18px;font-weight:700}
-.chip{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:700;color:#111}
-.chip i{width:7px;height:7px;border-radius:50%;background:currentColor;animation:blink 1.1s infinite}
-.ring{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto}
-.ring div{width:52px;height:52px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-weight:700}
-.summary{font-size:16px;font-weight:700;line-height:1.4}
-.action{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#C9C9D6}
-.bar{display:flex;gap:4px}.bar span{flex:1;height:8px;border-radius:4px;background:#2A2A38}
-.foot{display:flex;justify-content:space-between;font-size:14px;color:#C9C9D6}
-.foot b{color:var(--text)}
-button{font:inherit;font-weight:700;min-height:44px;border-radius:12px;padding:0 18px;cursor:pointer;border:none}
-button:active{transform:scale(.95)}
-.btns{display:flex;gap:8px}
-.ok{background:#2A1500;color:#FFD9A8}.ng{background:transparent;border:2px solid #2A1500;color:#2A1500}
-.card .ok{background:var(--wait);color:#2A1500}.card .ng{border-color:var(--wait);color:var(--wait)}
-.pop{position:absolute;top:12px;right:92px;background:var(--done);color:#1A2200;font-weight:700;padding:5px 11px;border-radius:999px;animation:pop 1.6s forwards}
-.conf{position:absolute;top:30%;width:9px;height:14px;border-radius:2px;animation:conf 1.5s forwards}
-aside{flex:1 1 340px;background:var(--card);border-radius:20px;padding:16px 18px}
-aside h2{font-size:12px;color:var(--sub);margin:0 0 6px;letter-spacing:.08em}
-.ev{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid #23232E;font-size:13px}
-.ev i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}.ev em{font-style:normal;color:var(--sub);margin-left:auto;flex:0 0 auto}
-.ev span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C9C9D6}
-.empty{color:var(--sub);padding:40px;text-align:center}
-@keyframes glow{50%{box-shadow:0 0 0 6px rgba(255,159,28,.28)}}
-@keyframes blink{50%{opacity:.35}}
-@keyframes pop{0%{opacity:0;transform:translateY(8px) scale(.6)}20%{opacity:1;transform:scale(1.15)}70%{opacity:1;transform:translateY(-8px)}100%{opacity:0;transform:translateY(-24px)}}
-@keyframes conf{to{opacity:0;transform:translate(var(--dx),220px) rotate(var(--r))}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN','Hiragino Sans',sans-serif;font-weight:500}
+[hidden]{display:none !important}
+button{font:inherit;color:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#root{position:relative;min-height:100vh;padding:22px 24px 56px;overflow:hidden}
+.wrap{max-width:1392px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+main{display:flex;flex-direction:column;gap:18px}
+.box{background:var(--card);border:3px solid #000;border-radius:18px}
+.b800{font-weight:800}
+
+header{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px}
+.logo{display:flex;align-items:center;gap:12px;padding-right:6px}
+.logo h1{margin:0;font-family:var(--f-head);font-weight:400;font-size:30px;letter-spacing:.02em;line-height:1}
+.logo p{margin:4px 0 0;font-size:13px;color:var(--sub);font-weight:800}
+.steps{flex:1 1 300px;min-width:250px;box-shadow:6px 6px 0 var(--test);padding:10px 16px;display:flex;flex-direction:column;gap:7px}
+.steps .head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:14px;font-weight:800}
+.steps .num{display:inline-block;font-family:var(--f-num);font-size:32px;color:var(--test);line-height:1}
+.bar{background:var(--well);border:3px solid #000;border-radius:12px;overflow:hidden}
+.bar>div{height:100%;width:0}
+.note{font-size:12px;color:var(--sub);font-weight:800}
+.streak{flex:0 0 auto;width:230px;background:var(--error);color:#2A0414;border:3px solid #000;box-shadow:6px 6px 0 #000;border-radius:18px;padding:10px 16px;display:flex;flex-direction:column;justify-content:center;gap:5px;font-weight:800}
+.streak .num{display:inline-block;font-family:var(--f-num);font-size:44px;line-height:1}
+.streak .timer{height:8px;background:rgba(0,0,0,.35);border-radius:4px;overflow:hidden}
+.streak .timer>div{height:100%;width:0;background:#FFFFFF;transition:width 1s linear}
+.toggles{display:flex;gap:10px}
+.toggle{flex:0 0 auto;min-height:48px;min-width:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 14px;border-radius:18px;border:3px solid #000;box-shadow:6px 6px 0 #000;font-weight:800;font-size:12px;background:var(--card);color:#FFFFFF}
+.toggle[aria-pressed="true"]{background:var(--done);color:#102400}
+
+.goal{box-shadow:6px 6px 0 var(--error);padding:12px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:16px;position:relative}
+.goal .cap{font-size:12px;color:#FF9EC4;font-weight:800}
+.goal h2{margin:0;font-family:var(--f-head);font-weight:400;font-size:20px}
+.goal .meter{flex:1 1 320px;display:flex;flex-direction:column;gap:4px;min-width:220px}
+.goal .note{font-size:13px;color:#FF9EC4}
+.plus{position:absolute;right:28px;top:-14px;font-family:var(--f-num);font-size:30px;color:var(--done);-webkit-text-stroke:2px #000;pointer-events:none;animation:plus .9s cubic-bezier(.2,.9,.3,1.4) forwards}
+
+.strip{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch}
+.counts{display:flex;gap:10px;flex-wrap:wrap}
+.count{border:3px solid #000;box-shadow:4px 4px 0 #000;border-radius:14px;padding:4px 12px;display:flex;align-items:baseline;gap:8px;font-size:12px;font-weight:800}
+.count b{font-family:var(--f-num);font-weight:400;font-size:22px}
+.ticker{flex:1 1 300px;min-width:0;background:var(--test);color:#2A1E00;border:3px solid #000;box-shadow:4px 4px 0 #000;border-radius:14px;overflow:hidden;display:flex;align-items:center}
+.ticker .tag{flex:0 0 auto;align-self:stretch;display:flex;align-items:center;background:#2A1E00;color:var(--test);font-size:12px;font-weight:800;padding:0 10px}
+.ticker .view{flex:1 1 auto;overflow:hidden}
+.marquee{display:flex;width:max-content;white-space:nowrap;font-weight:800;font-size:15px;padding:6px 0;animation:marquee 28s linear infinite}
+.ticker:hover .marquee,.ticker:focus-within .marquee{animation-play-state:paused}
+.marquee span{padding:0 40px}
+
+.band{border:3px solid #000;box-shadow:6px 6px 0 #000;border-radius:18px;padding:14px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;justify-content:space-between}
+.ask{background:var(--wait);color:#2A1200;animation:waitpulse 1s ease-in-out infinite}
+.ask .what{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+.ask .lead{font-family:var(--f-head);font-size:20px}
+.ask .msg{font-size:16px;font-weight:800;overflow-wrap:anywhere}
+.ask code{font-family:var(--f-mono);background:#FFFFFF;padding:2px 8px;border-radius:8px;border:2px solid #000}
+.ask .waited{font-size:14px;font-weight:800;background:#FFFFFF;border:2px solid #000;border-radius:10px;padding:3px 10px}
+.conn{background:#FFFFFF;color:#1A0838;font-weight:800}
+.btns{display:flex;gap:10px}
+.btn{cursor:pointer;min-height:48px;border-radius:14px;border:3px solid #000;box-shadow:4px 4px 0 #000;font-weight:800;padding:0 18px;transition:transform .1s,box-shadow .1s}
+.btn:hover{transform:translate(-2px,-2px)}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 #000}
+.btn.deny{background:#FFFFFF;color:#2A1200}
+.btn.approve{background:var(--done);color:#102400;font-family:var(--f-head);font-weight:400;font-size:18px;padding:0 24px}
+.btn.open{background:var(--edit);color:#04161A}
+button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
+.ask button:focus-visible{outline-color:#000}
+
+.main{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.cards{flex:999 1 560px;min-width:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:20px}
+.empty{flex:999 1 560px;color:var(--sub);font-weight:800;padding:48px 16px;text-align:center}
+.card{--c:var(--mute);--fg:#1A0838;position:relative;background:var(--card);border:3px solid #000;box-shadow:6px 6px 0 var(--c);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px;overflow:hidden;transition:transform .2s cubic-bezier(.2,.9,.3,1.6)}
+.card:hover{transform:translate(-3px,-3px) rotate(-.4deg)}
+.card.sel{box-shadow:8px 8px 0 #FFFFFF}
+.card.is-wait{animation:waitpulse 1s ease-in-out infinite}
+.card.boing{animation:boing .7s cubic-bezier(.2,.9,.3,1.8)}
+.card .top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.selbtn{flex:1 1 auto;min-width:0;min-height:44px;text-align:left;background:transparent;border:none;padding:0;display:flex;flex-direction:column;gap:8px;cursor:pointer}
+.cname{font-family:var(--f-num);font-size:20px;line-height:1.1;overflow-wrap:anywhere}
+.cbranch{font-family:var(--f-mono);font-size:12px;color:var(--sub);overflow-wrap:anywhere}
+.chip{flex:0 0 auto;display:inline-block;background:var(--c);color:var(--fg);font-family:var(--f-head);font-size:14px;padding:6px 12px;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;animation:wiggle 2.4s ease-in-out infinite}
+.card .mid{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px}
+.big{flex:0 0 auto;white-space:nowrap;font-family:var(--f-num);font-size:52px;line-height:.9;color:var(--c)}
+.big small{font-family:'M PLUS Rounded 1c','Hiragino Sans',sans-serif;font-weight:800;font-size:15px;margin-left:6px}
+.bignum{display:inline-block}
+.side{flex:1 1 auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-bottom:4px}
+.fire{display:inline-flex;align-items:center;gap:4px;background:var(--error);color:#2A0414;border:2px solid #000;border-radius:10px;padding:2px 9px 2px 5px;font-size:12px;font-weight:800}
+.fire svg{animation:flame .5s ease-in-out infinite alternate;transform-origin:50% 100%}
+.day{font-size:13px;font-weight:800;color:var(--test)}
+.track{height:18px;background:var(--well);border:2px solid #000;border-radius:7px;overflow:hidden}
+.track>div{height:100%;width:0;background-color:var(--c);transition:width .4s}
+.stripes{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.3) 0 8px,rgba(255,255,255,0) 8px 16px);background-size:22.6px 22.6px;animation:stripes .6s linear infinite}
+.texts{display:flex;flex-direction:column;gap:6px}
+.ctitle{font-size:17px;font-weight:800;line-height:1.4;overflow-wrap:anywhere}
+.cact{font-family:var(--f-mono);font-size:13px;color:var(--soft);line-height:1.5;min-height:20px;overflow-wrap:anywhere}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cstep{font-size:14px;color:var(--soft);font-weight:800}
+.eta{font-family:var(--f-num);font-size:14px;border:2px solid #000;border-radius:10px;padding:4px 10px;box-shadow:3px 3px 0 #000;background:#FFFFFF;color:#1A0838}
+.eta.wait{background:var(--wait);color:#2A1200}
+.eta.done{background:var(--done);color:#102400}
+.card .btns .deny{flex:1}
+.card .btns .approve{flex:2;font-size:17px}
+.pop{position:absolute;top:58px;right:18px;border:3px solid #000;box-shadow:4px 4px 0 #000;font-family:var(--f-head);padding:6px 14px;border-radius:14px;pointer-events:none;white-space:nowrap;background:var(--test);color:#2A1E00;font-size:17px;animation:pop 1.7s cubic-bezier(.2,.9,.3,1.4) forwards}
+.pop.bigpop{background:var(--done);color:#102400;font-size:24px}
+.stamp{position:absolute;right:16px;bottom:14px;background:var(--done);color:#102400;border:4px solid #000;box-shadow:5px 5px 0 #000;font-family:var(--f-head);font-size:30px;padding:4px 16px;border-radius:14px;transform:rotate(-9deg);pointer-events:none;animation:stamp .5s cubic-bezier(.2,.9,.3,1.8)}
+.party{position:absolute;inset:0;pointer-events:none}
+.confetti{position:absolute;top:24%;width:10px;height:16px;border-radius:2px;border:2px solid #000;animation:confetti 1.6s cubic-bezier(.1,.6,.4,1) forwards}
+
+aside{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:20px}
+.panel{background:var(--card);border:3px solid #000;border-radius:22px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.panel h2{margin:0;font-family:var(--f-head);font-weight:400;font-size:18px}
+.detail{box-shadow:6px 6px 0 var(--done);padding:18px;gap:12px}
+.detail .dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.detail .dname{font-family:var(--f-num);font-size:20px;overflow-wrap:anywhere}
+.detail .dtitle{font-size:14px;color:var(--soft);line-height:1.4;font-weight:800;overflow-wrap:anywhere}
+.detail .dbig{flex:0 0 auto;font-family:var(--f-num);font-size:38px;line-height:1}
+.detail .dbig small{font-family:'M PLUS Rounded 1c','Hiragino Sans',sans-serif;font-weight:800;font-size:13px;margin-left:4px}
+.detail .eta{align-self:flex-start}
+.ops{display:flex;flex-direction:column;gap:2px;list-style:none;margin:0;padding:0}
+.ops li{display:flex;align-items:center;gap:12px;padding:5px 0}
+.ops .mark{flex:0 0 auto;width:22px;height:22px;border-radius:7px;border:2px solid #000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:var(--done);color:#102400}
+.ops .label{flex:1 1 auto;min-width:0;font-family:var(--f-mono);font-size:13px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ops .state{font-size:13px;font-weight:800;color:var(--done);flex:0 0 auto}
+.ops li.ng .mark{background:var(--error);color:#2A0414}
+.ops li.ng .state{color:var(--error)}
+.ops li.cur .mark{background:var(--c);color:var(--fg)}
+.ops li.cur .label{color:#FFFFFF}
+.ops li.cur .state{color:var(--c)}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
+.facts div{background:var(--well);border:2px solid #000;border-radius:14px;padding:8px 10px}
+.facts dt{font-size:12px;color:var(--sub);font-weight:800}
+.facts dd{margin:0;font-family:var(--f-num);font-size:18px}
+.missions{box-shadow:6px 6px 0 var(--edit)}
+.mission{display:flex;flex-direction:column;gap:5px}
+.mission .mrow{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:14px;font-weight:800}
+.mission .tag{font-size:12px;font-weight:800;border:2px solid #000;border-radius:8px;padding:2px 8px;white-space:nowrap;background:var(--well);color:var(--soft)}
+.mission.ok .tag{background:var(--done);color:#102400}
+.thin{height:12px;background:var(--well);border:2px solid #000;border-radius:7px;overflow:hidden}
+.thin>div{height:100%;width:0;background:var(--edit);transition:width .4s}
+.mission.ok .thin>div{background:var(--done)}
+.rank{box-shadow:6px 6px 0 var(--error)}
+.rankrow{display:flex;align-items:center;gap:10px}
+.rankrow .pos{flex:0 0 auto;width:28px;height:28px;border-radius:9px;border:2px solid #000;display:flex;align-items:center;justify-content:center;font-family:var(--f-num);font-size:14px;color:#1A0838;background:var(--mute)}
+.rankrow .rname{font-family:var(--f-num);font-size:14px;flex:0 0 104px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rankrow .thin{flex:1 1 auto;height:14px;border-radius:8px}
+.rankrow .thin>div{background:var(--think);transition:width .5s}
+.rankrow .rsteps{font-family:var(--f-num);font-size:14px;color:var(--test);flex:0 0 auto}
+.rankrow:nth-child(1) .pos{background:var(--test)}
+.rankrow:nth-child(1) .thin>div{background:var(--test)}
+.rankrow:nth-child(2) .pos{background:var(--soft)}
+.rankrow:nth-child(3) .pos{background:var(--wait)}
+.feed{box-shadow:6px 6px 0 var(--think);gap:4px}
+.feed h2{margin-bottom:4px}
+.ev{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:2px dashed var(--dash)}
+.ev .dot{flex:0 0 auto;width:12px;height:12px;border-radius:4px;border:2px solid #000}
+.ev .who{font-family:var(--f-num);font-size:12px;flex:0 0 auto;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev .txt{font-size:13px;color:var(--soft);flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev .age{font-size:12px;color:var(--sub);flex:0 0 auto}
+.none{font-size:13px;color:var(--sub);font-weight:800}
+
+.flash{position:fixed;inset:0;z-index:25;pointer-events:none;animation:flash .45s ease-out forwards}
+.banner{position:fixed;top:30%;left:50%;z-index:30;pointer-events:none;text-align:center;padding:18px 36px;border:4px solid #000;border-radius:24px;box-shadow:10px 10px 0 #000;transform:translateX(-50%) rotate(-3deg);width:max-content;max-width:86%;animation:banner 1.9s cubic-bezier(.2,.9,.3,1.3) forwards}
+.banner .t{font-family:var(--f-head);font-size:clamp(26px,6.5vw,52px);line-height:1.1}
+.banner .s{font-size:clamp(14px,3.6vw,18px);font-weight:800;margin-top:6px;overflow-wrap:anywhere}
+.toast{position:fixed;top:24px;right:24px;z-index:35;background:#FFFFFF;color:#1A0838;border:3px solid #000;box-shadow:6px 6px 0 var(--think);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:12px;pointer-events:none;max-width:86%;animation:toast 3.4s cubic-bezier(.2,.9,.3,1.3) forwards}
+.toast .cap{font-size:12px;font-weight:800;color:#5A3A9A}
+.toast .t{font-family:var(--f-head);font-size:17px}
+.spark{animation:spark 1.4s ease-in-out infinite}
+.bump{animation:bump .45s cubic-bezier(.2,.9,.3,2)}
+.hot{animation:hot 1.2s steps(2) infinite}
+.shake{animation:shake .45s cubic-bezier(.36,.07,.19,.97)}
+.bigshake{animation:bigshake .7s cubic-bezier(.36,.07,.19,.97)}
+
+@keyframes shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-7px,3px)}40%{transform:translate(6px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-1px)}}
+@keyframes bigshake{0%,100%{transform:translate(0,0) rotate(0)}15%{transform:translate(-14px,6px) rotate(-.6deg)}30%{transform:translate(12px,-8px) rotate(.5deg)}45%{transform:translate(-9px,5px)}60%{transform:translate(7px,-3px)}80%{transform:translate(-3px,2px)}}
+@keyframes waitpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
+@keyframes boing{0%{transform:scale(.92)}50%{transform:scale(1.05) rotate(.8deg)}100%{transform:scale(1)}}
+@keyframes wiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(2deg)}}
+@keyframes stripes{to{background-position:22.6px 0}}
+@keyframes pop{0%{opacity:0;transform:translateY(16px) scale(.4)}18%{opacity:1;transform:translateY(0) scale(1.25)}35%{transform:scale(1)}75%{opacity:1;transform:translateY(-14px)}100%{opacity:0;transform:translateY(-34px) scale(.9)}}
+@keyframes bump{0%{transform:scale(.5) rotate(-12deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes hot{0%{background:#FF3D8B}100%{background:#FFE53B}}
+@keyframes banner{0%{opacity:0;transform:translateX(-50%) scale(2.6) rotate(-8deg)}16%{opacity:1;transform:translateX(-50%) scale(.95) rotate(-3deg)}24%{transform:translateX(-50%) scale(1.04) rotate(-3deg)}80%{opacity:1;transform:translateX(-50%) scale(1) rotate(-3deg)}100%{opacity:0;transform:translateX(-50%) scale(.85) rotate(-3deg)}}
+@keyframes toast{0%{opacity:0;transform:translateX(120%)}12%{opacity:1;transform:translateX(-6%)}18%{transform:translateX(0)}85%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(120%)}}
+@keyframes stamp{0%{opacity:0;transform:scale(3) rotate(-20deg)}100%{opacity:1;transform:scale(1) rotate(-9deg)}}
+@keyframes spark{0%,100%{transform:scale(.7) rotate(0);opacity:.6}50%{transform:scale(1.15) rotate(45deg);opacity:1}}
+@keyframes flame{0%{transform:scaleY(.85) rotate(-4deg)}100%{transform:scaleY(1.12) rotate(4deg)}}
+@keyframes flash{0%{opacity:.75}100%{opacity:0}}
+@keyframes plus{0%{opacity:0;transform:translateY(10px) scale(.5)}20%{opacity:1;transform:translateY(-6px) scale(1.3)}100%{opacity:0;transform:translateY(-30px) scale(1)}}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes confetti{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),260px) rotate(var(--rot))}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
 </style>
 </head>
 <body>
+<div id="root">
 <div class="wrap">
-  <header>
-    <h1>dopadopa</h1>
-    <div class="stats" id="stats"></div>
-  </header>
-  <div class="asks" id="asks"></div>
-  <div class="main">
-    <div class="grid" id="grid"><div class="empty">herdr のエージェントを待っています…</div></div>
-    <aside><h2>最近の出来事</h2><div id="feed"></div></aside>
+
+<header>
+  <div class="logo">
+    <svg class="spark" width="42" height="42" viewBox="0 0 40 40" fill="#FFE53B" stroke="#000000" stroke-width="2.5" stroke-linejoin="round" aria-hidden="true"><path d="M20 2 L25 15 L38 20 L25 25 L20 38 L15 25 L2 20 L15 15 Z"></path></svg>
+    <div><h1>DOPADOPA</h1><p>Claude Code セッション ライブボード</p></div>
+  </div>
+  <div class="box steps">
+    <div class="head"><span>今日完了したステップ</span><span class="num" id="stepsNum">0</span></div>
+    <div class="bar" style="height:22px"><div class="stripes" id="mileBar" style="background-color:var(--test);transition:width .5s cubic-bezier(.2,.9,.3,1.3)"></div></div>
+    <span class="note" id="mileText"></span>
+  </div>
+  <div class="streak" id="streakBox">
+    <span style="font-size:13px">止まらずに進んだステップ</span>
+    <span class="num" id="streakNum">0</span>
+    <div class="timer"><div id="streakBar"></div></div>
+    <span style="font-size:12px" id="streakText"></span>
+  </div>
+  <div class="toggles">
+    <button type="button" class="toggle btn" id="soundBtn" aria-pressed="false">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z"></path><path d="M16.5 9 Q19 12 16.5 15"></path><path d="M19 6.5 Q23.5 12 19 17.5"></path></svg>
+      <span id="soundLabel">音 OFF</span>
+    </button>
+    <button type="button" class="toggle btn" id="shakeBtn" aria-pressed="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="5" width="10" height="14" rx="2"></rect><path d="M3 9 V15"></path><path d="M21 9 V15"></path></svg>
+      <span id="shakeLabel">揺れ ON</span>
+    </button>
+  </div>
+</header>
+
+<main>
+<section class="box goal" aria-label="今日の目標">
+  <div><div class="cap">今日の目標</div><h2>タスクを <span id="goalTarget">10</span> 件完了する</h2></div>
+  <div class="meter">
+    <div class="bar" style="height:26px;border-radius:13px"><div class="stripes" id="goalBar" style="background-color:var(--done);transition:width .35s cubic-bezier(.2,.9,.3,1.3)"></div></div>
+    <span class="note" id="goalText"></span>
+  </div>
+  <div id="goalPlus"></div>
+</section>
+
+<div class="strip">
+  <div class="counts">
+    <div class="count" style="background:var(--edit);color:#04161A"><span>稼働中</span><b id="stActive">0</b></div>
+    <div class="count" style="background:var(--wait);color:#2A1200"><span>あなた待ち</span><b id="stWaiting">0</b></div>
+    <div class="count" style="background:var(--done);color:#102400"><span>今日の完了タスク</span><b id="stTasks">0</b></div>
+    <div class="count" style="background:var(--think);color:#1A0838" id="stTestsBox" hidden><span>テスト通過</span><b id="stTests">0</b></div>
+  </div>
+  <div class="ticker">
+    <span class="tag">最新の出来事</span>
+    <div class="view"><div class="marquee"><span id="tickA"></span><span id="tickB" aria-hidden="true"></span></div></div>
   </div>
 </div>
-<script>
-const TOKEN = '__DOPADOPA_TOKEN__';
-const COLORS = { working: 'var(--work)', blocked: 'var(--wait)', idle: 'var(--done)', done: 'var(--done)', unknown: 'var(--think)' };
-const LABELS = { working: '作業中', blocked: 'あなた待ち', idle: '待機中', done: '完了', unknown: '確認中' };
-const FEED_COLORS = { work: 'var(--work)', wait: 'var(--wait)', done: 'var(--done)', step: 'var(--done)', error: 'var(--err)' };
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-const prevDone = new Map();
-const celebrated = new Set();
 
-function respond(key, action) {
-  fetch('/api/respond', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Dopadopa-Token': TOKEN }, body: JSON.stringify({ key, action }) });
+<div class="band conn" id="conn" role="status" hidden></div>
+<div id="asks" style="display:flex;flex-direction:column;gap:14px"></div>
+
+<div class="main">
+  <div class="cards" id="cards"></div>
+  <div class="empty" id="empty">herdr のエージェントを待っています…</div>
+  <aside>
+    <section class="panel detail" id="detail" aria-label="選択中のセッション" hidden>
+      <div class="dhead">
+        <div style="display:flex;flex-direction:column;gap:4px;min-width:0"><span class="dname" id="dName"></span><span class="dtitle" id="dTitle"></span></div>
+        <span class="dbig" id="dBig"><span id="dBigNum">0</span><small>ステップ</small></span>
+      </div>
+      <span class="eta" id="dEta"></span>
+      <ul class="ops" id="dOps"></ul>
+      <dl class="facts">
+        <div><dt>経過</dt><dd id="dElapsed">0:00</dd></div>
+        <div><dt>変更行</dt><dd id="dLines" style="color:var(--edit)">+0</dd></div>
+        <div><dt>テスト通過</dt><dd id="dTests" style="color:var(--test)">0</dd></div>
+      </dl>
+      <button type="button" class="btn open" id="dOpen">herdr で開く</button>
+    </section>
+    <section class="panel missions" aria-label="ほかの目標"><h2>ほかの目標</h2><div id="missions" style="display:flex;flex-direction:column;gap:10px"></div></section>
+    <section class="panel rank" aria-label="セッション別 今日の完了ステップ"><h2>セッション別 今日の完了ステップ</h2><div id="rank" style="display:flex;flex-direction:column;gap:10px"></div><span class="none" id="rankNone">まだステップはありません</span></section>
+    <section class="panel feed" aria-label="最近の出来事"><h2>最近の出来事</h2><div id="feed"></div><span class="none" id="feedNone">まだ出来事はありません</span></section>
+  </aside>
+</div>
+</main>
+
+</div>
+<template id="flameIcon"><svg width="16" height="18" viewBox="0 0 16 18" aria-hidden="true"><path d="M8 1 C9 5 14 7 14 12 A6 6 0 0 1 2 12 C2 9 4 8 5 5 C6 7 7 7 8 1 Z" fill="#FFE53B" stroke="#000000" stroke-width="1.6" stroke-linejoin="round"></path></svg></template>
+<div id="fx"></div>
+<div class="sr" id="live" aria-live="polite"></div>
+</div>
+
+<script>
+'use strict';
+const TOKEN = '__DOPADOPA_TOKEN__';
+const STATES = {
+  think: { label: '考え中', color: '#C08BFF', fg: '#1A0838' },
+  edit: { label: '編集中', color: '#2EE6FF', fg: '#04161A' },
+  run: { label: 'コマンド実行中', color: '#2EE6FF', fg: '#04161A' },
+  test: { label: 'テスト中', color: '#FFE53B', fg: '#2A1E00' },
+  wait: { label: 'あなた待ち', color: '#FF8A1F', fg: '#2A1200' },
+  error: { label: '失敗→自動修正中', color: '#FF3D8B', fg: '#2A0414' },
+  done: { label: '完了', color: '#9DFF3A', fg: '#102400' },
+  idle: { label: '待機中', color: '#9C8AC8', fg: '#1A0838' },
+};
+const WORKING = new Set(['think', 'edit', 'run', 'test', 'error']);
+const FEED_COLORS = { think: '#C08BFF', wait: '#FF8A1F', done: '#9DFF3A', error: '#FF3D8B' };
+const SFX = {
+  step: [[988, .05], [1319, .09]],
+  clear: [[523, .09], [659, .09], [784, .09], [1047, .25]],
+  big: [[392, .1], [523, .1], [659, .1], [784, .1], [1047, .1], [1319, .35]],
+  approve: [[1175, .05], [1568, .1]],
+  wait: [[660, .12, 'triangle'], [660, .12, 'triangle']],
+  error: [[330, .12, 'sawtooth'], [247, .2, 'sawtooth']],
+  reset: [[523, .1, 'triangle'], [392, .1, 'triangle'], [262, .22, 'triangle']],
+};
+const CONFETTI_COLORS = ['#9DFF3A', '#2EE6FF', '#FF8A1F', '#C08BFF', '#FFE53B', '#FF3D8B'];
+const CONFETTI_COUNT = 22;
+const BANNER_MS = 1900;
+const BANNER_GAP_MS = 3000;
+const FLASH_GAP_MS = 1000;
+const TOAST_MS = 3400;
+const POP_MS = 1700;
+const STAMP_MS = 8000;
+const PARTY_MS = 1800;
+const PLUS_MS = 900;
+const FEED_ROWS = 6;
+const TICKER_ITEMS = 8;
+const HOT_STREAK = 50;
+const NOTICE_MS = 5000;
+const STALE_CHECK_AFTER_ERRORS = 2;
+
+const $ = (id) => document.getElementById(id);
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const fmt = (sec) => { sec = Math.max(0, Math.round(sec)); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); };
+const num = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+let snap = null;
+let clockOffset = 0;
+let selectedKey = null;
+let soundOn = false;
+let audio = null;
+let shakeOn = true;
+try { shakeOn = localStorage.getItem('dopadopa.shake') !== 'off'; } catch { shakeOn = true; }
+const serverNow = () => Date.now() + clockOffset;
+
+// ---------------------------------------------------------------- DOM の小道具
+// 画面を作り直すとアニメーションが途中で切れるので、要素は保持して変わった所だけ書き換える
+function text(el, value) {
+  const v = String(value ?? '');
+  if (el.textContent !== v) el.textContent = v;
+  return el;
 }
-function focusPane(key) {
-  fetch('/api/focus', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Dopadopa-Token': TOKEN }, body: JSON.stringify({ key }) });
+function h(tag, cls, content) {
+  const el = document.createElement(tag);
+  if (cls) el.className = cls;
+  if (content !== undefined) el.textContent = content;
+  return el;
 }
+function reconcile(container, items, keyOf, create, update) {
+  const old = new Map();
+  for (const el of container.children) old.set(el.dataset.key, el);
+  let prev = null;
+  for (const item of items) {
+    const key = String(keyOf(item));
+    let el = old.get(key);
+    if (el) old.delete(key);
+    else { el = create(item); el.dataset.key = key; }
+    update(el, item);
+    const want = prev ? prev.nextSibling : container.firstChild;
+    if (el !== want) container.insertBefore(el, want);
+    prev = el;
+  }
+  for (const el of old.values()) el.remove();
+}
+function restart(el, cls) {
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+}
+function setNumber(el, value) {
+  const v = num(value);
+  if (el.textContent === v) return;
+  el.textContent = v;
+  restart(el, 'bump');
+}
+function width(el, pct) {
+  const v = Math.max(0, Math.min(100, Math.round(pct))) + '%';
+  if (el.style.width !== v) el.style.width = v;
+}
+function temporary(el, parent, ms) {
+  parent.appendChild(el);
+  setTimeout(() => el.remove(), ms);
+  return el;
+}
+
+// ---------------------------------------------------------------- 音（Web Audio の合成音のみ）
+function play(names) {
+  if (!soundOn || !audio) return;
+  const seen = new Set();
+  let offset = 0;
+  for (const name of names) {
+    const seq = SFX[name];
+    if (!seq || seen.has(name)) continue;
+    seen.add(name);
+    let t = audio.currentTime + 0.01 + offset;
+    offset += 0.05;
+    for (const [freq, dur, type] of seq) {
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      osc.type = type || 'square';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.045, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(gain); gain.connect(audio.destination);
+      osc.start(t); osc.stop(t + dur + 0.02);
+      t += dur * 0.85;
+    }
+  }
+}
+$('soundBtn').addEventListener('click', () => {
+  soundOn = !soundOn;
+  // ブラウザは操作なしに音を鳴らせないので、ON にしたときに初めて作る
+  if (soundOn && !audio) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) audio = new AC(); }
+  if (soundOn && audio && audio.state === 'suspended') audio.resume();
+  $('soundBtn').setAttribute('aria-pressed', String(soundOn));
+  text($('soundLabel'), soundOn ? '音 ON' : '音 OFF');
+  if (soundOn) play(['clear']);
+});
+function showShake() {
+  $('shakeBtn').setAttribute('aria-pressed', String(shakeOn));
+  text($('shakeLabel'), shakeOn ? '揺れ ON' : '揺れ OFF');
+}
+$('shakeBtn').addEventListener('click', () => {
+  shakeOn = !shakeOn;
+  try { localStorage.setItem('dopadopa.shake', shakeOn ? 'on' : 'off'); } catch { /* 保存できなくても動作は変えない */ }
+  showShake();
+});
+showShake();
+
+// ---------------------------------------------------------------- 演出
+function shake(big) {
+  if (!shakeOn || reduceMotion.matches) return;
+  const root = $('root');
+  root.classList.remove('shake', 'bigshake');
+  void root.offsetWidth;
+  root.classList.add(big ? 'bigshake' : 'shake');
+}
+let flashAt = 0;
+function flash(color) {
+  // 動きを減らす設定では、消えていくアニメーションが止まって画面を覆ったままになるので出さない
+  if (reduceMotion.matches) return;
+  // 複数のセッションが同時に終わっても、画面全体の点滅は 1 秒に 1 回まで（光過敏への配慮）
+  const now = Date.now();
+  if (now - flashAt < FLASH_GAP_MS) return;
+  flashAt = now;
+  const el = h('div', 'flash');
+  el.style.background = color;
+  temporary(el, $('fx'), 500);
+}
+let bannerAt = 0;
+function banner(title, sub, color, fg, force) {
+  const now = Date.now();
+  if (!force && now - bannerAt < BANNER_GAP_MS) return;
+  bannerAt = now;
+  for (const old of $('fx').querySelectorAll('.banner')) old.remove();
+  const el = h('div', 'banner');
+  el.style.background = color; el.style.color = fg;
+  el.append(h('div', 't', title), h('div', 's', sub));
+  temporary(el, $('fx'), BANNER_MS);
+  text($('live'), title + ' ' + sub);
+}
+function toast(label) {
+  for (const old of $('fx').querySelectorAll('.toast')) old.remove();
+  const el = h('div', 'toast');
+  const body = h('div');
+  body.append(h('div', 'cap', '達成'), h('div', 't', label));
+  el.append(body);
+  temporary(el, $('fx'), TOAST_MS);
+  text($('live'), '達成 ' + label);
+}
+const cardOf = (key) => [...$('cards').children].find((el) => el.dataset.key === key);
+function cardPop(key, label, big) {
+  const card = cardOf(key);
+  if (!card) return;
+  for (const old of card.querySelectorAll('.pop')) old.remove();
+  temporary(h('div', big ? 'pop bigpop' : 'pop', label), card, POP_MS);
+}
+function celebrate(key) {
+  const card = cardOf(key);
+  if (!card) return;
+  for (const old of card.querySelectorAll('.stamp')) old.remove();
+  temporary(h('div', 'stamp', '完了！'), card, STAMP_MS);
+  if (reduceMotion.matches) return;
+  restart(card, 'boing');
+  const party = h('div', 'party');
+  for (let i = 0; i < CONFETTI_COUNT; i++) {
+    const p = h('span', 'confetti');
+    p.style.left = (4 + (i * 53) % 92) + '%';
+    p.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    p.style.animationDelay = ((i % 6) * 0.05).toFixed(2) + 's';
+    p.style.setProperty('--dx', (((i * 37) % 160) - 80) + 'px');
+    p.style.setProperty('--rot', (((i * 73) % 720) - 360) + 'deg');
+    party.append(p);
+  }
+  temporary(party, card, PARTY_MS);
+}
+function goalPlus() {
+  if (reduceMotion.matches) return;
+  temporary(h('span', 'plus', '+1 件'), $('goalPlus'), PLUS_MS);
+}
+
+function onEvent(e) {
+  switch (e.kind) {
+    case 'step':
+      cardPop(e.key, '+1 ステップ完了', false);
+      play(['step']);
+      break;
+    case 'task':
+      cardPop(e.key, 'タスク完了！', true);
+      celebrate(e.key);
+      goalPlus();
+      banner('タスク完了！', [e.name, e.title].filter(Boolean).join(' ・ '), '#9DFF3A', '#102400', false);
+      shake(false); flash('#9DFF3A'); play(['clear']);
+      break;
+    case 'milestone':
+      banner(`今日 ${num(e.steps)} ステップ完了！`, `次の区切りは ${num(e.next)} ステップ`, '#FFE53B', '#2A1E00', true);
+      shake(true); flash('#FFE53B'); play(['big']);
+      break;
+    case 'goal':
+      banner('今日の目標を達成！', `タスク ${e.target} 件完了 ・ 次の目標は ${e.next} 件`, '#FF3D8B', '#2A0414', true);
+      shake(true); flash('#FF3D8B'); play(['big']);
+      break;
+    case 'streak':
+      banner(`${e.streak} ステップ連続！`, '止まらずに進んでいます', '#FF3D8B', '#2A0414', false);
+      shake(false); flash('#FF3D8B');
+      break;
+    case 'blocked': play(['wait']); break;
+    case 'approved': cardPop(e.key, '承認しました', false); play(['approve']); break;
+    case 'error': play(['error']); break;
+    case 'streak_reset': play(['reset']); break;
+    case 'mission': toast(e.label); break;
+  }
+}
+
+// ---------------------------------------------------------------- 操作
+let noticeTimer = null;
+function notice(message) {
+  const el = $('conn');
+  text(el, message);
+  el.hidden = false;
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => { if (connected) el.hidden = true; }, NOTICE_MS);
+}
+async function post(pathname, body, failure) {
+  try {
+    const res = await fetch(pathname, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Dopadopa-Token': TOKEN }, body: JSON.stringify(body) });
+    if (!res.ok) notice(failure);
+  } catch {
+    notice(failure);
+  }
+}
+const respond = (key, action) => post('/api/respond', { key, action }, action === 'approve' ? '承認を送れませんでした。herdr で開いて確認してください' : '拒否を送れませんでした。herdr で開いて確認してください');
+const focusPane = (key) => post('/api/focus', { key }, 'herdr で開けませんでした');
 document.addEventListener('click', (e) => {
   const b = e.target.closest('button[data-act]');
   if (!b) return;
-  if (b.dataset.act === 'focus') focusPane(b.dataset.key); else respond(b.dataset.key, b.dataset.act);
+  const key = b.dataset.key || (b.closest('[data-key]') || {}).dataset?.key;
+  if (!key) return;
+  if (b.dataset.act === 'select') { selectedKey = key; if (snap) render(snap); }
+  else if (b.dataset.act === 'focus') focusPane(key);
+  else respond(key, b.dataset.act);
 });
-
-function confetti() {
-  const c = ['#C6F432', '#4D9DFF', '#FF9F1C', '#B18CFF', '#3DDCE0', '#FF5C7A'];
-  return Array.from({ length: 16 }, (_, i) => `<span class="conf" style="left:${(i * 53) % 90 + 5}%;background:${c[i % 6]};--dx:${(i * 37) % 120 - 60}px;--r:${(i * 73) % 540 - 270}deg;animation-delay:${(i % 5) * 0.06}s"></span>`).join('');
+function responseButtons(big) {
+  const wrap = h('div', 'btns');
+  const deny = h('button', 'btn deny', '拒否'); deny.type = 'button'; deny.dataset.act = 'deny';
+  const approve = h('button', 'btn approve', '承認する'); approve.type = 'button'; approve.dataset.act = 'approve';
+  wrap.append(deny, approve);
+  if (!big) wrap.hidden = true;
+  return wrap;
 }
 
-function card(a) {
-  const color = COLORS[a.status] || COLORS.unknown;
-  const pct = a.total ? Math.round((a.done / a.total) * 100) : (a.status === 'done' || a.status === 'idle') ? 100 : 0;
-  const stepUp = prevDone.has(a.key) && a.done > prevDone.get(a.key);
-  prevDone.set(a.key, a.done);
-  let party = '';
-  if (a.justDone && !celebrated.has(a.key)) { celebrated.add(a.key); party = confetti(); }
-  if (!a.justDone) celebrated.delete(a.key);
-  const eta = a.status === 'blocked' ? `<b style="color:var(--wait)">承認待ち ${fmt(a.blockedFor)}</b>`
-    : a.eta ? `<b>残り約 ${fmt(a.eta.low)}〜${fmt(a.eta.high)}</b>`
-    : a.status === 'working' ? '<b>見積もり中</b>' : '';
-  const bars = a.total ? `<div class="bar">${a.todos.map((t) => `<span style="background:${t.status === 'completed' ? 'var(--done)' : t.status === 'in_progress' ? color : '#2A2A38'}"></span>`).join('')}</div>` : '';
-  return `<div class="card ${a.status} ${a.justDone ? 'done' : ''}">
-    <div class="top">
-      <div class="who"><div class="name">${esc(a.name)}</div>
-        <span class="chip" style="background:${color}"><i></i>${LABELS[a.status] || esc(a.status)}</span></div>
-      <div class="ring" style="background:conic-gradient(${color} ${pct * 3.6}deg,#2A2A38 0)"><div>${pct}%</div></div>
-    </div>
-    <div class="summary">${esc(a.summary || a.title || '指示を待っています')}</div>
-    <div class="action">${esc(a.notice || a.lastAction)}</div>
-    ${bars}
-    <div class="foot"><span>${a.total ? `${a.done}/${a.total} ステップ` : `ツール ${a.tools} 回`}</span>${eta}</div>
-    ${a.status === 'blocked' ? `<div class="btns"><button class="ng" data-act="deny" data-key="${esc(a.key)}">拒否</button><button class="ok" style="flex:1" data-act="approve" data-key="${esc(a.key)}">承認する</button></div>` : ''}
-    ${a.pane ? `<button style="background:transparent;border:2px solid #3A3A4A;color:var(--text)" data-act="focus" data-key="${esc(a.key)}">herdr で開く</button>` : ''}
-    ${stepUp ? '<div class="pop">+1 ステップ</div>' : ''}${party}
-  </div>`;
+// ---------------------------------------------------------------- 描画
+function etaOf(a, now) {
+  if (a.state === 'wait') return { label: a.canRespond ? 'あなたの承認待ち' : 'あなた待ち', cls: 'eta wait' };
+  if (a.state === 'done') return { label: '完了', cls: 'eta done' };
+  if (a.state === 'idle') return { label: '指示を待っています', cls: 'eta' };
+  return { label: a.turnStartedAt ? '経過 ' + fmt((now - a.turnStartedAt) / 1000) : '経過 0:00', cls: 'eta' };
+}
+function elapsedOf(a, now) {
+  if (!a.turnStartedAt) return 0;
+  return ((a.doneAt || now) - a.turnStartedAt) / 1000;
+}
+function factsLine(a) {
+  const parts = [];
+  if (a.lines) parts.push(`変更 +${num(a.lines)} 行`);
+  if (a.tests) parts.push(`テスト ${num(a.tests)} 件通過`);
+  return parts.join(' ・ ');
+}
+function activityOf(a) {
+  if (a.state === 'wait') return a.ask ? `「${a.ask}」の実行許可を待っています` : (a.notice || 'あなたの対応を待っています');
+  if (a.state === 'done') return factsLine(a);
+  if (a.state === 'idle') return '';
+  return a.activity || '実装方針を組み立て中';
+}
+
+function createCard() {
+  const el = h('article', 'card');
+  const top = h('div', 'top');
+  const sel = h('button', 'selbtn'); sel.type = 'button'; sel.dataset.act = 'select';
+  sel.append(h('span', 'cname'), h('span', 'cbranch'));
+  top.append(sel, h('span', 'chip'));
+  const mid = h('div', 'mid');
+  const big = h('span', 'big');
+  big.append(h('span', 'bignum', '0'), h('small', '', 'ステップ'));
+  const side = h('div', 'side');
+  const fire = h('span', 'fire');
+  fire.append($('flameIcon').content.cloneNode(true), h('span', 'firetxt'));
+  fire.hidden = true;
+  side.append(fire, h('span', 'day'));
+  mid.append(big, side);
+  const track = h('div', 'track'); track.append(h('div'));
+  const texts = h('div', 'texts'); texts.append(h('span', 'ctitle'), h('span', 'cact'));
+  const foot = h('div', 'foot'); foot.append(h('span', 'cstep'), h('span', 'eta'));
+  el.append(top, mid, track, texts, foot, responseButtons(false));
+  el._r = {
+    sel, name: sel.children[0], branch: sel.children[1], chip: top.children[1], bignum: big.children[0], fire, firetxt: fire.lastChild,
+    day: side.children[1], fill: track.firstChild, title: texts.children[0], act: texts.children[1], step: foot.children[0], eta: foot.children[1], btns: el.lastChild,
+  };
+  return el;
+}
+function updateCard(el, a) {
+  const r = el._r;
+  const st = STATES[a.state] || STATES.idle;
+  const now = serverNow();
+  el.style.setProperty('--c', st.color);
+  el.style.setProperty('--fg', st.fg);
+  el.classList.toggle('sel', a.key === selectedKey);
+  el.classList.toggle('is-wait', a.state === 'wait');
+  r.sel.setAttribute('aria-label', `${a.name} の詳細を表示`);
+  r.sel.setAttribute('aria-pressed', String(a.key === selectedKey));
+  text(r.name, a.name);
+  text(r.branch, a.branch);
+  text(r.chip, st.label);
+  setNumber(r.bignum, a.turnSteps);
+  r.fire.hidden = !a.showRun;
+  text(r.firetxt, `${a.run}ステップ連続で進行中`);
+  text(r.day, `今日 ${num(a.daySteps)} ステップ完了`);
+  width(r.fill, a.state === 'idle' ? 0 : 100);
+  r.fill.classList.toggle('stripes', WORKING.has(a.state));
+  text(r.title, a.title || '指示を待っています');
+  text(r.act, activityOf(a));
+  text(r.step, a.state === 'done' ? '' : factsLine(a));
+  const eta = etaOf(a, now);
+  text(r.eta, eta.label);
+  if (r.eta.className !== eta.cls) r.eta.className = eta.cls;
+  r.btns.hidden = !a.canRespond;
+}
+
+function createAsk() {
+  const el = h('div', 'band ask');
+  const what = h('div', 'what');
+  what.append(h('span', 'lead'), h('span', 'msg'), h('span', 'waited'));
+  const open = h('button', 'btn deny', 'herdr で開く'); open.type = 'button'; open.dataset.act = 'focus';
+  const btns = responseButtons(true);
+  el.append(what, btns, open);
+  el._r = { lead: what.children[0], msg: what.children[1], waited: what.children[2], btns, open, shownAsk: null };
+  return el;
+}
+function updateAsk(el, a) {
+  const r = el._r;
+  text(r.lead, a.canRespond ? '許可待ち' : 'あなた待ち');
+  const shown = a.canRespond ? 'ask:' + a.name + '\n' + a.ask : 'msg:' + a.name + '\n' + a.notice;
+  if (r.shownAsk !== shown) {
+    r.shownAsk = shown;
+    r.msg.replaceChildren();
+    if (a.canRespond) r.msg.append(`${a.name} が `, h('code', '', a.ask), ' の実行許可を待っています');
+    else r.msg.append(`${a.name} があなたの対応を待っています`, a.notice ? `（${a.notice}）` : '');
+  }
+  text(r.waited, `待ち時間 ${Math.max(0, Math.round((serverNow() - a.blockedSince) / 1000))}秒`);
+  r.btns.hidden = !a.canRespond;
+  r.open.hidden = a.canRespond || !a.pane;
+}
+
+function renderDetail(a) {
+  const panel = $('detail');
+  panel.hidden = !a;
+  if (!a) return;
+  const st = STATES[a.state] || STATES.idle;
+  const now = serverNow();
+  panel.style.setProperty('--c', st.color);
+  panel.style.setProperty('--fg', st.fg);
+  text($('dName'), a.name);
+  text($('dTitle'), a.title || '指示を待っています');
+  $('dBig').style.color = st.color;
+  setNumber($('dBigNum'), a.turnSteps);
+  const eta = etaOf(a, now);
+  text($('dEta'), eta.label);
+  if ($('dEta').className !== eta.cls) $('dEta').className = eta.cls;
+  const rows = a.ops.map((op, i) => ({ id: 'op' + i + op.text, text: op.text, cls: op.ok ? '' : 'ng', mark: op.ok ? '✓' : '×', state: op.ok ? '完了' : '失敗' }));
+  if (WORKING.has(a.state) && a.activity) rows.push({ id: 'cur', text: a.activity, cls: 'cur', mark: '▶', state: '進行中' });
+  if (a.state === 'wait') rows.push({ id: 'cur', text: activityOf(a), cls: 'cur', mark: '▶', state: a.canRespond ? '許可待ち' : 'あなた待ち' });
+  reconcile($('dOps'), rows, (r) => r.id, () => {
+    const li = h('li');
+    li.append(h('span', 'mark'), h('span', 'label'), h('span', 'state'));
+    return li;
+  }, (li, r) => {
+    if (li.className !== r.cls) li.className = r.cls;
+    text(li.children[0], r.mark); text(li.children[1], r.text); text(li.children[2], r.state);
+  });
+  text($('dElapsed'), fmt(elapsedOf(a, now)));
+  text($('dLines'), '+' + num(a.lines));
+  text($('dTests'), num(a.tests));
+  $('dOpen').hidden = !a.pane;
+  $('dOpen').dataset.act = 'focus';
+  $('dOpen').dataset.key = a.key;
+}
+
+function age(ms) {
+  const d = Math.max(0, Math.round(ms / 1000));
+  if (d < 2) return 'たった今';
+  if (d < 60) return d + '秒前';
+  if (d < 3600) return Math.floor(d / 60) + '分前';
+  return Math.floor(d / 3600) + '時間前';
+}
+function renderClock() {
+  if (!snap) return;
+  const now = serverNow();
+  const t = snap.today;
+  const left = t.streak > 0 ? Math.max(0, t.streakDeadline - now) : 0;
+  width($('streakBar'), t.streakWindow ? (left / t.streakWindow) * 100 : 0);
+  text($('streakText'), t.streak === 0 ? 'どれかのステップが終わると始まります' : `バーが空になると 0 に戻ります ・ 最高 ${num(t.best)}`);
+  for (const el of $('feed').children) text(el.children[3], age(now - Number(el.dataset.t)));
+  for (const a of snap.agents) {
+    const card = cardOf(a.key);
+    if (card) text(card._r.eta, etaOf(a, now).label);
+  }
+  const waiting = snap.agents.filter((a) => a.state === 'wait');
+  for (const el of $('asks').children) {
+    const a = waiting.find((x) => x.key === el.dataset.key);
+    if (a) text(el._r.waited, `待ち時間 ${Math.max(0, Math.round((now - a.blockedSince) / 1000))}秒`);
+  }
+  const sel = snap.agents.find((a) => a.key === selectedKey);
+  if (sel) { text($('dEta'), etaOf(sel, now).label); text($('dElapsed'), fmt(elapsedOf(sel, now))); }
 }
 
 function render(s) {
-  const working = s.agents.filter((a) => a.status === 'working').length;
-  const blocked = s.agents.filter((a) => a.status === 'blocked');
-  document.getElementById('stats').innerHTML = [
-    ['稼働中', working, 'var(--work)'], ['あなた待ち', blocked.length, 'var(--wait)'],
-    ['完了ターン', s.stats.tasksDone, 'var(--done)'], ['完了ステップ', s.stats.steps, 'var(--done)'],
-  ].map(([l, v, c]) => `<div class="stat"><span>${l}</span><b style="color:${c}">${v}</b></div>`).join('');
-  document.getElementById('asks').innerHTML = blocked.map((a) => `<div class="ask"><span>${esc(a.name)}：${esc(a.notice || '許可を待っています')}（${a.blockedFor}秒）</span>
-    <div class="btns"><button class="ng" data-act="deny" data-key="${esc(a.key)}">拒否</button><button class="ok" data-act="approve" data-key="${esc(a.key)}">承認する</button></div></div>`).join('');
-  document.getElementById('grid').innerHTML = s.agents.length ? s.agents.map(card).join('') : '<div class="empty">herdr のエージェントを待っています…</div>';
-  document.getElementById('feed').innerHTML = s.feed.slice(0, 12).map((e) => {
-    const d = Math.round((s.now - e.t) / 1000);
-    return `<div class="ev"><i style="background:${FEED_COLORS[e.kind] || 'var(--sub)'}"></i><b>${esc(e.name)}</b><span>${esc(e.text)}</span><em>${d < 2 ? 'たった今' : d < 60 ? d + '秒前' : Math.round(d / 60) + '分前'}</em></div>`;
-  }).join('');
+  const t = s.today;
+  setNumber($('stepsNum'), t.steps);
+  const nextMile = (Math.floor(t.steps / t.milestone) + 1) * t.milestone;
+  width($('mileBar'), ((t.steps % t.milestone) / t.milestone) * 100);
+  text($('mileText'), `次の区切り ${num(nextMile)} ステップまで あと ${num(nextMile - t.steps)}`);
+  setNumber($('streakNum'), t.streak);
+  $('streakBox').classList.toggle('hot', t.streak >= HOT_STREAK);
+
+  text($('goalTarget'), t.goal.target);
+  width($('goalBar'), (t.goal.done / t.goal.target) * 100);
+  text($('goalText'), `${t.goal.done} / ${t.goal.target} 件 ・ あと ${Math.max(0, t.goal.target - t.goal.done)} 件`);
+
+  const waiting = s.agents.filter((a) => a.state === 'wait');
+  text($('stActive'), s.agents.filter((a) => WORKING.has(a.state)).length);
+  text($('stWaiting'), waiting.length);
+  text($('stTasks'), num(t.tasks));
+  // テスト通過は結果行が取れたときだけ出す（取れていない 0 を「通過 0 件」と見せない）
+  $('stTestsBox').hidden = t.tests === 0;
+  text($('stTests'), num(t.tests));
+  const ticker = s.feed.slice(0, TICKER_ITEMS).map((e) => `${e.name}｜${e.text}`).join('　／　') || 'まだ出来事はありません';
+  text($('tickA'), ticker); text($('tickB'), ticker);
+
+  reconcile($('asks'), waiting, (a) => a.key, createAsk, updateAsk);
+
+  if (!s.agents.some((a) => a.key === selectedKey)) selectedKey = s.agents.length ? s.agents[0].key : null;
+  $('empty').hidden = s.agents.length > 0;
+  $('cards').hidden = s.agents.length === 0;
+  reconcile($('cards'), s.agents, (a) => a.key, createCard, updateCard);
+  renderDetail(s.agents.find((a) => a.key === selectedKey));
+
+  reconcile($('missions'), t.missions, (m) => m.id, () => {
+    const el = h('div', 'mission');
+    const row = h('div', 'mrow'); row.append(h('span'), h('span', 'tag'));
+    const bar = h('div', 'thin'); bar.append(h('div'));
+    el.append(row, bar);
+    return el;
+  }, (el, m) => {
+    el.classList.toggle('ok', m.done);
+    text(el.firstChild.children[0], m.label);
+    text(el.firstChild.children[1], m.done ? '達成' : `${num(m.value)} / ${num(m.target)}`);
+    width(el.lastChild.firstChild, (m.value / m.target) * 100);
+  });
+
+  const maxSteps = Math.max(1, ...t.rank.map((r) => r.steps));
+  $('rankNone').hidden = t.rank.length > 0;
+  reconcile($('rank'), t.rank, (r) => r.name, () => {
+    const el = h('div', 'rankrow');
+    const bar = h('div', 'thin'); bar.append(h('div'));
+    el.append(h('span', 'pos'), h('span', 'rname'), bar, h('span', 'rsteps'));
+    return el;
+  }, (el, r) => {
+    text(el.children[1], r.name);
+    width(el.children[2].firstChild, (r.steps / maxSteps) * 100);
+    text(el.children[3], num(r.steps));
+  });
+  [...$('rank').children].forEach((el, i) => text(el.children[0], i + 1));
+
+  $('feedNone').hidden = s.feed.length > 0;
+  reconcile($('feed'), s.feed.slice(0, FEED_ROWS), (e) => e.id, (e) => {
+    const el = h('div', 'ev');
+    el.dataset.t = e.t;
+    const dot = h('span', 'dot'); dot.style.background = FEED_COLORS[e.kind] || '#9C8AC8';
+    el.append(dot, h('span', 'who', e.name), h('span', 'txt', e.text), h('span', 'age'));
+    return el;
+  }, () => {});
+  renderClock();
 }
 
-const es = new EventSource('/stream?token=' + TOKEN);
-es.onmessage = (m) => render(JSON.parse(m.data));
+// ---------------------------------------------------------------- 接続
+let connected = false;
+let errors = 0;
+function connect() {
+  const es = new EventSource('/stream?token=' + TOKEN);
+  es.onmessage = (m) => {
+    const data = JSON.parse(m.data);
+    if (!connected) { connected = true; errors = 0; $('conn').hidden = true; }
+    if (data.type === 'event') { onEvent(data); return; }
+    snap = data;
+    clockOffset = data.now - Date.now();
+    render(data);
+  };
+  es.onerror = async () => {
+    connected = false;
+    errors++;
+    text($('conn'), 'ブリッジとの接続が切れました。再接続を試みています…');
+    $('conn').hidden = false;
+    if (errors < STALE_CHECK_AFTER_ERRORS) return;
+    // ブリッジが再起動するとトークンが変わり、このページは二度とつながらない。その場合は開き直しを案内する
+    try {
+      const res = await fetch('/?token=' + TOKEN, { cache: 'no-store' });
+      if (res.status === 403) { es.close(); text($('conn'), 'ブリッジが再起動されました。herdr のメニューから「dopadopa: ボードを開く」で開き直してください'); }
+    } catch { /* ブリッジが止まっている間は EventSource が再接続を続ける */ }
+  };
+}
+connect();
+setInterval(renderClock, 1000);
 </script>
 </body>
 </html>

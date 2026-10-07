@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "description": "Claude Code の複数セッションをライブボードで見渡す herdr プラグイン",
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "node bridge/server.js",
-    "check": "node --check bridge/server.js && sh -n bin/start-bridge.sh && sh -n bin/open-board.sh && sh -n hooks/forward.sh"
+    "check": "node --check bridge/server.js && node --check bridge/core.js && node --check bin/install-hooks.js && sh -n bin/start-bridge.sh && sh -n bin/open-board.sh && sh -n hooks/forward.sh",
+    "test": "node --test test/*.test.js"
   }
 }

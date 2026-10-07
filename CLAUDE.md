@@ -22,16 +22,19 @@ Claude Code ×N（herdr のペイン）
 | `herdr-plugin.toml` | プラグイン定義。startup でブリッジ起動、actions: open / restart / stop |
 | `bin/start-bridge.sh` | ブリッジを nohup で常駐起動（startup hook は一回きりのため） |
 | `bin/open-board.sh` | ブラウザでボードを開く |
-| `bridge/server.js` | herdr socket（agent.list ポーリング + events.subscribe）と hooks を統合し SSE 配信。依存なし |
+| `bridge/server.js` | herdr socket（agent.list ポーリング + events.subscribe）と hooks の受け口、SSE 配信、認証、今日の数字の保存。依存なし |
+| `bridge/core.js` | 数え方と状態の決め方（ステップ・タスク・連続・目標）。入出力を持たず `test/` でテストする |
+| `bin/install-hooks.js` | `~/.claude/settings.json` にフックを足す / 外す（`--remove`）。先にバックアップを取る |
 | `hooks/forward.sh` | Claude Code hook → ブリッジへ転送。失敗しても必ず exit 0 |
 | `hooks/claude-settings.json` | `~/.claude/settings.json` に足す hooks 設定 |
-| `ui/index.html` | ボード（現状は最小版。デザイン移植が次のタスク） |
+| `ui/index.html` | ボード（確定デザインを移植済み。スナップショットで表示を更新し、イベントで演出を起こす） |
 | `design/prototype.dc.html` | 確定デザインの試作（Claude の Design 形式。参照用で、そのままは動かない） |
 
 ## コマンド
 
 ```sh
 npm run check                                   # 構文チェック
+npm test                                        # 数え方のテスト（node:test）
 herdr plugin link "$PWD"                         # 開発中のプラグインを登録
 herdr plugin action invoke dopadopa.board.restart
 herdr plugin action invoke dopadopa.board.open

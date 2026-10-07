@@ -24,12 +24,16 @@ Mac で動く Claude Code の複数セッションを、リアルタイムに分
 
 確定デザインの試作: `design/prototype.dc.html`（Claude の Design 形式。テンプレート記法 `{{...}}` と `class Component extends DCLogic` で書かれている。ロジックと見た目の参照用）
 
-## 現状
+| ステップ＝ツール操作 1 回の完了、タスク＝1 回の指示への対応完了（2026-10-07） | 実機の Claude Code に Todo 系ツールが無く、Todo 前提では演出が一切起きない。% と残り時間は出さない |
 
-- `bridge/server.js`: 動作する。herdr なしの環境で hooks 受信 → SSE 配信まで確認済み。herdr 実機では未確認
-- `ui/index.html`: 動作確認用の最小版。確定デザインは未移植
-- 今日の数字（ステップ数など）の保存: 未実装（再起動で 0 に戻る）
-- hooks の導入: 手作業（`hooks/claude-settings.json` を `~/.claude/settings.json` にマージ）
+## 現状（2026-10-07）
+
+- T0・T1・T2 は実装済み。確かめた事実は `docs/herdr-findings.md`、数え方は `docs/data-mapping.md`
+- `bridge/core.js`: 数え方と状態の決め方（`npm test` でテスト）。`bridge/server.js`: 通信・保存・認証
+- `ui/index.html`: 確定デザインを移植済み。実際の herdr のセッション一覧と、模擬のフックで演出まで確認
+- 今日の数字は日付ごとのファイルに保存し、再起動しても残る
+- hooks の導入: `node bin/install-hooks.js`（herdr の操作「dopadopa: Claude Code のフックを入れる」）。バックアップを取ってから足す
+- 残り: 実物の許可プロンプトで承認・拒否のキーが効くかの確認（ユーザーの操作が必要）、T3 の残り、T4
 
 ## タスク（上から順に）
 
@@ -84,5 +88,5 @@ Mac で動く Claude Code の複数セッションを、リアルタイムに分
 
 - テスト通過数の取り方: hooks の PostToolUse の出力から、テストランナーの結果行（jest / vitest / pytest など）を正規表現で拾う案。難しければ「ほかの目標」から外す
 - 変更行数: Edit / Write の入力から概算する
-- 連続記録が 0 に戻るまでの時間: 試作は 14 秒（デモ用）。実運用は数分が妥当。設定で変えられるようにする
-- Claude Code のバージョンにより Todo のツール名が TodoWrite 以外の可能性がある（T0 で hooks の実データを確認）
+- 区切り（100）・連続の告知（50 / 100 / 150）・炎のバッジ（10）の数値は、操作単位に合わせて決めた初期値。実際に 1 日使って多すぎる・少なすぎるを見て調整する
+- Todo 系ツールを使う Claude Code でも、いまはステップを操作単位で数える（Todo は見ていない）
