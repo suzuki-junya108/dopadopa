@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>dopadopa ライブボード</title>
+<link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
@@ -21,9 +22,9 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:'M PLUS Rounded
 [hidden]{display:none !important}
 button{font:inherit;color:inherit}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-#root{position:relative;min-height:100vh;padding:22px 24px 56px;overflow:hidden}
-.wrap{max-width:1392px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
-main{display:flex;flex-direction:column;gap:18px}
+#root{position:relative;min-height:100vh;padding:16px 20px 20px;overflow:hidden}
+.wrap{margin:0 auto;display:flex;flex-direction:column;gap:14px}
+main{display:flex;flex-direction:column;gap:14px}
 .box{background:var(--card);border:3px solid #000;border-radius:18px}
 .b800{font-weight:800}
 
@@ -45,11 +46,11 @@ header{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px}
 .toggle{flex:0 0 auto;min-height:48px;min-width:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 14px;border-radius:18px;border:3px solid #000;box-shadow:6px 6px 0 #000;font-weight:800;font-size:12px;background:var(--card);color:#FFFFFF}
 .toggle[aria-pressed="true"]{background:var(--done);color:#102400}
 
-.goal{box-shadow:6px 6px 0 var(--error);padding:12px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:16px;position:relative}
+.goal{flex:1 1 280px;min-width:240px;box-shadow:6px 6px 0 var(--error);padding:10px 16px;display:flex;flex-direction:column;justify-content:center;gap:6px;position:relative}
 .goal .cap{font-size:12px;color:#FF9EC4;font-weight:800}
-.goal h2{margin:0;font-family:var(--f-head);font-weight:400;font-size:20px}
-.goal .meter{flex:1 1 320px;display:flex;flex-direction:column;gap:4px;min-width:220px}
-.goal .note{font-size:13px;color:#FF9EC4}
+.goal h2{margin:0;font-family:var(--f-head);font-weight:400;font-size:17px}
+.goal .meter{display:flex;flex-direction:column;gap:4px}
+.goal .note{font-size:12px;color:#FF9EC4}
 .plus{position:absolute;right:28px;top:-14px;font-family:var(--f-num);font-size:30px;color:var(--done);-webkit-text-stroke:2px #000;pointer-events:none;animation:plus .9s cubic-bezier(.2,.9,.3,1.4) forwards}
 
 .strip{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch}
@@ -81,10 +82,9 @@ header{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px}
 button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .ask button:focus-visible{outline-color:#000}
 
-.main{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
-.cards{flex:999 1 560px;min-width:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:20px}
-.empty{flex:999 1 560px;color:var(--sub);font-weight:800;padding:48px 16px;text-align:center}
-.card{--c:var(--mute);--fg:#1A0838;position:relative;background:var(--card);border:3px solid #000;box-shadow:6px 6px 0 var(--c);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px;overflow:hidden;transition:transform .2s cubic-bezier(.2,.9,.3,1.6)}
+.cards{min-width:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+.empty{color:var(--sub);font-weight:800;padding:32px 16px;text-align:center}
+.card{--c:var(--mute);--fg:#1A0838;position:relative;background:var(--card);border:3px solid #000;box-shadow:6px 6px 0 var(--c);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;transition:transform .2s cubic-bezier(.2,.9,.3,1.6)}
 .card:hover{transform:translate(-3px,-3px) rotate(-.4deg)}
 .card.sel{box-shadow:8px 8px 0 #FFFFFF}
 .card.is-wait{animation:waitpulse 1s ease-in-out infinite}
@@ -95,7 +95,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .cbranch{font-family:var(--f-mono);font-size:12px;color:var(--sub);overflow-wrap:anywhere}
 .chip{flex:0 0 auto;display:inline-block;background:var(--c);color:var(--fg);font-family:var(--f-head);font-size:14px;padding:6px 12px;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;animation:wiggle 2.4s ease-in-out infinite}
 .card .mid{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px}
-.big{flex:0 0 auto;white-space:nowrap;font-family:var(--f-num);font-size:52px;line-height:.9;color:var(--c)}
+.big{flex:0 0 auto;white-space:nowrap;font-family:var(--f-num);font-size:44px;line-height:.9;color:var(--c)}
 .big small{font-family:'M PLUS Rounded 1c','Hiragino Sans',sans-serif;font-weight:800;font-size:15px;margin-left:6px}
 .bignum{display:inline-block}
 .side{flex:1 1 auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-bottom:4px}
@@ -105,9 +105,9 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .track{height:18px;background:var(--well);border:2px solid #000;border-radius:7px;overflow:hidden}
 .track>div{height:100%;width:0;background-color:var(--c);transition:width .4s}
 .stripes{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.3) 0 8px,rgba(255,255,255,0) 8px 16px);background-size:22.6px 22.6px;animation:stripes .6s linear infinite}
-.texts{display:flex;flex-direction:column;gap:6px}
-.ctitle{font-size:17px;font-weight:800;line-height:1.4;overflow-wrap:anywhere}
-.cact{font-family:var(--f-mono);font-size:13px;color:var(--soft);line-height:1.5;min-height:20px;overflow-wrap:anywhere}
+.texts{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ctitle{font-size:15px;font-weight:800;line-height:1.4;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.cact{font-family:var(--f-mono);font-size:13px;color:var(--soft);line-height:1.5;min-height:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .cstep{font-size:14px;color:var(--soft);font-weight:800}
 .eta{font-family:var(--f-num);font-size:14px;border:2px solid #000;border-radius:10px;padding:4px 10px;box-shadow:3px 3px 0 #000;background:#FFFFFF;color:#1A0838}
@@ -121,18 +121,19 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .party{position:absolute;inset:0;pointer-events:none}
 .confetti{position:absolute;top:24%;width:10px;height:16px;border-radius:2px;border:2px solid #000;animation:confetti 1.6s cubic-bezier(.1,.6,.4,1) forwards}
 
-aside{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:20px}
-.panel{background:var(--card);border:3px solid #000;border-radius:22px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.lower{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;align-items:stretch}
+.panel{min-width:0;background:var(--card);border:3px solid #000;border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:9px}
 .panel h2{margin:0;font-family:var(--f-head);font-weight:400;font-size:18px}
-.detail{box-shadow:6px 6px 0 var(--done);padding:18px;gap:12px}
+.detail{box-shadow:6px 6px 0 var(--done)}
 .detail .dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .detail .dname{font-family:var(--f-num);font-size:20px;overflow-wrap:anywhere}
 .detail .dtitle{font-size:14px;color:var(--soft);line-height:1.4;font-weight:800;overflow-wrap:anywhere}
 .detail .dbig{flex:0 0 auto;font-family:var(--f-num);font-size:38px;line-height:1}
 .detail .dbig small{font-family:'M PLUS Rounded 1c','Hiragino Sans',sans-serif;font-weight:800;font-size:13px;margin-left:4px}
-.detail .eta{align-self:flex-start}
+.detail .drow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.detail .btn{min-height:44px}
 .ops{display:flex;flex-direction:column;gap:2px;list-style:none;margin:0;padding:0}
-.ops li{display:flex;align-items:center;gap:12px;padding:5px 0}
+.ops li{display:flex;align-items:center;gap:12px;padding:3px 0}
 .ops .mark{flex:0 0 auto;width:22px;height:22px;border-radius:7px;border:2px solid #000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:var(--done);color:#102400}
 .ops .label{flex:1 1 auto;min-width:0;font-family:var(--f-mono);font-size:13px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ops .state{font-size:13px;font-weight:800;color:var(--done);flex:0 0 auto}
@@ -142,7 +143,7 @@ aside{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:20px}
 .ops li.cur .label{color:#FFFFFF}
 .ops li.cur .state{color:var(--c)}
 .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
-.facts div{background:var(--well);border:2px solid #000;border-radius:14px;padding:8px 10px}
+.facts div{background:var(--well);border:2px solid #000;border-radius:14px;padding:5px 10px}
 .facts dt{font-size:12px;color:var(--sub);font-weight:800}
 .facts dd{margin:0;font-family:var(--f-num);font-size:18px}
 .missions{box-shadow:6px 6px 0 var(--edit)}
@@ -166,7 +167,7 @@ aside{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:20px}
 .rankrow:nth-child(3) .pos{background:var(--wait)}
 .feed{box-shadow:6px 6px 0 var(--think);gap:4px}
 .feed h2{margin-bottom:4px}
-.ev{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:2px dashed var(--dash)}
+.ev{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:2px dashed var(--dash)}
 .ev .dot{flex:0 0 auto;width:12px;height:12px;border-radius:4px;border:2px solid #000}
 .ev .who{font-family:var(--f-num);font-size:12px;flex:0 0 auto;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ev .txt{font-size:13px;color:var(--soft);flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -227,6 +228,14 @@ aside{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:20px}
     <div class="timer"><div id="streakBar"></div></div>
     <span style="font-size:12px" id="streakText"></span>
   </div>
+  <section class="box goal" aria-label="今日の目標">
+    <div><div class="cap">今日の目標</div><h2>タスクを <span id="goalTarget">10</span> 件完了する</h2></div>
+    <div class="meter">
+      <div class="bar" style="height:26px;border-radius:13px"><div class="stripes" id="goalBar" style="background-color:var(--done);transition:width .35s cubic-bezier(.2,.9,.3,1.3)"></div></div>
+      <span class="note" id="goalText"></span>
+    </div>
+    <div id="goalPlus"></div>
+  </section>
   <div class="toggles">
     <button type="button" class="toggle btn" id="soundBtn" aria-pressed="false">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z"></path><path d="M16.5 9 Q19 12 16.5 15"></path><path d="M19 6.5 Q23.5 12 19 17.5"></path></svg>
@@ -240,15 +249,6 @@ aside{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:20px}
 </header>
 
 <main>
-<section class="box goal" aria-label="今日の目標">
-  <div><div class="cap">今日の目標</div><h2>タスクを <span id="goalTarget">10</span> 件完了する</h2></div>
-  <div class="meter">
-    <div class="bar" style="height:26px;border-radius:13px"><div class="stripes" id="goalBar" style="background-color:var(--done);transition:width .35s cubic-bezier(.2,.9,.3,1.3)"></div></div>
-    <span class="note" id="goalText"></span>
-  </div>
-  <div id="goalPlus"></div>
-</section>
-
 <div class="strip">
   <div class="counts">
     <div class="count" style="background:var(--edit);color:#04161A"><span>稼働中</span><b id="stActive">0</b></div>
@@ -265,28 +265,26 @@ aside{flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:20px}
 <div class="band conn" id="conn" role="status" hidden></div>
 <div id="asks" style="display:flex;flex-direction:column;gap:14px"></div>
 
-<div class="main">
-  <div class="cards" id="cards"></div>
-  <div class="empty" id="empty">herdr のエージェントを待っています…</div>
-  <aside>
-    <section class="panel detail" id="detail" aria-label="選択中のセッション" hidden>
-      <div class="dhead">
-        <div style="display:flex;flex-direction:column;gap:4px;min-width:0"><span class="dname" id="dName"></span><span class="dtitle" id="dTitle"></span></div>
-        <span class="dbig" id="dBig"><span id="dBigNum">0</span><small>ステップ</small></span>
-      </div>
-      <span class="eta" id="dEta"></span>
-      <ul class="ops" id="dOps"></ul>
-      <dl class="facts">
-        <div><dt>経過</dt><dd id="dElapsed">0:00</dd></div>
-        <div><dt>変更行</dt><dd id="dLines" style="color:var(--edit)">+0</dd></div>
-        <div><dt>テスト通過</dt><dd id="dTests" style="color:var(--test)">0</dd></div>
-      </dl>
-      <button type="button" class="btn open" id="dOpen">herdr で開く</button>
-    </section>
-    <section class="panel missions" aria-label="ほかの目標"><h2>ほかの目標</h2><div id="missions" style="display:flex;flex-direction:column;gap:10px"></div></section>
-    <section class="panel rank" aria-label="セッション別 今日の完了ステップ"><h2>セッション別 今日の完了ステップ</h2><div id="rank" style="display:flex;flex-direction:column;gap:10px"></div><span class="none" id="rankNone">まだステップはありません</span></section>
-    <section class="panel feed" aria-label="最近の出来事"><h2>最近の出来事</h2><div id="feed"></div><span class="none" id="feedNone">まだ出来事はありません</span></section>
-  </aside>
+<div class="cards" id="cards"></div>
+<div class="empty" id="empty">herdr のエージェントを待っています…</div>
+
+<div class="lower">
+  <section class="panel detail" id="detail" aria-label="選択中のセッション" hidden>
+    <div class="dhead">
+      <div style="display:flex;flex-direction:column;gap:4px;min-width:0"><span class="dname" id="dName"></span><span class="dtitle" id="dTitle"></span></div>
+      <span class="dbig" id="dBig"><span id="dBigNum">0</span><small>ステップ</small></span>
+    </div>
+    <ul class="ops" id="dOps"></ul>
+    <dl class="facts">
+      <div><dt>経過</dt><dd id="dElapsed">0:00</dd></div>
+      <div><dt>変更行</dt><dd id="dLines" style="color:var(--edit)">+0</dd></div>
+      <div><dt>テスト通過</dt><dd id="dTests" style="color:var(--test)">0</dd></div>
+    </dl>
+    <div class="drow"><span class="eta" id="dEta"></span><button type="button" class="btn open" id="dOpen">herdr で開く</button></div>
+  </section>
+  <section class="panel missions" aria-label="ほかの目標"><h2>ほかの目標</h2><div id="missions" style="display:flex;flex-direction:column;gap:10px"></div></section>
+  <section class="panel rank" aria-label="セッション別 今日の完了ステップ"><h2>セッション別 今日の完了ステップ</h2><div id="rank" style="display:flex;flex-direction:column;gap:10px"></div><span class="none" id="rankNone">まだステップはありません</span></section>
+  <section class="panel feed" aria-label="最近の出来事"><h2>最近の出来事</h2><div id="feed"></div><span class="none" id="feedNone">まだ出来事はありません</span></section>
 </div>
 </main>
 
@@ -330,7 +328,12 @@ const POP_MS = 1700;
 const STAMP_MS = 8000;
 const PARTY_MS = 1800;
 const PLUS_MS = 900;
-const FEED_ROWS = 6;
+const FEED_ROWS = 5;
+const DETAIL_OPS = 4;
+// これより狭い画面（スマホ幅）は縮めると読めなくなるので、従来どおり縦スクロールにする
+const FIT_MIN_WIDTH = 900;
+const FIT_MIN_PERCENT = 50;
+const FIT_STEP_PERCENT = 1;
 const TICKER_ITEMS = 8;
 const HOT_STREAK = 50;
 const NOTICE_MS = 5000;
@@ -556,7 +559,8 @@ function notice(message) {
   text(el, message);
   el.hidden = false;
   clearTimeout(noticeTimer);
-  noticeTimer = setTimeout(() => { if (connected) el.hidden = true; }, NOTICE_MS);
+  fit();
+  noticeTimer = setTimeout(() => { if (connected) { el.hidden = true; fit(); } }, NOTICE_MS);
 }
 async function post(pathname, body, failure) {
   try {
@@ -703,7 +707,7 @@ function renderDetail(a) {
   const eta = etaOf(a, now);
   text($('dEta'), eta.label);
   if ($('dEta').className !== eta.cls) $('dEta').className = eta.cls;
-  const rows = a.ops.map((op, i) => ({ id: 'op' + i + op.text, text: op.text, cls: op.ok ? '' : 'ng', mark: op.ok ? '✓' : '×', state: op.ok ? '完了' : '失敗' }));
+  const rows = a.ops.slice(-DETAIL_OPS).map((op, i) => ({ id: 'op' + i + op.text, text: op.text, cls: op.ok ? '' : 'ng', mark: op.ok ? '✓' : '×', state: op.ok ? '完了' : '失敗' }));
   if (WORKING.has(a.state) && a.activity) rows.push({ id: 'cur', text: a.activity, cls: 'cur', mark: '▶', state: '進行中' });
   if (a.state === 'wait') rows.push({ id: 'cur', text: activityOf(a), cls: 'cur', mark: '▶', state: a.canRespond ? '許可待ち' : 'あなた待ち' });
   reconcile($('dOps'), rows, (r) => r.id, () => {
@@ -817,7 +821,29 @@ function render(s) {
     return el;
   }, () => {});
   renderClock();
+  fit();
 }
+
+// ---------------------------------------------------------------- 1 画面に収める
+// 全体を見渡すための画面なので、縦にはみ出す分は全体を縮めて収める。縮めると横に置ける数が増えて
+// 高さが段階的に変わる（倍率と高さが比例しない）ため、大きい倍率から順に実際に当てはめて探す
+function fitsAt(zoom) {
+  $('root').style.zoom = zoom === 1 ? '' : String(zoom);
+  return document.documentElement.scrollHeight <= window.innerHeight;
+}
+let fitPercent = 100;
+function fit() {
+  if (window.innerWidth < FIT_MIN_WIDTH) { $('root').style.zoom = ''; fitPercent = 100; return; }
+  // 毎秒の更新で探し直すと無駄が多いので、前回の倍率がまだ最大なら（収まり、1 段上は収まらない）そのまま使う
+  if (fitsAt(fitPercent / 100) && (fitPercent === 100 || !fitsAt((fitPercent + FIT_STEP_PERCENT) / 100))) { fitsAt(fitPercent / 100); return; }
+  // 下限まで縮めても収まらないときは、読めなくなるよりスクロールを残す
+  for (fitPercent = 100; fitPercent > FIT_MIN_PERCENT; fitPercent -= FIT_STEP_PERCENT) {
+    if (fitsAt(fitPercent / 100)) return;
+  }
+  fitsAt(fitPercent / 100);
+}
+window.addEventListener('resize', fit);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
 
 // ---------------------------------------------------------------- 接続
 let connected = false;
@@ -826,7 +852,7 @@ function connect() {
   const es = new EventSource('/stream?token=' + TOKEN);
   es.onmessage = (m) => {
     const data = JSON.parse(m.data);
-    if (!connected) { connected = true; errors = 0; $('conn').hidden = true; }
+    if (!connected) { connected = true; errors = 0; $('conn').hidden = true; fit(); }
     if (data.type === 'event') { onEvent(data); return; }
     snap = data;
     clockOffset = data.now - Date.now();
@@ -837,6 +863,7 @@ function connect() {
     errors++;
     text($('conn'), 'ブリッジとの接続が切れました。再接続を試みています…');
     $('conn').hidden = false;
+    fit();
     if (errors < STALE_CHECK_AFTER_ERRORS) return;
     // ブリッジが再起動するとトークンが変わり、このページは二度とつながらない。その場合は開き直しを案内する
     try {
