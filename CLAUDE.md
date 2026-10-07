@@ -25,6 +25,7 @@ Claude Code ×N（herdr のペイン）
 | `bin/open-board.sh` | ブラウザでボードを開く |
 | `bridge/server.js` | herdr socket（agent.list ポーリング + events.subscribe）と hooks の受け口、会話記録の追記分の読み取り、SSE 配信、認証、今日の数字の保存。依存なし |
 | `bridge/core.js` | 数え方と状態の決め方（ステップ・タスク・連続・目標）。入出力を持たず `test/` でテストする |
+| `bridge/terminal.js` | herdr を表示している端末アプリを `ps` の出力から探す（「herdr で開く」で前に出すため）。入出力なし |
 | `bin/install-hooks.js` | `~/.claude/settings.json` にフックを足す / 外す（`--remove`）。先にバックアップを取る |
 | `hooks/forward.sh` | Claude Code hook → ブリッジへ転送。失敗しても必ず exit 0 |
 | `hooks/claude-settings.json` | `~/.claude/settings.json` に足す hooks 設定 |

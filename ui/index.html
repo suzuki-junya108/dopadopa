@@ -691,7 +691,16 @@ async function post(pathname, body, failure) {
   }
 }
 const respond = (key, action) => post('/api/respond', { key, action }, action === 'approve' ? '承認を送れませんでした。herdr で開いて確認してください' : '拒否を送れませんでした。herdr で開いて確認してください');
-const focusPane = (key) => post('/api/focus', { key }, 'herdr で開けませんでした');
+async function focusPane(key) {
+  try {
+    const res = await fetch('/api/focus', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Dopadopa-Token': TOKEN }, body: JSON.stringify({ key }) });
+    if (!res.ok) { notice('herdr で開けませんでした'); return; }
+    // 端末アプリを前に出せなかったとき（macOS 以外など）は、切り替えだけ済んだことを伝える
+    if (!(await res.json()).raised) notice('herdr の中でこのセッションに切り替えました。端末アプリを前に出して確認してください');
+  } catch {
+    notice('herdr で開けませんでした');
+  }
+}
 document.addEventListener('click', (e) => {
   const b = e.target.closest('button[data-act]');
   if (!b) return;

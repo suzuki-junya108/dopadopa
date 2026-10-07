@@ -16,6 +16,7 @@ const os = require('node:os');
 const crypto = require('node:crypto');
 const { spawn } = require('node:child_process');
 const { createCore } = require('./core.js');
+const { findTerminalApp } = require('./terminal.js');
 
 const PORT = Number(process.env.DOPADOPA_PORT || 4517);
 const SOCK = process.env.HERDR_SOCKET_PATH || path.join(os.homedir(), '.config', 'herdr', 'herdr.sock');
@@ -370,6 +371,24 @@ function herdr(args) {
     p.on('error', (e) => resolve({ code: -1, out: e.message }));
   });
 }
+function run(command, args) {
+  return new Promise((resolve) => {
+    const p = spawn(command, args, { stdio: ['ignore', 'pipe', 'ignore'] });
+    let out = '';
+    p.stdout.on('data', (d) => (out += d));
+    p.on('close', (code) => resolve({ code, out }));
+    p.on('error', () => resolve({ code: -1, out: '' }));
+  });
+}
+// herdr の中でペインを切り替えても、端末アプリはブラウザの後ろに隠れたままになる。押した人に見えるよう前に出す。
+// 前に出すだけで、キーは送らない。macOS 以外や、端末アプリが分からないときは何もしない
+async function raiseTerminal() {
+  if (process.platform !== 'darwin') return false;
+  const ps = await run('ps', ['-axo', 'pid=,ppid=,tty=,comm=']);
+  const app = ps.code === 0 ? findTerminalApp(ps.out) : '';
+  if (!app) return false;
+  return (await run('open', ['-a', app])).code === 0;
+}
 // Claude Code の許可プロンプトは「1. Yes」が選ばれた状態で出るので Enter で承認、esc で取り消しになる。
 // キー名は `herdr agent send-keys --help` の表記（esc が正式名）に合わせている。
 const KEYS = { approve: ['Enter'], deny: ['esc'] };
@@ -444,8 +463,9 @@ const server = http.createServer(async (req, res) => {
     const a = core.agents.get(key);
     const r = a && a.pane ? await herdr(['agent', 'focus', a.pane]) : { code: 1, out: 'no pane' };
     if (r.code !== 0) log('focus failed:', r.out.trim());
+    const raised = r.code === 0 && await raiseTerminal();
     res.writeHead(r.code === 0 ? 200 : 500, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ code: r.code }));
+    return res.end(JSON.stringify({ code: r.code, raised }));
   }
   res.writeHead(404); res.end('not found');
 });

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "node bridge/server.js",
-    "check": "node --check bridge/server.js && node --check bridge/core.js && node --check bin/install-hooks.js && sh -n bin/start-bridge.sh && sh -n bin/open-board.sh && sh -n hooks/forward.sh",
+    "check": "node --check bridge/server.js && node --check bridge/core.js && node --check bridge/terminal.js && node --check bin/install-hooks.js && sh -n bin/start-bridge.sh && sh -n bin/open-board.sh && sh -n hooks/forward.sh",
     "test": "node --test test/*.test.js"
   }
 }
