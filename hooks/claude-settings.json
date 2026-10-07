@@ -1,11 +1,11 @@
 {
   "hooks": {
-    "SessionStart": [{ "hooks": [{ "type": "command", "command": "sh ~/.watchtower/forward.sh" }] }],
-    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "sh ~/.watchtower/forward.sh" }] }],
-    "PreToolUse": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "sh ~/.watchtower/forward.sh" }] }],
-    "PostToolUse": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "sh ~/.watchtower/forward.sh" }] }],
-    "Notification": [{ "hooks": [{ "type": "command", "command": "sh ~/.watchtower/forward.sh" }] }],
-    "Stop": [{ "hooks": [{ "type": "command", "command": "sh ~/.watchtower/forward.sh" }] }],
-    "SessionEnd": [{ "hooks": [{ "type": "command", "command": "sh ~/.watchtower/forward.sh" }] }]
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
+    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
+    "PreToolUse": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
+    "PostToolUse": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
+    "Notification": [{ "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
+    "SessionEnd": [{ "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }]
   }
 }
