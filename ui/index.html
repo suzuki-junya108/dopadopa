@@ -681,7 +681,7 @@ function updateAsk(el, a) {
     r.shownAsk = shown;
     r.msg.replaceChildren();
     if (a.canRespond) r.msg.append(`${a.name} が `, h('code', '', a.ask), ' の実行許可を待っています');
-    else r.msg.append(`${a.name} があなたの対応を待っています`, a.notice ? `（${a.notice}）` : '');
+    else r.msg.append(`${a.name}：${a.notice || 'あなたの対応を待っています'}`);
   }
   text(r.waited, `待ち時間 ${Math.max(0, Math.round((serverNow() - a.blockedSince) / 1000))}秒`);
   r.btns.hidden = !a.canRespond;
