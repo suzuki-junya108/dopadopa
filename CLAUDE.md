@@ -9,7 +9,8 @@ Claude Code の複数セッションを、ブラウザのライブボードで�
 ```
 Claude Code ×N（herdr のペイン）
   ├─ herdr サーバー ……… 状態（working / blocked / idle / done）
-  └─ Claude Code hooks …… 何をしているか・Todo・ツール操作
+  ├─ Claude Code hooks …… 何をしているか・ツール操作
+  └─ 会話記録（~/.claude/projects/*/<セッションID>.jsonl）…… Claude の説明文
         ↓
   bridge/server.js（常駐、127.0.0.1:4517、トークン認証）
         ↓ SSE
@@ -22,7 +23,7 @@ Claude Code ×N（herdr のペイン）
 | `herdr-plugin.toml` | プラグイン定義。startup でブリッジ起動、actions: open / restart / stop |
 | `bin/start-bridge.sh` | ブリッジを nohup で常駐起動（startup hook は一回きりのため） |
 | `bin/open-board.sh` | ブラウザでボードを開く |
-| `bridge/server.js` | herdr socket（agent.list ポーリング + events.subscribe）と hooks の受け口、SSE 配信、認証、今日の数字の保存。依存なし |
+| `bridge/server.js` | herdr socket（agent.list ポーリング + events.subscribe）と hooks の受け口、会話記録の追記分の読み取り、SSE 配信、認証、今日の数字の保存。依存なし |
 | `bridge/core.js` | 数え方と状態の決め方（ステップ・タスク・連続・目標）。入出力を持たず `test/` でテストする |
 | `bin/install-hooks.js` | `~/.claude/settings.json` にフックを足す / 外す（`--remove`）。先にバックアップを取る |
 | `hooks/forward.sh` | Claude Code hook → ブリッジへ転送。失敗しても必ず exit 0 |

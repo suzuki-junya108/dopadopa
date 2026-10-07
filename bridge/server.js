@@ -3,6 +3,8 @@
 // dopadopa bridge
 //  入力1: herdr の socket API（agent.list のポーリング + events.subscribe）→ 状態（working / blocked / idle / done）
 //  入力2: Claude Code の hooks（POST /hook）→ 何をしているか・ステップ・タスク
+//  入力3: Claude Code の会話記録（~/.claude/projects/*/<セッションID>.jsonl の追記分）→ Claude の説明文。
+//         フックが届かないセッションでは、ここから操作も組み立てる
 //  出力 : ブラウザのボードへ Server-Sent Events（GET /stream）
 // 数え方は core.js、ここは入出力だけを持つ。依存パッケージなし。Node 18 以上。
 
@@ -32,6 +34,14 @@ const KEEPALIVE_MS = 20000;
 const BRANCH_CACHE_MS = 10000;
 const SOCKET_TIMEOUT_MS = 5000;
 const BODY_LIMIT_BYTES = 2e6;
+const PROJECTS_DIR = path.join(os.homedir(), '.claude', 'projects');
+// ファイル名に使うので、形の合わないセッション ID は受け付けない（パスの差し込み対策）
+const SESSION_ID = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
+const TRANSCRIPT_LOOKUP_RETRY_MS = 10000;
+const TRANSCRIPT_TAIL_BYTES = 256 * 1024;
+const TRANSCRIPT_FORGET_MS = 10 * 60 * 1000;
+const TRANSCRIPT_PENDING_TOOLS_MAX = 200;
+const NEWLINE = 0x0a;
 
 fs.mkdirSync(RUNTIME, { recursive: true, mode: 0o700 });
 fs.mkdirSync(STATE_DIR, { recursive: true, mode: 0o700 });
@@ -127,6 +137,146 @@ function readBranch(cwd) {
   return branch;
 }
 
+// ---------------------------------------------------------------- 会話記録（Claude の説明文）
+const transcripts = new Map(); // セッション ID -> { file, offset, rest, busy, lookedAt, seenAt, tools }
+
+async function findTranscript(sessionId) {
+  let dirs;
+  try { dirs = await fs.promises.readdir(PROJECTS_DIR, { withFileTypes: true }); } catch { return ''; }
+  for (const d of dirs) {
+    if (!d.isDirectory()) continue;
+    const file = path.join(PROJECTS_DIR, d.name, sessionId + '.jsonl');
+    try { await fs.promises.access(file, fs.constants.R_OK); return file; } catch { /* このプロジェクトのセッションではない */ }
+  }
+  return '';
+}
+
+async function readRange(file, start, end) {
+  const handle = await fs.promises.open(file, 'r');
+  try {
+    const buf = Buffer.alloc(end - start);
+    let got = 0;
+    while (got < buf.length) {
+      const { bytesRead } = await handle.read(buf, got, buf.length - got, start + got);
+      if (bytesRead === 0) break;
+      got += bytesRead;
+    }
+    return buf.subarray(0, got);
+  } finally {
+    await handle.close();
+  }
+}
+
+function blockText(content) {
+  if (typeof content === 'string') return content;
+  return Array.isArray(content) ? content.filter((b) => b && b.type === 'text').map((b) => b.text || '').join('\n') : '';
+}
+
+// 会話記録の 1 行を、説明文（say）とフック相当の出来事（hook）に直す
+function transcriptItems(line, tools) {
+  let e;
+  try { e = JSON.parse(line); } catch { return []; }
+  // サブエージェントの発言・画面に出ない補助行・要約の差し込みは、そのセッションの「いま」ではない
+  if (!e || e.isSidechain || e.isMeta || e.isCompactSummary || !e.message) return [];
+  const content = e.message.content;
+  if (e.type === 'assistant' && Array.isArray(content)) {
+    const items = [];
+    for (const b of content) {
+      if (b.type === 'text' && b.text && b.text.trim()) items.push({ say: b.text });
+      if (b.type === 'tool_use' && b.id) {
+        tools.set(b.id, { name: b.name, input: b.input || {} });
+        if (tools.size > TRANSCRIPT_PENDING_TOOLS_MAX) tools.delete(tools.keys().next().value);
+        items.push({ hook: { hook_event_name: 'PreToolUse', tool_name: b.name, tool_input: b.input || {}, tool_use_id: b.id } });
+      }
+    }
+    return items;
+  }
+  if (e.type !== 'user') return [];
+  const results = Array.isArray(content) ? content.filter((b) => b && b.type === 'tool_result') : [];
+  if (results.length) {
+    return results.flatMap((r) => {
+      const use = tools.get(r.tool_use_id);
+      if (!use) return [];
+      tools.delete(r.tool_use_id);
+      const out = blockText(r.content);
+      const base = { tool_name: use.name, tool_input: use.input, tool_use_id: r.tool_use_id };
+      return [{ hook: r.is_error ? { ...base, hook_event_name: 'PostToolUseFailure', error: out } : { ...base, hook_event_name: 'PostToolUse', tool_response: { stdout: out } } }];
+    });
+  }
+  const said = blockText(content).trim();
+  // <...> で始まる行はコマンドの出力や通知で、人が打った指示ではない
+  return said && !said.startsWith('<') && !said.startsWith('[Request interrupted') ? [{ hook: { hook_event_name: 'UserPromptSubmit', prompt: said } }] : [];
+}
+
+// 既にある会話の最後の説明文だけを拾う。会話記録は数百 MB になることがあり、開いた時点より前の出来事は
+// 数えない（数えると過去の操作が今日のステップに混ざる）ので、意図して末尾から読む。見つかるまで範囲を倍に広げる
+async function lastNarration(file, size) {
+  for (let span = TRANSCRIPT_TAIL_BYTES; ; span *= 2) {
+    const start = Math.max(0, size - span);
+    const buf = await readRange(file, start, size);
+    const lines = buf.toString('utf8').split('\n');
+    if (start > 0) lines.shift(); // 途中から読んだ先頭行は欠けている
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (!lines[i]) continue;
+      const says = transcriptItems(lines[i], new Map()).filter((it) => it.say);
+      if (says.length) return says[says.length - 1].say;
+    }
+    if (start === 0) return '';
+  }
+}
+
+// alive = herdr かフックがそのセッションをいま見せた。定期の読み直しでは寿命を延ばさない
+async function followTranscript(sessionId, alive = true) {
+  if (!SESSION_ID.test(String(sessionId || ''))) return;
+  let st = transcripts.get(sessionId);
+  if (!st) { st = { file: '', offset: null, rest: Buffer.alloc(0), busy: false, lookedAt: 0, seenAt: 0, tools: new Map() }; transcripts.set(sessionId, st); }
+  if (alive) st.seenAt = Date.now();
+  if (st.busy) return;
+  st.busy = true;
+  try {
+    if (!st.file) {
+      if (Date.now() - st.lookedAt < TRANSCRIPT_LOOKUP_RETRY_MS) return;
+      st.lookedAt = Date.now();
+      st.file = await findTranscript(sessionId);
+      if (!st.file) return;
+    }
+    const { size } = await fs.promises.stat(st.file);
+    if (st.offset === null) {
+      st.offset = size;
+      const text = await lastNarration(st.file, size);
+      if (text) core.addNarration(sessionId, text, { initial: true });
+      return;
+    }
+    if (size < st.offset) { st.offset = 0; st.rest = Buffer.alloc(0); } // 作り直された
+    if (size === st.offset) return;
+    const chunk = await readRange(st.file, st.offset, size);
+    st.offset += chunk.length;
+    const all = Buffer.concat([st.rest, chunk]);
+    // 書きかけの行は次回に回す。改行のバイトは文字の途中に現れないので、ここで切っても文字は壊れない
+    const cut = all.lastIndexOf(NEWLINE);
+    st.rest = all.subarray(cut + 1);
+    if (cut < 0) return;
+    for (const line of all.subarray(0, cut).toString('utf8').split('\n')) {
+      if (!line) continue;
+      for (const it of transcriptItems(line, st.tools)) {
+        if (it.say) core.addNarration(sessionId, it.say);
+        else core.handleDerived(sessionId, it.hook);
+      }
+    }
+  } catch (e) {
+    log('transcript read failed:', e.message);
+    st.file = '';
+  } finally {
+    st.busy = false;
+  }
+}
+setInterval(() => {
+  for (const [sessionId, st] of transcripts) {
+    if (Date.now() - st.seenAt > TRANSCRIPT_FORGET_MS) transcripts.delete(sessionId);
+    else followTranscript(sessionId, false);
+  }
+}, TICK_MS);
+
 // ---------------------------------------------------------------- herdr socket
 function request(method, params = {}) {
   return new Promise((resolve, reject) => {
@@ -201,6 +351,7 @@ async function poll() {
       };
     }));
     for (const [pane, sock] of subscribed) if (!seen.has(pane)) sock.destroy();
+    for (const it of items) if (it.pane_id && it.agent_session && it.agent_session.value) followTranscript(it.agent_session.value);
     if (herdrOk !== true) { herdrOk = true; log('herdr connected:', items.length, 'agents'); }
   } catch (e) {
     if (herdrOk !== false) { herdrOk = false; log('herdr poll failed:', e.message); }
@@ -272,8 +423,12 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   if (req.method === 'POST' && url.pathname === '/hook') {
-    core.handleHook(url.searchParams.get('pane') || '', await readBody(req));
-    res.writeHead(204); return res.end();
+    const body = await readBody(req);
+    core.handleHook(url.searchParams.get('pane') || '', body);
+    res.writeHead(204); res.end();
+    // 返事を先に返してから読む（フックを待たせない）
+    followTranscript(body.session_id);
+    return;
   }
   if (req.method === 'POST' && url.pathname === '/api/respond') {
     const { key, action } = await readBody(req);

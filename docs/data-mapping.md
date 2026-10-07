@@ -14,6 +14,14 @@
 | herdr `events.subscribe`（`pane.agent_status_changed`） | 状態の変化を即時に |
 | Claude Code hooks（`POST /hook?pane=$HERDR_PANE_ID`） | `SessionStart` / `UserPromptSubmit` / `PreToolUse` / `PostToolUse` / `PostToolUseFailure` / `Notification` / `Stop` / `SessionEnd` の JSON |
 
+| Claude Code の会話記録（`~/.claude/projects/*/<セッションID>.jsonl`、毎秒とフック到着時に追記分だけ読む） | Claude の説明文（assistant の text）。フックが届かないセッションでは、指示（user の文）・操作（tool_use）・結果（tool_result）も |
+
+会話記録のファイルは、herdr の `agent_session.value`（またはフックの `session_id`）をファイル名として探す。ID の形（UUID）に合わないものは読まない。ボードを開いた時点より前の内容は数えず、最後の説明文だけを末尾から拾う。サブエージェントの発言（`isSidechain`）・補助行（`isMeta`）・要約の差し込みは使わない。
+
+実測（2026-10-07、会話記録 2 本）: 説明文は操作 5〜8 回に 1 回（228 回中 29、453 回中 95）。Bash の `description` は 198 回中 198 回に付いていた。そのため「何を」は説明文、「どのように」は言葉に直した操作、の二段で見せる。
+
+フックが届いているセッションでは、会話記録からは説明文だけを使う（操作を二重に数えない）。届いていないセッションは会話記録から操作を組み立てて同じ数え方をし、タスクの区切りだけ herdr の状態（`working` → `idle`/`done`）で決める。
+
 セッションの紐づけ: hooks の `pane` があればそれ。なければ `session_id` → 過去の対応表（herdr の `agent_session.value` も使う）→ cwd が一致する herdr エージェント。
 
 カードの名前は cwd の最後のフォルダ名、ブランチは cwd から上にたどった `.git/HEAD`。
@@ -35,7 +43,13 @@
 
 | 表示 | 定義 |
 |---|---|
-| ステップ完了 | `PostToolUse` 1 回につき +1。失敗した操作（`PostToolUseFailure`）は数えない |
+| ステップ完了 | `PostToolUse` 1 回につき +1。失敗した操作（`PostToolUseFailure`）は数えない。フックが届かないセッションは、会話記録の成功した `tool_result` 1 件につき +1 |
+| Claude の説明文（カード） | そのセッションの最後の assistant の text から、見出し・表・コードの塊を落とした地の文（280 文字まで）。新しい指示で消える |
+| いまの操作（カード） | 保留中の操作を言葉にしたもの。Bash は `description`（無ければコマンドの 1 行目）、Read / Edit はファイル名 |
+| 流れ（詳細） | いまの指示の中で起きた説明文と操作を、起きた順に直近 14 件（画面には 6 件） |
+| 勢い（直近 1 分） | 直近 60 秒のステップ完了の件数。棒は 5 秒ごとの件数 |
+| 時間帯ごとのステップ | ステップ完了を、その時刻の「時」ごとに数えたもの（0〜23 時） |
+| 今日完了したタスク（積み木・一覧） | タスク完了 1 件につき積み木 1 個。一覧は時刻・フォルダ名・指示文の冒頭・そのタスクのステップ数 |
 | タスク完了 | `Stop` が届いたとき（1 回の指示への対応が終わった）。フックが届かないセッションは、herdr が `working` → `idle`/`done` に変わったとき |
 | 今日完了したステップ | ステップ完了の合計（日付で区切る） |
 | 次の区切り | 100 ステップごと |
@@ -62,12 +76,12 @@
 
 ## 保存
 
-`$HERDR_PLUGIN_STATE_DIR/stats-YYYY-MM-DD.json`（なければ `~/.dopadopa/`）に、今日の合計・セッション別・最高記録・目標の進捗を保存。起動時に今日のファイルがあれば読み込む。保存するのは件数とフォルダ名だけで、指示文・コマンド・ツールの出力は保存しない。
+`$HERDR_PLUGIN_STATE_DIR/stats-YYYY-MM-DD.json`（なければ `~/.dopadopa/`）に、今日の合計・セッション別・最高記録・目標の進捗・時間帯ごとのステップ・完了したタスクの一覧（時刻・フォルダ名・ステップ数・かかった秒数）を保存。起動時に今日のファイルがあれば読み込む。保存するのは件数・時刻・フォルダ名だけで、指示文・説明文・コマンド・ツールの出力は保存しない（再起動後の一覧は題が空になる）。「勢い」も保存しない。
 
 ## SSE で送るもの
 
 `GET /stream` に、1 行 1 件の JSON を `data:` で送る。
 
 - スナップショット（`type: "snapshot"`、変化があったとき、最大で毎秒）: セッション一覧、今日の数、目標、最近の出来事。時間とともに進む表示（経過・待ち時間・連続のバー）は、時刻を渡して画面側で進める
-- イベント（`type: "event"`、起きた瞬間）: `kind` が `step` / `task` / `milestone` / `goal` / `streak` / `streak_reset` / `approved` / `blocked` / `error` / `mission`
+- イベント（`type: "event"`、起きた瞬間）: `kind` が `step` / `task` / `milestone` / `goal` / `streak` / `streak_reset` / `approved` / `blocked` / `error` / `mission`。`step` は `run`（そのセッションの連続数。音の高さに使う）、`task` は `steps` と `seconds` を持つ
   - UI はスナップショットで表示を更新し、イベントで演出だけを起こす
