@@ -24,7 +24,21 @@
 | `Stop` | `last_assistant_message` などを持つ。1 回の指示への対応が終わるたびに届く |
 | 設定の反映 | `~/.claude/settings.json` のフックを書き換えても、実行中のセッションには起動し直すか `/hooks` で確認するまで反映されない |
 
+## 承認・拒否（実物の許可プロンプトで確認済み）
+
+検証用のペインを `herdr pane split` で作り、`herdr agent start <name> --kind claude --pane <id> -- --permission-mode default` で Claude Code を起動して確かめた。
+
+| 確認したこと | 結果 |
+|---|---|
+| 許可プロンプトの初期選択 | 「1. Yes」が選ばれた状態で出る（2: 常に許可、3: auto mode に切り替え、4: No）。herdr の状態は `blocked` |
+| ボードの「承認する」（`Enter`） | 許可が通り、コマンドが実行された（ファイルが作られた） |
+| ボードの「拒否」（`esc`） | コマンドは実行されず、Claude Code は「Interrupted」で指示待ちに戻る。`Stop` は届かない |
+| フォルダを信頼するかの確認（初回起動時） | 初期選択は「No, exit」。herdr の状態は `blocked` だが、保留中の操作が無いのでボードは承認ボタンを出さない。ここに Enter を送ると Claude Code が終了するので、出さないのが正しい |
+| 質問（AskUserQuestion） | herdr の状態は `blocked`。承認ボタンは出さず「質問への回答を待っています」と出す |
+| `herdr agent prompt` | 起動直後に送ると届かないことがあった。`herdr agent wait` で idle を待ってから送る |
+
+検証で承認キーを送るのは、自分で作った検証用ペインだけにする。ユーザーが作業中のセッションには送らない。
+
 ## まだ実機で確かめていないこと
 
-- 承認（`Enter`）・拒否（`esc`）のキーが、実際の許可プロンプトで意図どおり効くか。模擬の herdr では、ボードの承認ボタンから `agent send-keys <pane> Enter` が 1 回だけ送られることまで確認した。実物の確認はユーザーの操作が必要（勝手に承認キーを送らない決まりのため）
-- `Notification` の中身（許可待ちのときの文言と項目）
+- `Notification` の中身（許可待ちのときの文言と項目）。いまは表示に使っていない
