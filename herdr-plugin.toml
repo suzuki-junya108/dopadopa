@@ -16,6 +16,12 @@ contexts = ["workspace"]
 command = ["sh", "bin/open-board.sh"]
 
 [[actions]]
+id = "install-hooks"
+title = "dopadopa: Claude Code のフックを入れる"
+contexts = ["workspace"]
+command = ["node", "bin/install-hooks.js"]
+
+[[actions]]
 id = "restart"
 title = "dopadopa: ブリッジを再起動"
 contexts = ["workspace"]

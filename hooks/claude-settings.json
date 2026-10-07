@@ -1,11 +1,87 @@
 {
   "hooks": {
-    "SessionStart": [{ "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
-    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
-    "PreToolUse": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
-    "PostToolUse": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
-    "Notification": [{ "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
-    "Stop": [{ "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }],
-    "SessionEnd": [{ "hooks": [{ "type": "command", "command": "sh ~/.dopadopa/forward.sh" }] }]
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ~/.dopadopa/forward.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ~/.dopadopa/forward.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ~/.dopadopa/forward.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ~/.dopadopa/forward.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ~/.dopadopa/forward.sh"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ~/.dopadopa/forward.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ~/.dopadopa/forward.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh ~/.dopadopa/forward.sh"
+          }
+        ]
+      }
+    ]
   }
 }
