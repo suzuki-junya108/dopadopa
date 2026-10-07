@@ -1,0 +1,28 @@
+id = "watchtower.board"
+name = "Watchtower"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Claude Code の複数セッションをブラウザのライブボードで見渡す"
+platforms = ["macos", "linux"]
+
+# herdr サーバー起動時に一度だけ走る。ブリッジ（常駐プロセス）を切り離して起動して終了する。
+[[startup]]
+command = ["sh", "bin/start-bridge.sh"]
+
+[[actions]]
+id = "open"
+title = "Watchtower: ボードを開く"
+contexts = ["workspace"]
+command = ["sh", "bin/open-board.sh"]
+
+[[actions]]
+id = "restart"
+title = "Watchtower: ブリッジを再起動"
+contexts = ["workspace"]
+command = ["sh", "bin/start-bridge.sh", "--restart"]
+
+[[actions]]
+id = "stop"
+title = "Watchtower: ブリッジを停止"
+contexts = ["workspace"]
+command = ["sh", "bin/start-bridge.sh", "--stop"]

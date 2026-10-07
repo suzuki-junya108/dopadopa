@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Watchtower ライブボード</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&amp;family=Dela+Gothic+One&amp;family=M+PLUS+Rounded+1c:wght@500;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#120A24}
+a{color:#2EE6FF}a:hover{color:#9FF4FF}
+.shake{animation:shake .45s cubic-bezier(.36,.07,.19,.97)}
+.bigshake{animation:bigshake .7s cubic-bezier(.36,.07,.19,.97)}
+.card{transition:transform .2s cubic-bezier(.2,.9,.3,1.6)}
+.card:hover{transform:translate(-3px,-3px) rotate(-.4deg)}
+.card-wait{animation:waitpulse 1s ease-in-out infinite}
+.card-done{animation:boing .7s cubic-bezier(.2,.9,.3,1.8)}
+.sticker{animation:wiggle 2.4s ease-in-out infinite}
+.stripes{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.3) 0 8px,rgba(255,255,255,0) 8px 16px);background-size:22.6px 22.6px;animation:stripes .6s linear infinite}
+.pop{animation:pop 1.7s cubic-bezier(.2,.9,.3,1.4) forwards}
+.bump{animation:bump .45s cubic-bezier(.2,.9,.3,2)}
+.hot{animation:hot 1.2s steps(2) infinite}
+.banner{animation:banner 1.9s cubic-bezier(.2,.9,.3,1.3) forwards}
+.toast{animation:toast 3.4s cubic-bezier(.2,.9,.3,1.3) forwards}
+.stamp{animation:stamp .5s cubic-bezier(.2,.9,.3,1.8)}
+.spark{animation:spark 1.4s ease-in-out infinite}
+.flame{animation:flame .5s ease-in-out infinite alternate;transform-origin:50% 100%}
+.flash{animation:flash .45s ease-out forwards}
+.plus{animation:plus .9s cubic-bezier(.2,.9,.3,1.4) forwards}
+.marquee{animation:marquee 28s linear infinite}
+.confetti{position:absolute;top:24%;width:10px;height:16px;border-radius:2px;animation:confetti 1.6s cubic-bezier(.1,.6,.4,1) forwards}
+.btn{cursor:pointer;transition:transform .1s,box-shadow .1s}
+.btn:hover{transform:translate(-2px,-2px)}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 #000 !important}
+.selbtn{cursor:pointer}
+.selbtn:focus-visible,.btn:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
+@keyframes shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-7px,3px)}40%{transform:translate(6px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-1px)}}
+@keyframes bigshake{0%,100%{transform:translate(0,0) rotate(0)}15%{transform:translate(-14px,6px) rotate(-.6deg)}30%{transform:translate(12px,-8px) rotate(.5deg)}45%{transform:translate(-9px,5px)}60%{transform:translate(7px,-3px)}80%{transform:translate(-3px,2px)}}
+@keyframes waitpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
+@keyframes boing{0%{transform:scale(.92)}50%{transform:scale(1.05) rotate(.8deg)}100%{transform:scale(1)}}
+@keyframes wiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(2deg)}}
+@keyframes stripes{to{background-position:22.6px 0}}
+@keyframes pop{0%{opacity:0;transform:translateY(16px) scale(.4)}18%{opacity:1;transform:translateY(0) scale(1.25)}35%{transform:scale(1)}75%{opacity:1;transform:translateY(-14px)}100%{opacity:0;transform:translateY(-34px) scale(.9)}}
+@keyframes bump{0%{transform:scale(.5) rotate(-12deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes hot{0%{background:#FF3D8B}100%{background:#FFE53B}}
+@keyframes banner{0%{opacity:0;transform:translateX(-50%) scale(2.6) rotate(-8deg)}16%{opacity:1;transform:translateX(-50%) scale(.95) rotate(-3deg)}24%{transform:translateX(-50%) scale(1.04) rotate(-3deg)}80%{opacity:1;transform:translateX(-50%) scale(1) rotate(-3deg)}100%{opacity:0;transform:translateX(-50%) scale(.85) rotate(-3deg)}}
+@keyframes toast{0%{opacity:0;transform:translateX(120%)}12%{opacity:1;transform:translateX(-6%)}18%{transform:translateX(0)}85%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(120%)}}
+@keyframes stamp{0%{opacity:0;transform:scale(3) rotate(-20deg)}100%{opacity:1;transform:scale(1) rotate(-9deg)}}
+@keyframes spark{0%,100%{transform:scale(.7) rotate(0);opacity:.6}50%{transform:scale(1.15) rotate(45deg);opacity:1}}
+@keyframes flame{0%{transform:scaleY(.85) rotate(-4deg)}100%{transform:scaleY(1.12) rotate(4deg)}}
+@keyframes flash{0%{opacity:.75}100%{opacity:0}}
+@keyframes plus{0%{opacity:0;transform:translateY(10px) scale(.5)}20%{opacity:1;transform:translateY(-6px) scale(1.3)}100%{opacity:0;transform:translateY(-30px) scale(1)}}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes confetti{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),260px) rotate(var(--rot))}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div class="{{rootCls}}" style="position: relative; min-height: 100vh; background: #120A24; color: #FFFFFF; font-family: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'Hiragino Sans', sans-serif; font-weight: 500; box-sizing: border-box; padding: 22px 24px 56px; overflow: hidden">
+<div style="max-width: 1392px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: stretch; gap: 14px">
+<div style="display: flex; align-items: center; gap: 12px; padding-right: 6px">
+<svg class="spark" width="42" height="42" viewBox="0 0 40 40" fill="#FFE53B" stroke="#000000" stroke-width="2.5" stroke-linejoin="round" aria-hidden="true"><path d="M20 2 L25 15 L38 20 L25 25 L20 38 L15 25 L2 20 L15 15 Z"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Dela Gothic One', 'Hiragino Sans', sans-serif; font-size: 30px; letter-spacing: .02em; line-height: 1">WATCHTOWER</span>
+<span style="font-size: 13px; color: #C9B8F0; font-weight: 800">Claude Code セッション ライブボード</span>
+</div>
+</div>
+
+<div style="flex: 1 1 300px; min-width: 250px; background: #1E1238; border: 3px solid #000000; box-shadow: 6px 6px 0 #FFE53B; border-radius: 18px; padding: 10px 16px; display: flex; flex-direction: column; gap: 7px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+<span style="font-size: 14px; font-weight: 800">今日完了したステップ</span>
+<sc-if value="{{stepsEven}}" hint-placeholder-val="{{ true }}"><span class="bump" style="display: inline-block; font-family: Bungee, 'Dela Gothic One', sans-serif; font-size: 32px; color: #FFE53B; line-height: 1">{{stepsToday}}</span></sc-if>
+<sc-if value="{{stepsOdd}}" hint-placeholder-val="{{ false }}"><span class="bump" style="display: inline-block; font-family: Bungee, 'Dela Gothic One', sans-serif; font-size: 32px; color: #FFE53B; line-height: 1">{{stepsToday}}</span></sc-if>
+</div>
+<div style="height: 22px; background: #0B0618; border: 3px solid #000000; border-radius: 12px; overflow: hidden">
+<div class="stripes" style="{{milestoneBarStyle}}"></div>
+</div>
+<span style="font-size: 12px; color: #C9B8F0; font-weight: 800">{{milestoneText}}</span>
+</div>
+
+<div class="{{streakBoxCls}}" style="{{streakBoxStyle}}">
+<span style="font-size: 13px; font-weight: 800">止まらずに進んだステップ</span>
+<sc-if value="{{streakEven}}" hint-placeholder-val="{{ true }}"><span class="bump" style="display: inline-block; font-family: Bungee, 'Dela Gothic One', sans-serif; font-size: 44px; line-height: 1">{{streak}}</span></sc-if>
+<sc-if value="{{streakOdd}}" hint-placeholder-val="{{ false }}"><span class="bump" style="display: inline-block; font-family: Bungee, 'Dela Gothic One', sans-serif; font-size: 44px; line-height: 1">{{streak}}</span></sc-if>
+<div style="height: 8px; background: rgba(0,0,0,.35); border-radius: 4px; overflow: hidden"><div style="{{streakTimerStyle}}"></div></div>
+<span style="font-size: 12px; font-weight: 800">{{streakText}}</span>
+</div>
+
+<button class="btn" onClick="{{toggleSound}}" aria-pressed="{{soundOn}}" style="{{soundBtnStyle}}">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z"></path><path d="M16.5 9 Q19 12 16.5 15"></path><path d="M19 6.5 Q23.5 12 19 17.5"></path></svg>
+<span>{{soundLabel}}</span>
+</button>
+</header>
+
+<section aria-label="今日の目標" style="background: #1E1238; border: 3px solid #000000; box-shadow: 6px 6px 0 #FF3D8B; border-radius: 18px; padding: 12px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; position: relative">
+<div style="display: flex; flex-direction: column; flex: 0 0 auto">
+<span style="font-size: 12px; color: #FF9EC4; font-weight: 800">今日の目標</span>
+<span style="font-family: 'Dela Gothic One', sans-serif; font-size: 20px">タスクを {{goalTarget}} 件完了する</span>
+</div>
+<div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 4px; min-width: 220px">
+<div style="height: 26px; background: #0B0618; border: 3px solid #000000; border-radius: 13px; overflow: hidden"><div class="stripes" style="{{goalBarStyle}}"></div></div>
+<span style="font-size: 13px; font-weight: 800; color: #FF9EC4">{{goalText}}</span>
+</div>
+<sc-if value="{{plusA}}" hint-placeholder-val="{{ false }}"><span class="plus" style="position: absolute; right: 28px; top: -14px; font-family: Bungee, 'Dela Gothic One', sans-serif; font-size: 30px; color: #9DFF3A; -webkit-text-stroke: 2px #000000; pointer-events: none">+1 件</span></sc-if>
+<sc-if value="{{plusB}}" hint-placeholder-val="{{ false }}"><span class="plus" style="position: absolute; right: 28px; top: -14px; font-family: Bungee, 'Dela Gothic One', sans-serif; font-size: 30px; color: #9DFF3A; -webkit-text-stroke: 2px #000000; pointer-events: none">+1 件</span></sc-if>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch">
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<div style="background: #2EE6FF; color: #04161A; border: 3px solid #000000; box-shadow: 4px 4px 0 #000000; border-radius: 14px; padding: 4px 12px; display: flex; align-items: baseline; gap: 8px"><span style="font-size: 12px; font-weight: 800">稼働中</span><span style="font-family: Bungee, sans-serif; font-size: 22px">{{active}}</span></div>
+<div style="background: #FF8A1F; color: #2A1200; border: 3px solid #000000; box-shadow: 4px 4px 0 #000000; border-radius: 14px; padding: 4px 12px; display: flex; align-items: baseline; gap: 8px"><span style="font-size: 12px; font-weight: 800">あなた待ち</span><span style="font-family: Bungee, sans-serif; font-size: 22px">{{waiting}}</span></div>
+<div style="background: #9DFF3A; color: #102400; border: 3px solid #000000; box-shadow: 4px 4px 0 #000000; border-radius: 14px; padding: 4px 12px; display: flex; align-items: baseline; gap: 8px"><span style="font-size: 12px; font-weight: 800">今日の完了タスク</span><span style="font-family: Bungee, sans-serif; font-size: 22px">{{tasksDone}}</span></div>
+<div style="background: #C08BFF; color: #1A0838; border: 3px solid #000000; box-shadow: 4px 4px 0 #000000; border-radius: 14px; padding: 4px 12px; display: flex; align-items: baseline; gap: 8px"><span style="font-size: 12px; font-weight: 800">テスト通過</span><span style="font-family: Bungee, sans-serif; font-size: 22px">{{tests}}</span></div>
+</div>
+<div style="flex: 1 1 300px; min-width: 0; background: #FFE53B; color: #2A1E00; border: 3px solid #000000; box-shadow: 4px 4px 0 #000000; border-radius: 14px; overflow: hidden; display: flex; align-items: center">
+<span style="flex: 0 0 auto; align-self: stretch; display: flex; align-items: center; background: #2A1E00; color: #FFE53B; font-size: 12px; font-weight: 800; padding: 0 10px">最新の出来事</span>
+<div style="flex: 1 1 auto; overflow: hidden">
+<div class="marquee" style="display: flex; width: max-content; white-space: nowrap; font-weight: 800; font-size: 15px; padding: 6px 0">
+<span style="padding: 0 40px">{{ticker}}</span><span style="padding: 0 40px">{{ticker}}</span>
+</div>
+</div>
+</div>
+</div>
+
+<sc-for list="{{asks}}" as="a" hint-placeholder-count="1">
+<div class="card-wait" style="background: #FF8A1F; color: #2A1200; border: 3px solid #000000; box-shadow: 6px 6px 0 #000000; border-radius: 18px; padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: space-between">
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-width: 0">
+<span style="font-family: 'Dela Gothic One', sans-serif; font-size: 20px">許可待ち</span>
+<span style="font-size: 16px; font-weight: 800">{{a.name}} が <code style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #FFFFFF; padding: 2px 8px; border-radius: 8px; border: 2px solid #000000">{{a.ask}}</code> の実行許可を待っています</span>
+<span style="font-size: 14px; font-weight: 800; background: #FFFFFF; border: 2px solid #000000; border-radius: 10px; padding: 3px 10px">待ち時間 {{a.waited}}秒</span>
+</div>
+<div style="display: flex; gap: 10px">
+<button class="btn" onClick="{{a.deny}}" style="min-height: 48px; padding: 0 18px; border-radius: 14px; border: 3px solid #000000; background: #FFFFFF; color: #2A1200; font: inherit; font-weight: 800; box-shadow: 4px 4px 0 #000000">拒否</button>
+<button class="btn" onClick="{{a.approve}}" style="min-height: 48px; padding: 0 24px; border-radius: 14px; border: 3px solid #000000; background: #9DFF3A; color: #102400; font-family: 'Dela Gothic One', sans-serif; font-size: 18px; box-shadow: 4px 4px 0 #000000">承認する</button>
+</div>
+</div>
+</sc-for>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+<div style="flex: 999 1 560px; min-width: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px">
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="5">
+<div class="{{c.cls}}" style="{{c.cardStyle}}">
+
+<div style="display: flex; gap: 10px; align-items: flex-start; justify-content: space-between">
+<button class="selbtn" onClick="{{c.select}}" aria-label="{{c.selLabel}}" style="flex: 1 1 auto; min-width: 0; text-align: left; background: transparent; border: none; color: inherit; font: inherit; padding: 0; display: flex; flex-direction: column; gap: 8px">
+<span style="font-family: Bungee, 'Dela Gothic One', sans-serif; font-size: 20px; line-height: 1.1">{{c.name}}</span>
+<span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #C9B8F0">{{c.branch}}</span>
+</button>
+<span class="sticker" style="{{c.chipStyle}}">{{c.label}}</span>
+</div>
+
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 10px">
+<span style="{{c.pctStyle}}">{{c.pct}}<span style="font-size: 22px">%</span></span>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-bottom: 4px">
+<sc-if value="{{c.onFire}}" hint-placeholder-val="{{ false }}">
+<span style="display: inline-flex; align-items: center; gap: 4px; background: #FF3D8B; color: #2A0414; border: 2px solid #000000; border-radius: 10px; padding: 2px 9px 2px 5px; font-size: 12px; font-weight: 800"><svg class="flame" width="16" height="18" viewBox="0 0 16 18" aria-hidden="true"><path d="M8 1 C9 5 14 7 14 12 A6 6 0 0 1 2 12 C2 9 4 8 5 5 C6 7 7 7 8 1 Z" fill="#FFE53B" stroke="#000000" stroke-width="1.6" stroke-linejoin="round"></path></svg>{{c.streak}}ステップ連続で進行中</span>
+</sc-if>
+<span style="font-size: 13px; font-weight: 800; color: #FFE53B">今日 {{c.steps}} ステップ完了</span>
+</div>
+</div>
+
+<div style="display: flex; gap: 5px; height: 18px">
+<sc-for list="{{c.dots}}" as="d" hint-placeholder-count="6">
+<div style="flex: 1 1 0; background: #0B0618; border: 2px solid #000000; border-radius: 7px; overflow: hidden"><div class="{{d.cls}}" style="{{d.fillStyle}}"></div></div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 17px; font-weight: 800; line-height: 1.4">{{c.title}}</span>
+<span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; color: #E2D8FA; line-height: 1.5; min-height: 20px">{{c.activity}}</span>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap">
+<span style="font-size: 14px; color: #E2D8FA; font-weight: 800">{{c.stepText}}</span>
+<span style="{{c.etaStyle}}">{{c.eta}}</span>
+</div>
+
+<sc-if value="{{c.isWait}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 10px">
+<button class="btn" onClick="{{c.deny}}" style="flex: 1; min-height: 48px; border-radius: 14px; border: 3px solid #000000; background: #FFFFFF; color: #2A1200; font: inherit; font-weight: 800; box-shadow: 4px 4px 0 #000000">拒否</button>
+<button class="btn" onClick="{{c.approve}}" style="flex: 2; min-height: 48px; border-radius: 14px; border: 3px solid #000000; background: #9DFF3A; color: #102400; font-family: 'Dela Gothic One', sans-serif; font-size: 17px; box-shadow: 4px 4px 0 #000000">承認する</button>
+</div>
+</sc-if>
+
+<sc-if value="{{c.pop}}" hint-placeholder-val="{{ false }}">
+<div class="pop" style="{{c.popStyle}}">{{c.popText}}</div>
+</sc-if>
+
+<sc-if value="{{c.isDone}}" hint-placeholder-val="{{ false }}">
+<div class="stamp" style="position: absolute; right: 16px; bottom: 56px; background: #9DFF3A; color: #102400; border: 4px solid #000000; box-shadow: 5px 5px 0 #000000; font-family: 'Dela Gothic One', sans-serif; font-size: 30px; padding: 4px 16px; border-radius: 14px; transform: rotate(-9deg); pointer-events: none">完了！</div>
+</sc-if>
+
+<sc-if value="{{c.celebrate}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; pointer-events: none">
+<sc-for list="{{c.confetti}}" as="p" hint-placeholder-count="22">
+<span class="confetti" style="{{p.style}}"></span>
+</sc-for>
+</div>
+</sc-if>
+
+</div>
+</sc-for>
+</div>
+
+<aside style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+<section aria-label="選択中のセッション" style="background: #1E1238; border: 3px solid #000000; box-shadow: 6px 6px 0 #9DFF3A; border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<span style="font-family: Bungee, sans-serif; font-size: 20px">{{sel.name}}</span>
+<span style="font-size: 14px; color: #E2D8FA; line-height: 1.4; font-weight: 800">{{sel.title}}</span>
+</div>
+<span style="{{sel.pctStyle}}">{{sel.pct}}%</span>
+</div>
+<span style="{{sel.etaStyle}}">{{sel.eta}}</span>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{sel.steps}}" as="s" hint-placeholder-count="6">
+<div style="display: flex; align-items: center; gap: 12px; padding: 5px 0">
+<span style="{{s.markStyle}}">{{s.mark}}</span>
+<span style="{{s.labelStyle}}">{{s.label}}</span>
+<span style="{{s.stateStyle}}">{{s.state}}</span>
+</div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+<div style="background: #0B0618; border: 2px solid #000000; border-radius: 14px; padding: 8px 10px"><div style="font-size: 12px; color: #C9B8F0; font-weight: 800">経過</div><div style="font-family: Bungee, sans-serif; font-size: 18px">{{sel.elapsed}}</div></div>
+<div style="background: #0B0618; border: 2px solid #000000; border-radius: 14px; padding: 8px 10px"><div style="font-size: 12px; color: #C9B8F0; font-weight: 800">変更行</div><div style="font-family: Bungee, sans-serif; font-size: 18px; color: #2EE6FF">+{{sel.lines}}</div></div>
+<div style="background: #0B0618; border: 2px solid #000000; border-radius: 14px; padding: 8px 10px"><div style="font-size: 12px; color: #C9B8F0; font-weight: 800">テスト</div><div style="font-family: Bungee, sans-serif; font-size: 18px; color: #FFE53B">{{sel.tests}}</div></div>
+</div>
+<button class="btn" style="min-height: 46px; border-radius: 14px; border: 3px solid #000000; background: #2EE6FF; color: #04161A; font: inherit; font-weight: 800; box-shadow: 4px 4px 0 #000000">herdr で開く</button>
+</section>
+
+<section aria-label="ほかの目標" style="background: #1E1238; border: 3px solid #000000; box-shadow: 6px 6px 0 #2EE6FF; border-radius: 22px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Dela Gothic One', sans-serif; font-size: 18px">ほかの目標</span>
+<sc-for list="{{missions}}" as="m" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 5px">
+<div style="display: flex; justify-content: space-between; gap: 8px; align-items: center">
+<span style="font-size: 14px; font-weight: 800">{{m.label}}</span>
+<span style="{{m.tagStyle}}">{{m.tag}}</span>
+</div>
+<div style="height: 12px; background: #0B0618; border: 2px solid #000000; border-radius: 7px; overflow: hidden"><div style="{{m.barStyle}}"></div></div>
+</div>
+</sc-for>
+</section>
+
+<section aria-label="セッション別 今日の完了ステップ" style="background: #1E1238; border: 3px solid #000000; box-shadow: 6px 6px 0 #FF3D8B; border-radius: 22px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Dela Gothic One', sans-serif; font-size: 18px">セッション別 今日の完了ステップ</span>
+<sc-for list="{{rank}}" as="m" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="{{m.rankStyle}}">{{m.rank}}</span>
+<span style="font-family: Bungee, sans-serif; font-size: 14px; flex: 0 0 104px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{m.name}}</span>
+<div style="flex: 1 1 auto; height: 14px; background: #0B0618; border: 2px solid #000000; border-radius: 8px; overflow: hidden"><div style="{{m.barStyle}}"></div></div>
+<span style="font-family: Bungee, sans-serif; font-size: 14px; color: #FFE53B; flex: 0 0 auto">{{m.steps}}</span>
+</div>
+</sc-for>
+</section>
+
+<section aria-label="ログ" style="background: #1E1238; border: 3px solid #000000; box-shadow: 6px 6px 0 #C08BFF; border-radius: 22px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Dela Gothic One', sans-serif; font-size: 18px; margin-bottom: 4px">最近の出来事</span>
+<sc-for list="{{feed}}" as="e" hint-placeholder-count="6">
+<div style="display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 2px dashed #3A2766">
+<span style="{{e.dotStyle}}"></span>
+<span style="font-family: Bungee, 'Dela Gothic One', sans-serif; font-size: 12px; flex: 0 0 auto">{{e.name}}</span>
+<span style="font-size: 13px; color: #E2D8FA; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{e.text}}</span>
+<span style="font-size: 12px; color: #C9B8F0; flex: 0 0 auto">{{e.age}}</span>
+</div>
+</sc-for>
+</section>
+</aside>
+
+</div>
+</div>
+
+<sc-if value="{{flashA}}" hint-placeholder-val="{{ false }}"><div class="flash" style="{{flashStyle}}"></div></sc-if>
+<sc-if value="{{flashB}}" hint-placeholder-val="{{ false }}"><div class="flash" style="{{flashStyle}}"></div></sc-if>
+
+<sc-if value="{{bannerA}}" hint-placeholder-val="{{ false }}">
+<div class="banner" style="{{bannerStyle}}"><div style="font-family: 'Dela Gothic One', sans-serif; font-size: 52px; line-height: 1.1">{{bannerText}}</div><div style="font-size: 18px; font-weight: 800; margin-top: 6px">{{bannerSub}}</div></div>
+</sc-if>
+<sc-if value="{{bannerB}}" hint-placeholder-val="{{ false }}">
+<div class="banner" style="{{bannerStyle}}"><div style="font-family: 'Dela Gothic One', sans-serif; font-size: 52px; line-height: 1.1">{{bannerText}}</div><div style="font-size: 18px; font-weight: 800; margin-top: 6px">{{bannerSub}}</div></div>
+</sc-if>
+
+<sc-if value="{{toastA}}" hint-placeholder-val="{{ false }}">
+<div class="toast" style="position: fixed; top: 24px; right: 24px; z-index: 35; background: #FFFFFF; color: #1A0838; border: 3px solid #000000; box-shadow: 6px 6px 0 #C08BFF; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; pointer-events: none"><svg class="spark" width="30" height="30" viewBox="0 0 40 40" fill="#C08BFF" stroke="#000000" stroke-width="3" stroke-linejoin="round" aria-hidden="true"><path d="M20 2 L25 15 L38 20 L25 25 L20 38 L15 25 L2 20 L15 15 Z"></path></svg><div><div style="font-size: 12px; font-weight: 800; color: #5A3A9A">達成</div><div style="font-family: 'Dela Gothic One', sans-serif; font-size: 17px">{{toastText}}</div></div></div>
+</sc-if>
+<sc-if value="{{toastB}}" hint-placeholder-val="{{ false }}">
+<div class="toast" style="position: fixed; top: 24px; right: 24px; z-index: 35; background: #FFFFFF; color: #1A0838; border: 3px solid #000000; box-shadow: 6px 6px 0 #C08BFF; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; pointer-events: none"><svg class="spark" width="30" height="30" viewBox="0 0 40 40" fill="#C08BFF" stroke="#000000" stroke-width="3" stroke-linejoin="round" aria-hidden="true"><path d="M20 2 L25 15 L38 20 L25 25 L20 38 L15 25 L2 20 L15 15 Z"></path></svg><div><div style="font-size: 12px; font-weight: 800; color: #5A3A9A">達成</div><div style="font-family: 'Dela Gothic One', sans-serif; font-size: 17px">{{toastText}}</div></div></div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"speed":{"editor":"enum","options":["ゆっくり","ふつう","速い"],"default":"ふつう"},"shake":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":1640}}'>
+var ST = {
+  think: { label: '考え中', color: '#C08BFF', fg: '#1A0838' },
+  edit: { label: '編集中', color: '#2EE6FF', fg: '#04161A' },
+  test: { label: 'テスト中', color: '#FFE53B', fg: '#2A1E00' },
+  wait: { label: 'あなた待ち', color: '#FF8A1F', fg: '#2A1200' },
+  error: { label: '失敗→自動修正中', color: '#FF3D8B', fg: '#2A0414' },
+  done: { label: '完了', color: '#9DFF3A', fg: '#102400' }
+};
+var POOL = [
+  { title: 'ログインフォームに入力チェックを追加', tests: 24, files: ['src/LoginForm.tsx', 'src/schema.ts', 'src/LoginForm.test.tsx'],
+    steps: [['既存のフォームを読む', 'think'], ['検証スキーマを定義', 'edit'], ['フォームに接続', 'edit'], ['エラー表示を調整', 'edit'], ['ユニットテスト', 'test'], ['型チェック', 'test']] },
+  { title: 'レート制限が効かないバグを修正', tests: 31, files: ['middleware/rateLimit.ts', 'tests/rateLimit.spec.ts'],
+    steps: [['原因を調査', 'think'], ['ミドルウェアを修正', 'edit'], ['回帰テストを追加', 'edit'], ['テストを実行', 'test'], ['負荷テスト', 'test']] },
+  { title: 'ドキュメントサイトのビルドを直す', tests: 12, files: ['package.json', 'docs/config.ts', 'docs/guide.md'],
+    steps: [['依存関係を確認', 'think'], ['パッケージを更新', 'edit', 'npm install'], ['ビルドを実行', 'test'], ['リンク切れを修正', 'edit']] },
+  { title: '状態管理を新しいストアへ移行', tests: 40, files: ['store/index.ts', 'screens/Home.tsx', 'screens/Profile.tsx'],
+    steps: [['現状を把握', 'think'], ['ストアを作成', 'edit'], ['ホーム画面を書き換え', 'edit'], ['プロフィール画面を書き換え', 'edit'], ['テストを実行', 'test'], ['不要なコードを削除', 'edit']] },
+  { title: 'CI のキャッシュを最適化', tests: 8, files: ['.github/workflows/ci.yml'],
+    steps: [['ワークフローを確認', 'think'], ['キャッシュ設定を追加', 'edit'], ['CI を実行', 'test', 'gh workflow run']] },
+  { title: '検索 API にページングを追加', tests: 18, files: ['api/search.ts', 'api/search.test.ts'],
+    steps: [['API の仕様を確認', 'think'], ['ページングを実装', 'edit', 'git checkout -b feat/paging'], ['テストを追加', 'edit'], ['テストを実行', 'test']] },
+  { title: '画像アップロードの容量制限を追加', tests: 15, files: ['upload/handler.ts', 'upload/limits.ts'],
+    steps: [['処理の流れを読む', 'think'], ['制限ロジックを実装', 'edit'], ['エラー文言を追加', 'edit'], ['テストを実行', 'test']] }
+];
+var MILESTONE = 25;
+var MISSIONS = [
+  { id: 'fast', label: '許可待ちを10秒以内に承認する（2回）', target: 2 },
+  { id: 'streak', label: '止まらずに15ステップ進める', target: 15 },
+  { id: 'tests', label: 'テストを400件通過させる', target: 400 }
+];
+var SFX = {
+  step: [[988, .05], [1319, .09]],
+  clear: [[523, .09], [659, .09], [784, .09], [1047, .25]],
+  big: [[392, .1], [523, .1], [659, .1], [784, .1], [1047, .1], [1319, .35]],
+  approve: [[1175, .05], [1568, .1]],
+  wait: [[660, .12, 'triangle'], [660, .12, 'triangle']],
+  error: [[330, .12, 'sawtooth'], [247, .2, 'sawtooth']],
+  reset: [[523, .1, 'triangle'], [392, .1, 'triangle'], [262, .22, 'triangle']]
+};
+var CONF_COLORS = ['#9DFF3A', '#2EE6FF', '#FF8A1F', '#C08BFF', '#FFE53B', '#FF3D8B'];
+var CONFETTI = [];
+for (var i = 0; i < 22; i++) {
+  var dx = ((i * 37) % 160) - 80;
+  var rot = ((i * 73) % 720) - 360;
+  CONFETTI.push({ style: 'left:' + (4 + (i * 53) % 92) + '%;background:' + CONF_COLORS[i % 6] + ';border:2px solid #000;animation-delay:' + ((i % 6) * 0.05).toFixed(2) + 's;--dx:' + dx + 'px;--rot:' + rot + 'deg' });
+}
+var STREAK_TIME = 14;
+function fmt(sec) { sec = Math.max(0, Math.round(sec)); var m = Math.floor(sec / 60), s = sec % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
+function num(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+var BIG = 'font-family:Bungee,\'Dela Gothic One\',sans-serif;';
+
+class Component extends DCLogic {
+  fresh(task) {
+    return { task: task, done: 0, prog: 0, len: 6, status: task.steps[0][1], elapsed: 0, lines: 0, testsPassed: 0, testsTotal: task.tests,
+      activity: 'タスクを読み込み中', popAt: -9, popText: '', popBig: false, doneAt: 0, waited: 0, ask: '', errLeft: 0, run: 0 };
+  }
+  seed() {
+    var self = this;
+    var mk = function (id, name, branch, ti, done, prog, steps, extra) {
+      var s = self.fresh(POOL[ti]);
+      s.id = id; s.name = name; s.branch = branch; s.done = done; s.prog = prog; s.steps = steps;
+      s.status = POOL[ti].steps[done][1]; s.elapsed = done * 7 + 3; s.lines = done * 23; s.len = 7;
+      return Object.assign(s, extra || {});
+    };
+    var sessions = [
+      mk('s1', 'web-app', 'feat/login-validation', 0, 2, 0.45, 31, { activity: 'src/LoginForm.tsx を編集中', run: 2 }),
+      mk('s2', 'api-server', 'fix/rate-limit', 1, 3, 0.55, 38, { testsPassed: 19, activity: 'テスト実行中 ・ 19/31 通過', run: 3 }),
+      mk('s3', 'docs-site', 'main', 2, 1, 0, 12, { status: 'wait', ask: 'npm install', waited: 3, activity: '「npm install」の実行許可を待っています' }),
+      mk('s4', 'mobile-app', 'refactor/store', 3, 0, 0.3, 21, { activity: '関連するコードをたどっています' }),
+      mk('s5', 'infra', 'chore/ci-cache', 4, 1, 0.7, 19, { activity: '.github/workflows/ci.yml を編集中' })
+    ];
+    var ev = function (t, name, text, kind) { return { id: name + t + text, t: t, name: name, text: text, color: ST[kind].color }; };
+    return { t: 0, sel: 's1', streak: 8, streakLeft: STREAK_TIME, best: 8, poolIdx: 5, sessions: sessions,
+      stepsToday: 121, goal: { target: 10, done: 7 }, plusSlot: 0, plusAt: -9,
+      shakeAt: -9, bigShake: false, flashAt: -9, flashSlot: 0, flashColor: '#FFFFFF',
+      banner: null, bannerSlot: 0, toast: null, toastSlot: 0, mission: { fast: 0, streak: 8, claimed: {} },
+      sound: false, stats: { tests: 342 },
+      events: [ev(0, 'docs-site', '許可待ち: npm install', 'wait'), ev(-6, 'api-server', '完了: 回帰テストを追加', 'done'), ev(-14, 'web-app', '完了: 検証スキーマを定義', 'done'), ev(-22, 'infra', '完了: ワークフローを確認', 'done'), ev(-40, 'mobile-app', '新しいタスクを開始: 状態管理を新しいストアへ移行', 'think')] };
+  }
+  componentDidMount() {
+    var self = this;
+    this.setState(this.seed());
+    this.sub = 0;
+    this.timer = setInterval(function () { self.frame(); }, 300);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+  play(names) {
+    if (!this.state || !this.state.sound || !this.audio || !names || !names.length) return;
+    var ctx = this.audio, t = ctx.currentTime + 0.01, seen = {};
+    for (var k = 0; k < names.length && k < 3; k++) {
+      var seq = SFX[names[k]]; if (!seq || seen[names[k]]) continue; seen[names[k]] = true;
+      var tt = t + k * 0.05;
+      for (var j = 0; j < seq.length; j++) {
+        var n = seq[j], o = ctx.createOscillator(), gn = ctx.createGain();
+        o.type = n[2] || 'square'; o.frequency.value = n[0];
+        gn.gain.setValueAtTime(0.045, tt); gn.gain.exponentialRampToValueAtTime(0.0001, tt + n[1]);
+        o.connect(gn); gn.connect(ctx.destination); o.start(tt); o.stop(tt + n[1] + 0.02);
+        tt += n[1] * 0.85;
+      }
+    }
+  }
+  toggleSound() {
+    var on = !(this.state && this.state.sound);
+    if (on && !this.audio) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) this.audio = new AC();
+    }
+    if (on && this.audio && this.audio.state === 'suspended') this.audio.resume();
+    var self = this;
+    this.setState({ sound: on }, function () { if (on) self.play(['clear']); });
+  }
+  begin(st) {
+    return { t: st.t, streak: st.streak, streakLeft: st.streakLeft, best: st.best, stepsToday: st.stepsToday,
+      goal: Object.assign({}, st.goal), plusSlot: st.plusSlot, plusAt: st.plusAt,
+      banner: st.banner, bannerSlot: st.bannerSlot, toast: st.toast, toastSlot: st.toastSlot,
+      shakeAt: st.shakeAt, bigShake: st.bigShake, flashAt: st.flashAt, flashSlot: st.flashSlot, flashColor: st.flashColor,
+      mission: { fast: st.mission.fast, streak: st.mission.streak, claimed: st.mission.claimed },
+      poolIdx: st.poolIdx, stats: Object.assign({}, st.stats), events: st.events.slice(), sounds: [] };
+  }
+  commit(g, extra) {
+    if (g.events.length > 40) g.events.length = 40;
+    var patch = { streak: g.streak, streakLeft: g.streakLeft, best: g.best, stepsToday: g.stepsToday, goal: g.goal, plusSlot: g.plusSlot, plusAt: g.plusAt,
+      banner: g.banner, bannerSlot: g.bannerSlot, toast: g.toast, toastSlot: g.toastSlot,
+      shakeAt: g.shakeAt, bigShake: g.bigShake, flashAt: g.flashAt, flashSlot: g.flashSlot, flashColor: g.flashColor,
+      mission: g.mission, poolIdx: g.poolIdx, stats: g.stats, events: g.events };
+    var self = this, sounds = g.sounds;
+    this.setState(Object.assign(patch, extra || {}), function () { self.play(sounds); });
+  }
+  setBanner(g, b, force) {
+    if (!force && g.banner && g.t - g.banner.at < 3) return;
+    b.at = g.t; g.banner = b; g.bannerSlot++;
+  }
+  flash(g, color) { g.flashAt = g.t; g.flashSlot++; g.flashColor = color; }
+  shake(g, big) { g.shakeAt = g.t; g.bigShake = !!big; }
+  toastMsg(g, text) { g.toast = { text: text, at: g.t }; g.toastSlot++; }
+  checkMissions(g) {
+    var vals = { fast: g.mission.fast, streak: g.mission.streak, tests: g.stats.tests };
+    for (var k = 0; k < MISSIONS.length; k++) {
+      var m = MISSIONS[k];
+      if (vals[m.id] >= m.target && !g.mission.claimed[m.id]) {
+        g.mission.claimed = Object.assign({}, g.mission.claimed); g.mission.claimed[m.id] = true;
+        this.toastMsg(g, m.label);
+      }
+    }
+  }
+  stepDone(g, s) {
+    g.stepsToday++; s.steps++; s.run++;
+    g.streak++; g.streakLeft = STREAK_TIME;
+    if (g.streak > g.best) g.best = g.streak;
+    if (g.streak > g.mission.streak) g.mission.streak = g.streak;
+    s.popAt = g.t; s.popText = '+1 ステップ完了'; s.popBig = false;
+    g.sounds.push('step');
+    if (g.stepsToday % MILESTONE === 0) {
+      this.setBanner(g, { text: '今日 ' + g.stepsToday + ' ステップ完了！', sub: '次の区切りは ' + (g.stepsToday + MILESTONE) + ' ステップ', color: '#FFE53B', fg: '#2A1E00' }, true);
+      this.shake(g, true); this.flash(g, '#FFE53B'); g.sounds.push('big');
+    }
+    if (g.streak === 10 || g.streak === 20 || g.streak === 30) {
+      this.setBanner(g, { text: g.streak + ' ステップ連続！', sub: '止まらずに進んでいます', color: '#FF3D8B', fg: '#2A0414' }, false);
+      this.shake(g, false); this.flash(g, '#FF3D8B');
+    }
+    this.checkMissions(g);
+  }
+  frame() {
+    var speed = this.props.speed || 'ふつう';
+    var every = speed === 'ゆっくり' ? 5 : speed === '速い' ? 1 : 3;
+    this.sub = (this.sub || 0) + 1;
+    if (this.sub % every === 0) this.tick();
+  }
+  tick() {
+    var st = this.state; if (!st || !st.sessions) return;
+    var g = this.begin(st);
+    g.t = st.t + 1;
+    var t = g.t;
+    var push = function (s, text, kind) { g.events.unshift({ id: s.id + '-' + t + '-' + g.events.length, t: t, name: s.name, text: text, color: ST[kind].color }); };
+    var self = this;
+    var sessions = st.sessions.map(function (s0) {
+      var s = Object.assign({}, s0);
+      if (s.status === 'wait') { s.waited++; return s; }
+      if (s.status === 'done') {
+        if (t - s.doneAt >= 9) {
+          var task = POOL[g.poolIdx % POOL.length]; g.poolIdx++;
+          var keep = s.steps; Object.assign(s, self.fresh(task)); s.steps = keep;
+          push(s, '新しいタスクを開始: ' + task.title, 'think');
+        }
+        return s;
+      }
+      if (s.status === 'error') {
+        s.errLeft--;
+        if (s.errLeft <= 0) { s.status = 'test'; s.activity = '修正を反映して再テスト中'; push(s, '自動修正が完了、再テストへ', 'test'); }
+        return s;
+      }
+      s.elapsed++;
+      s.prog += 1 / s.len;
+      var step = s.task.steps[s.done];
+      var kind = s.status;
+      var f = s.task.files[s.elapsed % s.task.files.length];
+      if (kind === 'think') s.activity = [f + ' を読み込み中', '関連するコードをたどっています', '実装方針を組み立て中'][s.elapsed % 3];
+      if (kind === 'edit') { s.lines += 2 + (s.elapsed * 7) % 9; s.activity = f + ' を編集中 ・ 合計 +' + s.lines + '行'; }
+      if (kind === 'test') {
+        if (s.testsPassed < s.testsTotal) { var n = Math.min(s.testsTotal - s.testsPassed, 1 + (s.elapsed % 3)); s.testsPassed += n; g.stats.tests += n; }
+        s.activity = 'テスト実行中 ・ ' + s.testsPassed + '/' + s.testsTotal + ' 通過';
+        if (Math.random() < 0.05 && s.prog < 0.7) { s.status = 'error'; s.errLeft = 3; s.run = 0; s.activity = 'テストが1件失敗 → 原因を特定して修正中'; push(s, 'テスト失敗を検知、自動で修正中', 'error'); g.sounds.push('error'); return s; }
+      }
+      if (s.prog >= 1) {
+        s.done++; s.prog = 0;
+        self.stepDone(g, s);
+        push(s, '完了: ' + step[0], 'done');
+        if (s.done >= s.task.steps.length) {
+          s.status = 'done'; s.doneAt = t;
+          s.popText = 'タスク完了！'; s.popBig = true;
+          g.goal.done++; g.plusSlot++; g.plusAt = t;
+          s.activity = '+' + s.lines + '行の変更 ・ テスト ' + s.testsPassed + '件通過';
+          push(s, 'タスク完了: ' + s.task.title, 'done');
+          if (g.goal.done === g.goal.target) {
+            self.setBanner(g, { text: '今日の目標を達成！', sub: 'タスク ' + g.goal.target + ' 件完了 ・ 次の目標は ' + (g.goal.target + 5) + ' 件', color: '#FF3D8B', fg: '#2A0414' }, true);
+            self.shake(g, true); self.flash(g, '#FF3D8B'); g.sounds.push('big');
+            g.goal.target += 5;
+          } else {
+            self.setBanner(g, { text: 'タスク完了！', sub: s.name + ' ・ ' + s.task.title, color: '#9DFF3A', fg: '#102400' }, false);
+            self.shake(g, false); self.flash(g, '#9DFF3A');
+          }
+          g.sounds.push('clear');
+        } else {
+          var nx = s.task.steps[s.done];
+          s.len = 5 + Math.floor(Math.random() * 5);
+          if (nx[2]) { s.status = 'wait'; s.waited = 0; s.ask = nx[2]; s.activity = '「' + nx[2] + '」の実行許可を待っています'; push(s, '許可待ち: ' + nx[2], 'wait'); g.sounds.push('wait'); }
+          else s.status = nx[1];
+        }
+      }
+      return s;
+    });
+    if (g.streak > 0 && g.streakLeft === st.streakLeft) {
+      g.streakLeft--;
+      if (g.streakLeft <= 0) {
+        g.events.unshift({ id: 'sr' + t, t: t, name: '連続記録', text: g.streak + 'ステップで止まりました（最高 ' + g.best + '）', color: '#FF3D8B' });
+        g.streak = 0; g.streakLeft = 0; g.sounds.push('reset');
+      }
+    }
+    this.checkMissions(g);
+    this.commit(g, { t: t, sessions: sessions });
+  }
+  resolve(id, ok) {
+    var st = this.state; if (!st || !st.sessions) return;
+    var g = this.begin(st);
+    var sessions = st.sessions.map(function (s0) {
+      if (s0.id !== id || s0.status !== 'wait') return s0;
+      var s = Object.assign({}, s0);
+      if (ok) {
+        var fast = s.waited <= 10;
+        s.status = s.task.steps[s.done][1]; s.activity = 'コマンドを実行中: ' + s.ask;
+        s.popAt = g.t; s.popText = '承認しました'; s.popBig = false;
+        if (fast) g.mission.fast++;
+        g.sounds.push('approve'); g.streakLeft = STREAK_TIME;
+        g.events.unshift({ id: id + '-ok-' + g.t + g.events.length, t: g.t, name: s.name, text: '承認: ' + s.ask + '（待ち時間 ' + s.waited + '秒）', color: ST.done.color });
+      } else {
+        s.status = 'think'; s.activity = '拒否されたので別の方法を検討中';
+        g.events.unshift({ id: id + '-ng-' + g.t + g.events.length, t: g.t, name: s.name, text: '拒否: ' + s.ask, color: ST.error.color });
+      }
+      s.ask = '';
+      return s;
+    });
+    this.checkMissions(g);
+    this.commit(g, { sessions: sessions, sel: id });
+  }
+  renderVals() {
+    var S = (this.state && this.state.sessions) ? this.state : (this.seedCache || (this.seedCache = this.seed()));
+    var self = this;
+    var sel = S.sessions.filter(function (s) { return s.id === S.sel; })[0] || S.sessions[0];
+    var calc = function (s) {
+      var def = ST[s.status], total = s.task.steps.length;
+      var frac = s.status === 'done' ? 1 : (s.done + Math.min(s.prog, 1)) / total;
+      var remain = (1 - s.prog) * s.len + (total - s.done - 1) * 6.5;
+      var eta, etaBg, etaFg;
+      if (s.status === 'done') { eta = '次のタスクまで ' + Math.max(0, 9 - (S.t - s.doneAt)) + '秒'; etaBg = '#9DFF3A'; etaFg = '#102400'; }
+      else if (s.status === 'wait') { eta = 'あなたの承認待ち'; etaBg = '#FF8A1F'; etaFg = '#2A1200'; }
+      else { eta = '残り約 ' + fmt(remain); etaBg = '#FFFFFF'; etaFg = '#1A0838'; }
+      return { def: def, total: total, pct: Math.round(frac * 100), eta: eta, etaBg: etaBg, etaFg: etaFg };
+    };
+    var etaStyle = function (c) { return BIG + 'font-size:14px;background:' + c.etaBg + ';color:' + c.etaFg + ';border:2px solid #000;border-radius:10px;padding:4px 10px;box-shadow:3px 3px 0 #000'; };
+    var cards = S.sessions.map(function (s) {
+      var c = calc(s), isSel = s.id === sel.id, isWait = s.status === 'wait', isDone = s.status === 'done';
+      var shadow = isSel ? '#FFFFFF' : c.def.color;
+      return {
+        name: s.name, branch: s.branch, title: s.task.title, activity: s.activity, label: c.def.label, pct: c.pct, eta: c.eta, steps: s.steps,
+        selLabel: s.name + ' の詳細を表示', popText: s.popText, onFire: s.run >= 3 && !isDone, streak: s.run,
+        popStyle: 'position:absolute;top:58px;right:18px;border:3px solid #000;box-shadow:4px 4px 0 #000;font-family:\'Dela Gothic One\',sans-serif;padding:6px 14px;border-radius:14px;pointer-events:none;white-space:nowrap;' + (s.popBig ? 'background:#9DFF3A;color:#102400;font-size:24px' : 'background:#FFE53B;color:#2A1E00;font-size:17px'),
+        cls: 'card' + (isWait ? ' card-wait' : '') + (isDone ? ' card-done' : ''),
+        cardStyle: 'position:relative;background:#1E1238;border:3px solid #000;box-shadow:' + (isSel ? '8px 8px 0 ' : '6px 6px 0 ') + shadow + ';border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px;overflow:hidden',
+        chipStyle: 'flex:0 0 auto;display:inline-block;background:' + c.def.color + ';color:' + c.def.fg + ';font-family:\'Dela Gothic One\',sans-serif;font-size:14px;padding:6px 12px;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000',
+        pctStyle: BIG + 'font-size:52px;line-height:.9;color:' + c.def.color,
+        etaStyle: etaStyle(c),
+        stepText: (isDone ? c.total : s.done + 1) + ' / ' + c.total + ' ・ ' + (isDone ? 'すべて完了' : s.task.steps[s.done][0]),
+        dots: s.task.steps.map(function (x, i) {
+          var full = isDone || i < s.done, cur = !full && i === s.done;
+          var w = full ? 100 : cur ? Math.round(Math.min(s.prog, 1) * 100) : 0;
+          return { cls: cur && s.status !== 'wait' ? 'stripes' : '', fillStyle: 'height:100%;transition:width .4s;width:' + w + '%;background-color:' + (full ? '#9DFF3A' : c.def.color) };
+        }),
+        isWait: isWait, isDone: isDone, pop: S.t - s.popAt < 2,
+        celebrate: isDone && S.t - s.doneAt < 4, confetti: CONFETTI,
+        select: function () { self.setState({ sel: s.id }); },
+        approve: function () { self.resolve(s.id, true); },
+        deny: function () { self.resolve(s.id, false); }
+      };
+    });
+    var sc = calc(sel);
+    var selV = {
+      name: sel.name, title: sel.task.title, pct: sc.pct, eta: sc.eta, elapsed: fmt(sel.elapsed), lines: sel.lines, tests: sel.testsPassed + '/' + sel.testsTotal,
+      pctStyle: BIG + 'flex:0 0 auto;font-size:38px;line-height:1;color:' + sc.def.color,
+      etaStyle: etaStyle(sc) + ';align-self:flex-start',
+      steps: sel.task.steps.map(function (x, i) {
+        var done = sel.status === 'done' || i < sel.done, cur = !done && i === sel.done;
+        var state = done ? '完了' : cur ? (sel.status === 'wait' ? '許可待ち' : Math.round(sel.prog * 100) + '%') : '';
+        return {
+          label: x[0], state: state, mark: done ? '✓' : cur ? '▶' : '',
+          markStyle: 'flex:0 0 auto;width:22px;height:22px;border-radius:7px;border:2px solid #000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;' + (done ? 'background:#9DFF3A;color:#102400' : cur ? 'background:' + sc.def.color + ';color:' + sc.def.fg : 'background:#0B0618;color:#0B0618'),
+          labelStyle: 'flex:1 1 auto;font-size:15px;font-weight:800;' + (done ? 'color:#C9B8F0' : cur ? 'color:#FFFFFF' : 'color:#9C8AC8'),
+          stateStyle: 'font-size:13px;font-weight:800;color:' + (done ? '#9DFF3A' : sc.def.color)
+        };
+      })
+    };
+    var asks = S.sessions.filter(function (s) { return s.status === 'wait'; }).map(function (s) {
+      return { name: s.name, ask: s.ask, waited: s.waited, approve: function () { self.resolve(s.id, true); }, deny: function () { self.resolve(s.id, false); } };
+    });
+    var maxSteps = Math.max.apply(null, S.sessions.map(function (s) { return s.steps; }).concat([1]));
+    var rankColors = ['#FFE53B', '#E2D8FA', '#FF8A1F', '#9C8AC8', '#9C8AC8'];
+    var rank = S.sessions.slice().sort(function (a, b) { return b.steps - a.steps; }).map(function (s, i) {
+      return { name: s.name, steps: s.steps, rank: String(i + 1),
+        rankStyle: 'flex:0 0 auto;width:28px;height:28px;border-radius:9px;border:2px solid #000;display:flex;align-items:center;justify-content:center;font-family:Bungee,sans-serif;font-size:14px;color:#1A0838;background:' + rankColors[i],
+        barStyle: 'height:100%;transition:width .5s;width:' + Math.round(s.steps / maxSteps * 100) + '%;background:' + (i === 0 ? '#FFE53B' : '#C08BFF') };
+    });
+    var feed = S.events.slice(0, 6).map(function (e) {
+      var d = S.t - e.t;
+      return { name: e.name, text: e.text, age: d < 2 ? 'たった今' : d + '秒前', dotStyle: 'flex:0 0 auto;width:12px;height:12px;border-radius:4px;border:2px solid #000;background:' + e.color };
+    });
+    var vals = { fast: S.mission.fast, streak: S.mission.streak, tests: S.stats.tests };
+    var missions = MISSIONS.map(function (m) {
+      var v = Math.min(vals[m.id], m.target), done = !!S.mission.claimed[m.id];
+      return { label: m.label, tag: done ? '達成' : num(v) + ' / ' + num(m.target),
+        tagStyle: 'font-size:12px;font-weight:800;border:2px solid #000;border-radius:8px;padding:2px 8px;white-space:nowrap;' + (done ? 'background:#9DFF3A;color:#102400' : 'background:#0B0618;color:#E2D8FA'),
+        barStyle: 'height:100%;transition:width .4s;width:' + Math.round(v / m.target * 100) + '%;background:' + (done ? '#9DFF3A' : '#2EE6FF') };
+    });
+    var ticker = S.events.slice(0, 8).map(function (e) { return e.name + '｜' + e.text; }).join('　／　');
+    var active = S.sessions.filter(function (s) { return s.status !== 'done' && s.status !== 'wait'; }).length;
+    var b = S.banner && S.t - S.banner.at < 3 ? S.banner : null;
+    var tst = S.toast && S.t - S.toast.at < 5 ? S.toast : null;
+    var flashOn = S.t - S.flashAt < 1;
+    var plusOn = S.t - S.plusAt < 2;
+    var doShake = this.props.shake !== false;
+    var nextMile = (Math.floor(S.stepsToday / MILESTONE) + 1) * MILESTONE;
+    var hot = S.streak >= 10;
+    var goalPct = Math.min(100, Math.round(S.goal.done / S.goal.target * 100));
+    return {
+      rootCls: doShake && S.t - S.shakeAt < 1 ? (S.bigShake ? 'bigshake' : 'shake') : '',
+      cards: cards, sel: selV, asks: asks, feed: feed, rank: rank, missions: missions, ticker: ticker || 'まだ出来事はありません',
+      active: active, waiting: asks.length, tasksDone: S.goal.done, tests: num(S.stats.tests),
+      stepsToday: num(S.stepsToday), stepsEven: S.stepsToday % 2 === 0, stepsOdd: S.stepsToday % 2 === 1,
+      milestoneBarStyle: 'height:100%;transition:width .5s cubic-bezier(.2,.9,.3,1.3);width:' + Math.round((S.stepsToday % MILESTONE) / MILESTONE * 100) + '%;background-color:#FFE53B',
+      milestoneText: '次の区切り ' + nextMile + ' ステップまで あと ' + (nextMile - S.stepsToday),
+      streak: S.streak, streakEven: S.streak % 2 === 0, streakOdd: S.streak % 2 === 1,
+      streakTimerStyle: 'height:100%;transition:width .3s linear;background:#FFFFFF;width:' + Math.round(S.streakLeft / STREAK_TIME * 100) + '%',
+      streakText: S.streak === 0 ? 'どれかのステップが終わると始まります' : 'バーが空になると 0 に戻ります ・ 最高 ' + S.best,
+      streakBoxCls: hot ? 'hot' : '',
+      streakBoxStyle: 'flex:0 0 auto;width:230px;background:#FF3D8B;color:#2A0414;border:3px solid #000;box-shadow:6px 6px 0 #000;border-radius:18px;padding:10px 16px;display:flex;flex-direction:column;justify-content:center;gap:5px',
+      soundOn: S.sound ? 'true' : 'false', soundLabel: S.sound ? '音 ON' : '音 OFF',
+      soundBtnStyle: 'flex:0 0 auto;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 14px;border-radius:18px;border:3px solid #000;box-shadow:6px 6px 0 #000;font:inherit;font-weight:800;font-size:12px;' + (S.sound ? 'background:#9DFF3A;color:#102400' : 'background:#1E1238;color:#FFFFFF'),
+      toggleSound: function () { self.toggleSound(); },
+      goalTarget: S.goal.target,
+      goalText: S.goal.done + ' / ' + S.goal.target + ' 件 ・ あと ' + Math.max(0, S.goal.target - S.goal.done) + ' 件',
+      goalBarStyle: 'height:100%;transition:width .35s cubic-bezier(.2,.9,.3,1.3);width:' + goalPct + '%;background-color:#9DFF3A',
+      plusA: plusOn && S.plusSlot % 2 === 0, plusB: plusOn && S.plusSlot % 2 === 1,
+      flashA: flashOn && S.flashSlot % 2 === 0, flashB: flashOn && S.flashSlot % 2 === 1,
+      flashStyle: 'position:fixed;inset:0;z-index:25;pointer-events:none;background:' + S.flashColor,
+      bannerA: !!b && S.bannerSlot % 2 === 0, bannerB: !!b && S.bannerSlot % 2 === 1,
+      bannerText: b ? b.text : '', bannerSub: b ? b.sub : '',
+      bannerStyle: 'position:fixed;top:30%;left:50%;z-index:30;pointer-events:none;text-align:center;padding:18px 36px;border:4px solid #000;border-radius:24px;box-shadow:10px 10px 0 #000;transform:translateX(-50%) rotate(-3deg);max-width:86%;box-sizing:border-box;background:' + (b ? b.color : '#FFE53B') + ';color:' + (b ? b.fg : '#000'),
+      toastA: !!tst && S.toastSlot % 2 === 0, toastB: !!tst && S.toastSlot % 2 === 1, toastText: tst ? tst.text : ''
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watchtower</title>
+<style>
+:root{--bg:#0B0B11;--card:#17171F;--line:#262632;--text:#F2F2F5;--sub:#A3A3B5;--think:#B18CFF;--work:#4D9DFF;--wait:#FF9F1C;--done:#C6F432;--err:#FF5C7A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN",system-ui,sans-serif}
+.wrap{max-width:1400px;margin:0 auto;padding:24px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}
+h1{margin:0;font-size:26px;letter-spacing:-.02em}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:var(--card);border-radius:14px;padding:8px 14px;min-width:90px}
+.stat b{display:block;font-size:24px}.stat span{font-size:12px;color:var(--sub)}
+.asks{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.ask{background:var(--wait);color:#2A1500;border-radius:16px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;font-weight:700}
+.main{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.grid{flex:999 1 560px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{position:relative;overflow:hidden;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px;transition:transform .2s}
+.card:hover{transform:translateY(-3px)}
+.card.blocked{border-color:var(--wait);animation:glow 1.4s infinite}
+.card.done{border-color:var(--done)}
+.top{display:flex;gap:12px;align-items:flex-start}
+.top .who{flex:1;min-width:0}
+.name{font-size:18px;font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:700;color:#111}
+.chip i{width:7px;height:7px;border-radius:50%;background:currentColor;animation:blink 1.1s infinite}
+.ring{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto}
+.ring div{width:52px;height:52px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-weight:700}
+.summary{font-size:16px;font-weight:700;line-height:1.4}
+.action{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#C9C9D6}
+.bar{display:flex;gap:4px}.bar span{flex:1;height:8px;border-radius:4px;background:#2A2A38}
+.foot{display:flex;justify-content:space-between;font-size:14px;color:#C9C9D6}
+.foot b{color:var(--text)}
+button{font:inherit;font-weight:700;min-height:44px;border-radius:12px;padding:0 18px;cursor:pointer;border:none}
+button:active{transform:scale(.95)}
+.btns{display:flex;gap:8px}
+.ok{background:#2A1500;color:#FFD9A8}.ng{background:transparent;border:2px solid #2A1500;color:#2A1500}
+.card .ok{background:var(--wait);color:#2A1500}.card .ng{border-color:var(--wait);color:var(--wait)}
+.pop{position:absolute;top:12px;right:92px;background:var(--done);color:#1A2200;font-weight:700;padding:5px 11px;border-radius:999px;animation:pop 1.6s forwards}
+.conf{position:absolute;top:30%;width:9px;height:14px;border-radius:2px;animation:conf 1.5s forwards}
+aside{flex:1 1 340px;background:var(--card);border-radius:20px;padding:16px 18px}
+aside h2{font-size:12px;color:var(--sub);margin:0 0 6px;letter-spacing:.08em}
+.ev{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid #23232E;font-size:13px}
+.ev i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}.ev em{font-style:normal;color:var(--sub);margin-left:auto;flex:0 0 auto}
+.ev span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C9C9D6}
+.empty{color:var(--sub);padding:40px;text-align:center}
+@keyframes glow{50%{box-shadow:0 0 0 6px rgba(255,159,28,.28)}}
+@keyframes blink{50%{opacity:.35}}
+@keyframes pop{0%{opacity:0;transform:translateY(8px) scale(.6)}20%{opacity:1;transform:scale(1.15)}70%{opacity:1;transform:translateY(-8px)}100%{opacity:0;transform:translateY(-24px)}}
+@keyframes conf{to{opacity:0;transform:translate(var(--dx),220px) rotate(var(--r))}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Watchtower</h1>
+    <div class="stats" id="stats"></div>
+  </header>
+  <div class="asks" id="asks"></div>
+  <div class="main">
+    <div class="grid" id="grid"><div class="empty">herdr のエージェントを待っています…</div></div>
+    <aside><h2>最近の出来事</h2><div id="feed"></div></aside>
+  </div>
+</div>
+<script>
+const TOKEN = '__WATCHTOWER_TOKEN__';
+const COLORS = { working: 'var(--work)', blocked: 'var(--wait)', idle: 'var(--done)', done: 'var(--done)', unknown: 'var(--think)' };
+const LABELS = { working: '作業中', blocked: 'あなた待ち', idle: '待機中', done: '完了', unknown: '確認中' };
+const FEED_COLORS = { work: 'var(--work)', wait: 'var(--wait)', done: 'var(--done)', step: 'var(--done)', error: 'var(--err)' };
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+const prevDone = new Map();
+const celebrated = new Set();
+
+function respond(key, action) {
+  fetch('/api/respond', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Watchtower-Token': TOKEN }, body: JSON.stringify({ key, action }) });
+}
+function focusPane(key) {
+  fetch('/api/focus', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Watchtower-Token': TOKEN }, body: JSON.stringify({ key }) });
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-act]');
+  if (!b) return;
+  if (b.dataset.act === 'focus') focusPane(b.dataset.key); else respond(b.dataset.key, b.dataset.act);
+});
+
+function confetti() {
+  const c = ['#C6F432', '#4D9DFF', '#FF9F1C', '#B18CFF', '#3DDCE0', '#FF5C7A'];
+  return Array.from({ length: 16 }, (_, i) => `<span class="conf" style="left:${(i * 53) % 90 + 5}%;background:${c[i % 6]};--dx:${(i * 37) % 120 - 60}px;--r:${(i * 73) % 540 - 270}deg;animation-delay:${(i % 5) * 0.06}s"></span>`).join('');
+}
+
+function card(a) {
+  const color = COLORS[a.status] || COLORS.unknown;
+  const pct = a.total ? Math.round((a.done / a.total) * 100) : (a.status === 'done' || a.status === 'idle') ? 100 : 0;
+  const stepUp = prevDone.has(a.key) && a.done > prevDone.get(a.key);
+  prevDone.set(a.key, a.done);
+  let party = '';
+  if (a.justDone && !celebrated.has(a.key)) { celebrated.add(a.key); party = confetti(); }
+  if (!a.justDone) celebrated.delete(a.key);
+  const eta = a.status === 'blocked' ? `<b style="color:var(--wait)">承認待ち ${fmt(a.blockedFor)}</b>`
+    : a.eta ? `<b>残り約 ${fmt(a.eta.low)}〜${fmt(a.eta.high)}</b>`
+    : a.status === 'working' ? '<b>見積もり中</b>' : '';
+  const bars = a.total ? `<div class="bar">${a.todos.map((t) => `<span style="background:${t.status === 'completed' ? 'var(--done)' : t.status === 'in_progress' ? color : '#2A2A38'}"></span>`).join('')}</div>` : '';
+  return `<div class="card ${a.status} ${a.justDone ? 'done' : ''}">
+    <div class="top">
+      <div class="who"><div class="name">${esc(a.name)}</div>
+        <span class="chip" style="background:${color}"><i></i>${LABELS[a.status] || esc(a.status)}</span></div>
+      <div class="ring" style="background:conic-gradient(${color} ${pct * 3.6}deg,#2A2A38 0)"><div>${pct}%</div></div>
+    </div>
+    <div class="summary">${esc(a.summary || a.title || '指示を待っています')}</div>
+    <div class="action">${esc(a.notice || a.lastAction)}</div>
+    ${bars}
+    <div class="foot"><span>${a.total ? `${a.done}/${a.total} ステップ` : `ツール ${a.tools} 回`}</span>${eta}</div>
+    ${a.status === 'blocked' ? `<div class="btns"><button class="ng" data-act="deny" data-key="${esc(a.key)}">拒否</button><button class="ok" style="flex:1" data-act="approve" data-key="${esc(a.key)}">承認する</button></div>` : ''}
+    ${a.pane ? `<button style="background:transparent;border:2px solid #3A3A4A;color:var(--text)" data-act="focus" data-key="${esc(a.key)}">herdr で開く</button>` : ''}
+    ${stepUp ? '<div class="pop">+1 ステップ</div>' : ''}${party}
+  </div>`;
+}
+
+function render(s) {
+  const working = s.agents.filter((a) => a.status === 'working').length;
+  const blocked = s.agents.filter((a) => a.status === 'blocked');
+  document.getElementById('stats').innerHTML = [
+    ['稼働中', working, 'var(--work)'], ['あなた待ち', blocked.length, 'var(--wait)'],
+    ['完了ターン', s.stats.tasksDone, 'var(--done)'], ['完了ステップ', s.stats.steps, 'var(--done)'],
+  ].map(([l, v, c]) => `<div class="stat"><span>${l}</span><b style="color:${c}">${v}</b></div>`).join('');
+  document.getElementById('asks').innerHTML = blocked.map((a) => `<div class="ask"><span>${esc(a.name)}：${esc(a.notice || '許可を待っています')}（${a.blockedFor}秒）</span>
+    <div class="btns"><button class="ng" data-act="deny" data-key="${esc(a.key)}">拒否</button><button class="ok" data-act="approve" data-key="${esc(a.key)}">承認する</button></div></div>`).join('');
+  document.getElementById('grid').innerHTML = s.agents.length ? s.agents.map(card).join('') : '<div class="empty">herdr のエージェントを待っています…</div>';
+  document.getElementById('feed').innerHTML = s.feed.slice(0, 12).map((e) => {
+    const d = Math.round((s.now - e.t) / 1000);
+    return `<div class="ev"><i style="background:${FEED_COLORS[e.kind] || 'var(--sub)'}"></i><b>${esc(e.name)}</b><span>${esc(e.text)}</span><em>${d < 2 ? 'たった今' : d < 60 ? d + '秒前' : Math.round(d / 60) + '分前'}</em></div>`;
+  }).join('');
+}
+
+const es = new EventSource('/stream?token=' + TOKEN);
+es.onmessage = (m) => render(JSON.parse(m.data));
+</script>
+</body>
+</html>
