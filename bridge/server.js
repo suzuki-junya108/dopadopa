@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-// Watchtower bridge
+// dopadopa bridge
 //  入力1: herdr の socket API（agent.list のポーリング + events.subscribe）→ 状態（working / blocked / idle / done）
 //  入力2: Claude Code の hooks（POST /hook）→ 何をしているか・Todo 進捗・残り時間
 //  出力 : ブラウザのボードへ Server-Sent Events（GET /stream）
@@ -14,10 +14,10 @@ const os = require('node:os');
 const crypto = require('node:crypto');
 const { spawn } = require('node:child_process');
 
-const PORT = Number(process.env.WATCHTOWER_PORT || 4517);
+const PORT = Number(process.env.DOPADOPA_PORT || 4517);
 const SOCK = process.env.HERDR_SOCKET_PATH || path.join(os.homedir(), '.config', 'herdr', 'herdr.sock');
 const HERDR = process.env.HERDR_BIN_PATH || 'herdr';
-const RUNTIME = path.join(os.homedir(), '.watchtower');
+const RUNTIME = path.join(os.homedir(), '.dopadopa');
 const ROOT = path.join(__dirname, '..');
 const TOKEN = crypto.randomBytes(16).toString('hex');
 
@@ -287,10 +287,10 @@ function readBody(req) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://127.0.0.1');
-  const tokenOk = req.headers['x-watchtower-token'] === TOKEN || url.searchParams.get('token') === TOKEN;
+  const tokenOk = req.headers['x-dopadopa-token'] === TOKEN || url.searchParams.get('token') === TOKEN;
 
   if (req.method === 'GET' && url.pathname === '/') {
-    const html = fs.readFileSync(path.join(ROOT, 'ui', 'index.html'), 'utf8').replace('__WATCHTOWER_TOKEN__', TOKEN);
+    const html = fs.readFileSync(path.join(ROOT, 'ui', 'index.html'), 'utf8').replace('__DOPADOPA_TOKEN__', TOKEN);
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     return res.end(html);
   }
@@ -327,5 +327,5 @@ const server = http.createServer(async (req, res) => {
   res.writeHead(404); res.end('not found');
 });
 
-server.listen(PORT, '127.0.0.1', () => log(`watchtower bridge on http://127.0.0.1:${PORT} (herdr socket: ${SOCK})`));
+server.listen(PORT, '127.0.0.1', () => log(`dopadopa bridge on http://127.0.0.1:${PORT} (herdr socket: ${SOCK})`));
 process.on('SIGTERM', () => process.exit(0));

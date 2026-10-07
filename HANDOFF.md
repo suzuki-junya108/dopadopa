@@ -43,7 +43,7 @@ Mac で動く Claude Code の複数セッションを、リアルタイムに分
 3. `events.subscribe`（`pane.agent_status_changed`）で届く行の形
 4. 許可プロンプトで承認・拒否するために送るキー。`herdr agent send-keys --help` と実際のプロンプトの選択肢で決める
    - `bridge/server.js` の `KEYS` を更新
-5. `herdr plugin link` → startup でブリッジが起動し、`watchtower.board.open` でボードが開くか
+5. `herdr plugin link` → startup でブリッジが起動し、`dopadopa.board.open` でボードが開くか
 
 ※ 許可プロンプトを出す操作（例：「test.txt を作って」と頼む）はユーザーに依頼すること。勝手に承認キーを送らない。
 

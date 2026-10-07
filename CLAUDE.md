@@ -1,4 +1,4 @@
-# Watchtower
+# dopadopa
 
 Claude Code の複数セッションを、ブラウザのライブボードで「全体を一目で」「個別にも分かりやすく」「見ていて楽しく」表示する herdr プラグイン。
 
@@ -33,15 +33,15 @@ Claude Code ×N（herdr のペイン）
 ```sh
 npm run check                                   # 構文チェック
 herdr plugin link "$PWD"                         # 開発中のプラグインを登録
-herdr plugin action invoke watchtower.board.restart
-herdr plugin action invoke watchtower.board.open
-herdr plugin log list --plugin watchtower.board
+herdr plugin action invoke dopadopa.board.restart
+herdr plugin action invoke dopadopa.board.open
+herdr plugin log list --plugin dopadopa.board
 herdr agent list
 herdr agent explain <target>
 ```
 
-ブリッジのログ: `$HERDR_PLUGIN_STATE_DIR/bridge.log`（場所は `herdr plugin config-dir watchtower.board` の近く。分からなければ `ps` で探す）。
-herdr-plugin.toml を変えたら `herdr plugin unlink watchtower.board && herdr plugin link "$PWD"` で再登録。
+ブリッジのログ: `$HERDR_PLUGIN_STATE_DIR/bridge.log`（場所は `herdr plugin config-dir dopadopa.board` の近く。分からなければ `ps` で探す）。
+herdr-plugin.toml を変えたら `herdr plugin unlink dopadopa.board && herdr plugin link "$PWD"` で再登録。
 
 ## 守るルール
 

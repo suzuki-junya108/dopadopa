@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Watchtower</title>
+<title>dopadopa</title>
 <style>
 :root{--bg:#0B0B11;--card:#17171F;--line:#262632;--text:#F2F2F5;--sub:#A3A3B5;--think:#B18CFF;--work:#4D9DFF;--wait:#FF9F1C;--done:#C6F432;--err:#FF5C7A}
 *{box-sizing:border-box}
@@ -57,7 +57,7 @@ aside h2{font-size:12px;color:var(--sub);margin:0 0 6px;letter-spacing:.08em}
 <body>
 <div class="wrap">
   <header>
-    <h1>Watchtower</h1>
+    <h1>dopadopa</h1>
     <div class="stats" id="stats"></div>
   </header>
   <div class="asks" id="asks"></div>
@@ -67,7 +67,7 @@ aside h2{font-size:12px;color:var(--sub);margin:0 0 6px;letter-spacing:.08em}
   </div>
 </div>
 <script>
-const TOKEN = '__WATCHTOWER_TOKEN__';
+const TOKEN = '__DOPADOPA_TOKEN__';
 const COLORS = { working: 'var(--work)', blocked: 'var(--wait)', idle: 'var(--done)', done: 'var(--done)', unknown: 'var(--think)' };
 const LABELS = { working: '作業中', blocked: 'あなた待ち', idle: '待機中', done: '完了', unknown: '確認中' };
 const FEED_COLORS = { work: 'var(--work)', wait: 'var(--wait)', done: 'var(--done)', step: 'var(--done)', error: 'var(--err)' };
@@ -77,10 +77,10 @@ const prevDone = new Map();
 const celebrated = new Set();
 
 function respond(key, action) {
-  fetch('/api/respond', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Watchtower-Token': TOKEN }, body: JSON.stringify({ key, action }) });
+  fetch('/api/respond', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Dopadopa-Token': TOKEN }, body: JSON.stringify({ key, action }) });
 }
 function focusPane(key) {
-  fetch('/api/focus', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Watchtower-Token': TOKEN }, body: JSON.stringify({ key }) });
+  fetch('/api/focus', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Dopadopa-Token': TOKEN }, body: JSON.stringify({ key }) });
 }
 document.addEventListener('click', (e) => {
   const b = e.target.closest('button[data-act]');

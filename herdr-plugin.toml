@@ -1,5 +1,5 @@
-id = "watchtower.board"
-name = "Watchtower"
+id = "dopadopa.board"
+name = "dopadopa"
 version = "0.1.0"
 min_herdr_version = "0.9.0"
 description = "Claude Code の複数セッションをブラウザのライブボードで見渡す"
@@ -11,18 +11,18 @@ command = ["sh", "bin/start-bridge.sh"]
 
 [[actions]]
 id = "open"
-title = "Watchtower: ボードを開く"
+title = "dopadopa: ボードを開く"
 contexts = ["workspace"]
 command = ["sh", "bin/open-board.sh"]
 
 [[actions]]
 id = "restart"
-title = "Watchtower: ブリッジを再起動"
+title = "dopadopa: ブリッジを再起動"
 contexts = ["workspace"]
 command = ["sh", "bin/start-bridge.sh", "--restart"]
 
 [[actions]]
 id = "stop"
-title = "Watchtower: ブリッジを停止"
+title = "dopadopa: ブリッジを停止"
 contexts = ["workspace"]
 command = ["sh", "bin/start-bridge.sh", "--stop"]
