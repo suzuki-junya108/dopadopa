@@ -161,6 +161,9 @@ test('許可待ちは保留中の操作を示し、質問には承認ボタン�
   a = agentOf(core, 'p1');
   assert.equal(a.canRespond, false);
   assert.equal(core.canRespond('p1'), false);
+  assert.equal(a.ask, '', '質問を「実行許可」として見せない');
+  assert.equal(a.notice, '質問への回答を待っています');
+  assert.equal(core.snapshot().feed[0].text, 'あなた待ち: 質問への回答を待っています');
 });
 
 test('今日の数字は書き出して読み戻せ、日付が違う保存は読み込まない', () => {

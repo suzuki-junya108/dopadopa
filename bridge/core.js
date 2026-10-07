@@ -28,7 +28,11 @@ const MISSIONS = [
 const WORKING_STATES = new Set(['think', 'edit', 'run', 'test']);
 const EDIT_TOOLS = new Set(['Edit', 'MultiEdit', 'Write', 'NotebookEdit']);
 // Enter / esc を送ると意図しない選択になるため、承認・拒否ボタンを出さないツール
-const NO_RESPOND_TOOLS = new Set(['AskUserQuestion', 'ExitPlanMode']);
+// 値は、その操作で止まっているときに画面へ出す説明（許可ではないので「許可待ち」とは書かない）
+const NO_RESPOND_TOOLS = new Map([
+  ['AskUserQuestion', '質問への回答を待っています'],
+  ['ExitPlanMode', '計画の確認を待っています'],
+]);
 const TEST_COMMAND = /(^|[\s;&|(])((npm|pnpm|yarn|bun)\s+(run\s+)?test\b|(npx\s+|bunx\s+)?(jest|vitest|mocha|playwright\s+test)\b|pytest\b|python3?\s+-m\s+(pytest|unittest)\b|go\s+test\b|cargo\s+test\b|node\s+--test\b|deno\s+test\b|swift\s+test\b|xcodebuild\s+[^\n]*\btest\b|rspec\b|phpunit\b|make\s+test\b)/;
 // 結果行から通過件数を拾う。ランナーごとに 1 行だけ数え、同じ出力を二重に数えない。
 const TEST_RESULT_PATTERNS = [
@@ -216,8 +220,8 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     if (status === 'blocked') {
       a.blockedSince = now();
       const ask = currentAsk(a);
-      pushFeed(a.name, ask ? `許可待ち: ${ask.text}` : (a.notice || 'あなたの対応を待っています'), 'wait');
-      send('blocked', a, { ask: ask ? ask.text : '' });
+      pushFeed(a.name, ask && ask.canRespond ? `許可待ち: ${ask.text}` : `あなた待ち: ${waitNotice(a, ask)}`, 'wait');
+      send('blocked', a, { ask: ask && ask.canRespond ? ask.text : '' });
     } else {
       a.blockedSince = null;
     }
@@ -229,6 +233,9 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     }
   }
 
+  function waitNotice(a, ask) {
+    return (ask && ask.waitText) || a.notice || 'あなたの対応を待っています';
+  }
   function currentAsk(a) {
     for (const p of a.pending.values()) return p;
     return null;
@@ -291,7 +298,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
         if (!a.turnOpen) openTurn(a);
         a.mode = modeOf(tool, input);
         a.activity = describe(tool, input);
-        a.pending.set(ev.tool_use_id || `${tool}:${now()}`, { tool, text: askText(tool, input), canRespond: !NO_RESPOND_TOOLS.has(tool) });
+        a.pending.set(ev.tool_use_id || `${tool}:${now()}`, { tool, text: askText(tool, input), canRespond: !NO_RESPOND_TOOLS.has(tool), waitText: NO_RESPOND_TOOLS.get(tool) || '' });
         if (paneless) setStatus(a, 'working');
         break;
       }
@@ -400,8 +407,8 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       return {
         key: a.key, pane: a.pane, name: a.name, branch: a.branch, state,
         title: a.title || a.terminalTitle,
-        activity: a.activity, notice: a.status === 'blocked' ? a.notice : '',
-        ask: ask ? ask.text : '', canRespond: canRespond(a.key),
+        activity: a.activity, notice: a.status === 'blocked' ? waitNotice(a, ask) : '',
+        ask: ask && ask.canRespond ? ask.text : '', canRespond: canRespond(a.key),
         blockedSince: a.blockedSince, turnStartedAt: a.turnOpen || a.doneAt ? a.turnStartedAt : null, doneAt: a.doneAt,
         turnSteps: a.turnSteps, daySteps: today.perSession[a.name] || 0,
         run: a.run, showRun: a.run >= RUN_BADGE_MIN && WORKING_STATES.has(state),
