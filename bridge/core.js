@@ -24,6 +24,9 @@ const PACE_WINDOW_MS = 60 * 1000;
 const HOURS_IN_DAY = 24;
 const DONE_MAX = 200;
 const DONE_SHOWN = 30;
+// ステップの内訳。実測では操作は調べる → 書く → 確かめるの順に進まず行き来するので、段階ではなく種類ごとの件数として出す
+const KINDS = ['look', 'write', 'run', 'check'];
+const KIND_OF_MODE = { think: 'look', edit: 'write', run: 'run', test: 'check' };
 
 const MISSIONS = [
   { id: 'fast', label: '許可待ちを10秒以内に承認する（2回）', target: 2 },
@@ -137,13 +140,17 @@ function modeOf(tool, input) {
   return 'think';
 }
 
+function blankKinds() {
+  return Object.fromEntries(KINDS.map((k) => [k, 0]));
+}
+
 function blankToday(day) {
   return {
     day, steps: 0, tasks: 0, tests: 0, approvals: 0,
     streak: 0, best: 0, streakDeadline: 0,
     goal: { target: GOAL_START, done: 0 },
     fast: 0, claimed: {}, perSession: {},
-    hours: new Array(HOURS_IN_DAY).fill(0), done: [],
+    hours: new Array(HOURS_IN_DAY).fill(0), done: [], kinds: blankKinds(),
   };
 }
 
@@ -161,7 +168,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       status: 'unknown', hooked: false, terminalTitle: '',
       title: '', activity: '', notice: '', mode: 'think', failing: false,
       turnOpen: false, turnStartedAt: null, doneAt: null, blockedSince: null, responded: false,
-      turnSteps: 0, run: 0, lines: 0, tests: 0, say: '', sayAt: null, flow: [], pending: new Map(),
+      turnSteps: 0, run: 0, lines: 0, tests: 0, kinds: blankKinds(), say: '', sayAt: null, flow: [], pending: new Map(),
     };
   }
   function getAgent(key) {
@@ -203,7 +210,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     a.turnOpen = true;
     a.turnStartedAt = now();
     a.doneAt = null;
-    a.turnSteps = 0; a.lines = 0; a.tests = 0; a.flow = []; a.say = ''; a.sayAt = null;
+    a.turnSteps = 0; a.lines = 0; a.tests = 0; a.kinds = blankKinds(); a.flow = []; a.say = ''; a.sayAt = null;
     a.failing = false;
     a.pending.clear();
     if (title !== undefined) a.title = title;
@@ -231,8 +238,10 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     }
   }
 
-  function stepDone(a) {
+  function stepDone(a, kind) {
     today.steps++;
+    today.kinds[kind]++;
+    a.kinds[kind]++;
     today.perSession[a.name] = (today.perSession[a.name] || 0) + 1;
     a.turnSteps++;
     a.run++;
@@ -242,7 +251,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     today.hours[new Date(now()).getHours()]++;
     recent.push(now());
     recent = recent.filter((t) => t > now() - PACE_WINDOW_MS);
-    send('step', a, { steps: today.steps, run: a.run, turnSteps: a.turnSteps });
+    send('step', a, { steps: today.steps, run: a.run, turnSteps: a.turnSteps, stepKind: kind, first: a.kinds[kind] === 1 });
     if (today.steps % MILESTONE_STEPS === 0) {
       pushFeed('今日完了したステップ', `今日 ${today.steps} ステップ完了`, 'done');
       send('milestone', null, { steps: today.steps, next: today.steps + MILESTONE_STEPS });
@@ -352,9 +361,14 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
         if (isTestCommand(tool, input)) {
           const passed = countPassedTests(ev.tool_response?.stdout);
           a.tests += passed; today.tests += passed;
-          if (a.failing) { a.failing = false; pushFeed(a.name, '修正後のテストが通りました', 'done'); }
+          const recovered = a.failing;
+          if (recovered) { a.failing = false; pushFeed(a.name, '修正後のテストが通りました', 'done'); }
+          stepDone(a, 'check');
+          // 画面のポップは後から来たもので置き換わる。ステップより後に送り、テスト通過のほうを残す
+          if (passed > 0 || recovered) send('tests', a, { passed, recovered });
+          break;
         }
-        stepDone(a);
+        stepDone(a, KIND_OF_MODE[modeOf(tool, input)]);
         break;
       }
       case 'PostToolUseFailure': {
@@ -470,7 +484,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
         blockedSince: a.blockedSince, turnStartedAt: a.turnOpen || a.doneAt ? a.turnStartedAt : null, doneAt: a.doneAt,
         turnSteps: a.turnSteps, daySteps: today.perSession[a.name] || 0,
         run: a.run, showRun: a.run >= RUN_BADGE_MIN && WORKING_STATES.has(state),
-        lines: a.lines, tests: a.tests, say: a.say, sayAt: a.sayAt, flow: a.flow.slice(),
+        lines: a.lines, tests: a.tests, kinds: { ...a.kinds }, say: a.say, sayAt: a.sayAt, flow: a.flow.slice(),
       };
     });
     list.sort((x, y) => order[x.state] - order[y.state] || x.name.localeCompare(y.name) || x.key.localeCompare(y.key));
@@ -483,7 +497,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
         milestone: MILESTONE_STEPS,
         goal: { target: today.goal.target, done: today.goal.done },
         missions: MISSIONS.map((m) => ({ id: m.id, label: m.label, target: m.target, value: Math.min(vals[m.id], m.target), done: !!today.claimed[m.id] })),
-        hours: today.hours.slice(),
+        hours: today.hours.slice(), kinds: { ...today.kinds },
         done: today.done.slice(-DONE_SHOWN).reverse(),
         recent: recent.filter((t) => t > now() - PACE_WINDOW_MS), paceWindow: PACE_WINDOW_MS,
         rank: Object.entries(today.perSession).map(([name, steps]) => ({ name, steps })).sort((x, y) => y.steps - x.steps || x.name.localeCompare(y.name)),
@@ -514,6 +528,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       perSession: {},
     };
     if (Array.isArray(saved.hours) && saved.hours.length === HOURS_IN_DAY) today.hours = saved.hours.map((v) => num(v, 0));
+    if (saved.kinds && typeof saved.kinds === 'object') for (const k of KINDS) today.kinds[k] = num(saved.kinds[k], 0);
     if (Array.isArray(saved.done)) {
       today.done = saved.done.filter((d) => d && typeof d === 'object').slice(-DONE_MAX)
         .map((d) => ({ t: num(d.t, 0), name: String(d.name || ''), title: String(d.title || ''), steps: num(d.steps, 0), seconds: num(d.seconds, 0) }));

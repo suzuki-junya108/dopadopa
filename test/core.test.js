@@ -317,3 +317,39 @@ test('時間帯ごとのステップ・直近 1 分のステップ・完了し�
   assert.equal(t.done.length, 1);
   assert.deepEqual(t.done[0], { t: START + 35000, name: 'web-app', title: '', steps: 2, seconds: 35 }, '指示文は保存しない');
 });
+
+test('ステップは調べる・書く・動かす・確かめるの内訳で数え、新しい指示で 0 に戻り、今日の合計は保存から戻せる', () => {
+  const { core, clock, events } = setup();
+  core.setHerdrAgents([herdr('p1', 'working')]);
+  prompt(core, 'p1', '一つ目');
+  runTool(core, 'p1', 'Read', { file_path: 'a' });
+  runTool(core, 'p1', 'Grep', { pattern: 'x' });
+  runTool(core, 'p1', 'Edit', { file_path: 'a', new_string: 'x' });
+  runTool(core, 'p1', 'Bash', { command: 'git status' });
+  runTool(core, 'p1', 'Bash', { command: 'npm test' }, { response: { stdout: 'Tests: 24 passed, 24 total' } });
+  runTool(core, 'p1', 'Bash', { command: 'ls /nope' }, { fail: true, error: 'Exit code 1' });
+  assert.deepEqual(agentOf(core, 'p1').kinds, { look: 2, write: 1, run: 1, check: 1 });
+  assert.deepEqual(core.snapshot().today.kinds, { look: 2, write: 1, run: 1, check: 1 });
+  assert.deepEqual(events.filter((e) => e.type === 'step').map((e) => [e.stepKind, e.first]),
+    [['look', true], ['look', false], ['write', true], ['run', true], ['check', true]]);
+
+  prompt(core, 'p1', '二つ目');
+  assert.deepEqual(agentOf(core, 'p1').kinds, { look: 0, write: 0, run: 0, check: 0 });
+  assert.equal(core.snapshot().today.kinds.look, 2, '今日の合計は残る');
+
+  const again = createCore({ now: () => clock.t, streakMs: STREAK_MS });
+  assert.equal(again.importStats(core.exportStats()), true);
+  assert.deepEqual(again.snapshot().today.kinds, { look: 2, write: 1, run: 1, check: 1 });
+});
+
+test('テストが通ると件数つきの出来事が出て、失敗のあとの通過は持ち直しとして伝える', () => {
+  const { core, events } = setup();
+  core.setHerdrAgents([herdr('p1', 'working')]);
+  prompt(core, 'p1', 'テストを通して');
+  runTool(core, 'p1', 'Bash', { command: 'npm test' }, { response: { stdout: 'no result line' } });
+  assert.equal(events.filter((e) => e.type === 'tests').length, 0, '件数が読み取れない実行では出さない');
+  runTool(core, 'p1', 'Bash', { command: 'npm test' }, { fail: true, error: 'Tests: 1 failed, 23 passed, 24 total' });
+  runTool(core, 'p1', 'Bash', { command: 'npm test' }, { response: { stdout: 'Tests: 24 passed, 24 total' } });
+  runTool(core, 'p1', 'Bash', { command: 'npm test' }, { response: { stdout: 'Tests: 24 passed, 24 total' } });
+  assert.deepEqual(events.filter((e) => e.type === 'tests').map((e) => [e.passed, e.recovered]), [[24, true], [24, false]]);
+});
