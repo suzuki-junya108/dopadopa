@@ -34,7 +34,7 @@ header{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px}
 .logo p{margin:4px 0 0;font-size:13px;color:var(--sub);font-weight:800}
 .steps{position:relative;flex:1 1 300px;min-width:250px;box-shadow:6px 6px 0 var(--test);padding:10px 16px;display:flex;flex-direction:column;gap:7px}
 .steps .head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:14px;font-weight:800}
-.steps .num{display:inline-block;font-family:var(--f-num);font-size:32px;color:var(--test);line-height:1}
+.steps .num{display:inline-block;transform-origin:100% 100%;font-family:var(--f-num);font-size:46px;color:var(--test);line-height:1}
 .bar{background:var(--well);border:3px solid #000;border-radius:12px;overflow:hidden}
 .bar>div{height:100%;width:0}
 .note{font-size:12px;color:var(--sub);font-weight:800}
@@ -103,15 +103,32 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .cbranch{font-family:var(--f-mono);font-size:12px;color:var(--sub);overflow-wrap:anywhere}
 .chip{flex:0 0 auto;display:inline-block;background:var(--c);color:var(--fg);font-family:var(--f-head);font-size:14px;padding:6px 12px;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;animation:wiggle 2.4s ease-in-out infinite}
 .card .mid{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
-.big{flex:0 0 auto;white-space:nowrap;font-family:var(--f-num);font-size:44px;line-height:.9;color:var(--c)}
+.big{flex:0 0 auto;white-space:nowrap;font-family:var(--f-num);font-size:60px;line-height:.9;color:var(--c)}
 .big small{font-family:'M PLUS Rounded 1c','Hiragino Sans',sans-serif;font-weight:800;font-size:15px;margin-left:6px}
 .bignum{display:inline-block}
 .side{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
-.fire{display:inline-flex;align-items:center;gap:4px;background:var(--error);color:#2A0414;border:2px solid #000;border-radius:10px;padding:2px 9px 2px 5px;font-size:12px;font-weight:800}
+.fire{white-space:nowrap;display:inline-flex;align-items:center;gap:4px;background:var(--error);color:#2A0414;border:2px solid #000;border-radius:10px;padding:2px 9px 2px 5px;font-size:12px;font-weight:800}
 .fire svg{animation:flame .5s ease-in-out infinite alternate;transform-origin:50% 100%}
+.fire.f2{font-size:13px;padding:3px 11px 3px 6px;box-shadow:3px 3px 0 #000}
+.fire.f2 svg{width:20px;height:22px;animation-duration:.36s}
+.fire.f3{font-size:14px;padding:4px 12px 4px 6px;box-shadow:4px 4px 0 #000;background:var(--test)}
+.fire.f3 svg{width:26px;height:29px;animation-duration:.24s}
+.card.hot2{box-shadow:9px 9px 0 var(--c)}
+.card.hot3{box-shadow:12px 12px 0 var(--c)}
 .day{font-size:13px;font-weight:800;color:var(--test)}
-.track{height:14px;background:var(--well);border:2px solid #000;border-radius:7px;overflow:hidden}
-.track>div{height:100%;width:0;background-color:var(--c);transition:width .4s}
+.mix{display:flex;height:16px;background:var(--well);border:2px solid #000;border-radius:8px;overflow:hidden}
+.mix i{display:block;flex:0 0 0;min-width:0;background-color:var(--k);transition:flex-grow .5s cubic-bezier(.2,.9,.3,1.3)}
+.mix i+i{box-shadow:-2px 0 0 #000}
+.kinds{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.kind{display:flex;align-items:baseline;justify-content:center;gap:5px;min-width:0;border:2px solid transparent;border-radius:10px;padding:1px 4px;font-size:12px;font-weight:800;color:var(--soft);white-space:nowrap}
+.kind b{display:inline-block;font-family:var(--f-num);font-weight:400;font-size:19px;color:var(--k)}
+.kind.on{background:var(--k);border-color:#000;color:var(--kf);box-shadow:3px 3px 0 #000}
+.kind.on b{color:var(--kf)}
+[data-k="look"]{--k:var(--think);--kf:#1A0838}
+[data-k="write"]{--k:var(--edit);--kf:#04161A}
+[data-k="run"]{--k:#FFFFFF;--kf:#1A0838}
+[data-k="check"]{--k:var(--test);--kf:#2A1E00}
+.wave{position:absolute;inset:0;pointer-events:none;background:var(--wc);opacity:.55;animation:wave .7s cubic-bezier(.3,.6,.4,1) forwards}
 .stripes{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.3) 0 8px,rgba(255,255,255,0) 8px 16px);background-size:22.6px 22.6px;animation:stripes .6s linear infinite}
 .cask{font-size:12px;font-weight:800;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .csay{font-size:15px;font-weight:800;line-height:1.45;height:4.35em;padding:0 0 0 10px;border-left:5px solid var(--c);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
@@ -142,7 +159,8 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .detail .dtitle{font-size:14px;color:var(--soft);line-height:1.4;font-weight:800;overflow-wrap:anywhere}
 .detail .dbig{flex:0 0 auto;font-family:var(--f-num);font-size:38px;line-height:1}
 .detail .dbig small{font-family:'M PLUS Rounded 1c','Hiragino Sans',sans-serif;font-weight:800;font-size:13px;margin-left:4px}
-.detail .drow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.detail .drow{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px}
+.detail .drow .facts{flex:1 1 220px}
 .detail .btn{min-height:44px}
 .ops{display:flex;flex-direction:column;gap:2px;list-style:none;margin:0;padding:0}
 .ops li{display:flex;align-items:center;gap:12px;padding:3px 0}
@@ -180,8 +198,9 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .hours i.now{background:var(--test)}
 .axis{display:flex;justify-content:space-between;font-family:var(--f-num);font-size:11px;color:var(--sub)}
 .panel h3{margin:4px 0 0;font-family:var(--f-head);font-weight:400;font-size:14px}
-.mission{display:flex;flex-direction:column;gap:5px}
-.mission .mrow{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:14px;font-weight:800}
+.mission{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800}
+.mission .mlabel{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mission .thin{flex:0 0 22%}
 .mission .tag{font-size:12px;font-weight:800;border:2px solid #000;border-radius:8px;padding:2px 8px;white-space:nowrap;background:var(--well);color:var(--soft)}
 .mission.ok .tag{background:var(--done);color:#102400}
 .thin{height:12px;background:var(--well);border:2px solid #000;border-radius:7px;overflow:hidden}
@@ -210,6 +229,10 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .fall{position:fixed;top:-24px;z-index:28;width:12px;height:18px;border:2px solid #000;border-radius:3px;pointer-events:none;animation:fall var(--dur) cubic-bezier(.3,.2,.6,1) forwards}
 .plus1{position:absolute;right:14px;top:-8px;font-family:var(--f-num);font-size:20px;color:var(--test);-webkit-text-stroke:1.5px #000;pointer-events:none;animation:plus .7s cubic-bezier(.2,.9,.3,1.4) forwards}
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.edge{position:fixed;inset:0;z-index:2;pointer-events:none;border:6px solid var(--edit);opacity:0}
+.edge.p1{animation:edge 2s ease-in-out infinite}
+.edge.p2{animation:edge 1.2s ease-in-out infinite}
+.edge.p3{border-color:var(--test);animation:edge .7s ease-in-out infinite}
 .bg i{position:absolute;bottom:-30px;width:14px;height:14px;border:2px solid #000;border-radius:4px;opacity:.28;animation:rise var(--dur) linear infinite;animation-delay:var(--delay)}
 .wrap{position:relative;z-index:1}
 .roll{animation:roll .45s cubic-bezier(.2,.9,.3,1.8)}
@@ -247,13 +270,16 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 @keyframes ring{0%{opacity:1;transform:scale(.2)}100%{opacity:0;transform:scale(14)}}
 @keyframes fall{0%{opacity:1;transform:translate(0,0) rotate(0)}85%{opacity:1}100%{opacity:0;transform:translate(var(--dx),115vh) rotate(var(--rot))}}
 @keyframes rise{from{transform:translateY(0) rotate(0)}to{transform:translateY(-115vh) rotate(360deg)}}
-@keyframes roll{0%{transform:translateY(70%) scale(.6);opacity:.2}60%{transform:translateY(-14%) scale(1.25);opacity:1}100%{transform:translateY(0) scale(1)}}
+@keyframes roll{0%{transform:translateY(70%) scale(.6);opacity:.2}55%{transform:translateY(-8%) scale(1.3) rotate(-4deg);opacity:1}100%{transform:translateY(0) scale(1)}}
+@keyframes wave{0%{transform:translateX(-105%) skewX(-18deg)}100%{transform:translateX(105%) skewX(-18deg)}}
+@keyframes edge{0%,100%{opacity:.12}50%{opacity:.9}}
 @keyframes confetti{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),260px) rotate(var(--rot))}}
-@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
 </style>
 </head>
 <body>
 <div class="bg" id="bg" aria-hidden="true"></div>
+<div class="edge" id="edge" aria-hidden="true"></div>
 <div id="root">
 <div class="wrap">
 
@@ -324,12 +350,14 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
       <span class="dbig" id="dBig"><span id="dBigNum">0</span><small>ステップ</small></span>
     </div>
     <ul class="ops" id="dOps"></ul>
-    <dl class="facts">
-      <div><dt>経過</dt><dd id="dElapsed">0:00</dd></div>
-      <div><dt>変更行</dt><dd id="dLines" style="color:var(--edit)">+0</dd></div>
-      <div><dt>テスト通過</dt><dd id="dTests" style="color:var(--test)">0</dd></div>
-    </dl>
-    <div class="drow"><span class="eta" id="dEta"></span><button type="button" class="btn open" id="dOpen">herdr で開く</button></div>
+    <div class="drow">
+      <dl class="facts">
+        <div><dt>経過</dt><dd id="dElapsed">0:00</dd></div>
+        <div><dt>変更行</dt><dd id="dLines" style="color:var(--edit)">+0</dd></div>
+        <div><dt>テスト通過</dt><dd id="dTests" style="color:var(--test)">0</dd></div>
+      </dl>
+      <button type="button" class="btn open" id="dOpen">herdr で開く</button>
+    </div>
   </section>
   <section class="panel shelf" aria-label="今日完了したタスク">
   <div class="ph"><h2>今日完了したタスク</h2><b id="doneNum">0</b></div>
@@ -341,10 +369,14 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
   <h2>時間帯ごとのステップ</h2>
   <div class="hours" id="hours" role="img" aria-label="時間帯ごとのステップ数"></div>
   <div class="axis" aria-hidden="true"><span>0時</span><span>6時</span><span>12時</span><span>18時</span><span>24時</span></div>
-  <h3>セッション別 今日の完了ステップ</h3>
-  <div id="rank" style="display:flex;flex-direction:column;gap:8px"></div><span class="none" id="rankNone">まだステップはありません</span>
+  <h3>今日のステップの内訳</h3>
+  <div id="dayMix" style="display:flex;flex-direction:column;gap:6px"></div>
 </section>
-<section class="panel missions" aria-label="ほかの目標"><h2>ほかの目標</h2><div id="missions" style="display:flex;flex-direction:column;gap:10px"></div></section>
+<section class="panel missions" aria-label="ほかの目標とセッション別のステップ">
+  <h2>ほかの目標</h2><div id="missions" style="display:flex;flex-direction:column;gap:8px"></div>
+  <h3>セッション別 今日の完了ステップ</h3>
+  <div id="rank" style="display:flex;flex-direction:column;gap:6px"></div><span class="none" id="rankNone">まだステップはありません</span>
+</section>
 </div>
 </main>
 
@@ -368,11 +400,16 @@ const STATES = {
   idle: { label: '待機中', color: '#9C8AC8', fg: '#1A0838' },
 };
 const WORKING = new Set(['think', 'edit', 'run', 'test', 'error']);
+// ステップの内訳。順番に進む段階ではなく、種類ごとの件数として並べる
+const KINDS = [['look', '調べる'], ['write', '書く'], ['run', '動かす'], ['check', '確かめる']];
+const KIND_LABEL = Object.fromEntries(KINDS);
+const KIND_OF_STATE = { think: 'look', edit: 'write', run: 'run', test: 'check', error: 'check' };
 const SFX = {
   step: [[988, .05], [1319, .09]],
   clear: [[523, .09], [659, .09], [784, .09], [1047, .25]],
   big: [[392, .1], [523, .1], [659, .1], [784, .1], [1047, .1], [1319, .35]],
   approve: [[1175, .05], [1568, .1]],
+  pass: [[784, .07], [988, .07], [1319, .07], [1568, .2]],
   wait: [[660, .12, 'triangle'], [660, .12, 'triangle']],
   error: [[330, .12, 'sawtooth'], [247, .2, 'sawtooth']],
   reset: [[523, .1, 'triangle'], [392, .1, 'triangle'], [262, .22, 'triangle']],
@@ -389,6 +426,11 @@ const SPARK_COUNT = 9;
 const SPARK_MS = 600;
 const ZAP_MS = 500;
 const PLUS1_MS = 700;
+const WAVE_MS = 700;
+// 連続がこの数に届くたびに、カードの炎と影を一段大きくする
+const RUN_TIERS = [25, 50];
+// 勢い（直近 1 分のステップ数）がこの数以上で、画面の縁の脈を一段速くする
+const EDGE_TIERS = [1, 8, 20];
 // 連続するほど音を高くする。この回数で 1 オクターブ上がり、そこで頭打ち
 const PITCH_RUN_STEPS = 24;
 const PACE_BARS = 12;
@@ -629,6 +671,13 @@ function stepBurst(key) {
     temporary(p, card, SPARK_MS);
   }
 }
+function wave(key, color) {
+  const card = cardOf(key);
+  if (!card || reduceMotion.matches) return;
+  const el = h('div', 'wave');
+  el.style.setProperty('--wc', color);
+  temporary(el, card, WAVE_MS);
+}
 function goalPlus() {
   if (reduceMotion.matches) return;
   temporary(h('span', 'plus', '+1 件'), $('goalPlus'), PLUS_MS);
@@ -637,7 +686,9 @@ function goalPlus() {
 function onEvent(e) {
   switch (e.kind) {
     case 'step':
-      cardPop(e.key, '+1 ステップ完了', false);
+      if (RUN_TIERS.includes(e.run)) { cardPop(e.key, `${e.run} ステップ連続！`, true); wave(e.key, '#FF3D8B'); }
+      else if (e.first && e.stepKind === 'write') cardPop(e.key, 'この指示で最初の編集', true);
+      else cardPop(e.key, `${KIND_LABEL[e.stepKind] || 'ステップ'} +1`, false);
       stepBurst(e.key);
       play(['step'], 2 ** (Math.min(e.run || 0, PITCH_RUN_STEPS) / PITCH_RUN_STEPS));
       break;
@@ -665,7 +716,11 @@ function onEvent(e) {
       shake(false); flash('#FF3D8B');
       break;
     case 'blocked': play(['wait']); break;
-    case 'approved': cardPop(e.key, '承認しました', false); play(['approve']); break;
+    case 'approved': cardPop(e.key, '承認しました', true); wave(e.key, '#9DFF3A'); play(['approve']); break;
+    case 'tests':
+      cardPop(e.key, e.passed ? `${e.recovered ? '修正後の' : ''}テスト ${num(e.passed)} 件通過！` : '修正後のテストが通りました', true);
+      wave(e.key, '#9DFF3A'); play(['pass']);
+      break;
     case 'error': play(['error']); break;
     case 'streak_reset': play(['reset']); break;
     case 'mission': toast(e.label); break;
@@ -749,6 +804,31 @@ function sayOf(a) {
   return 'まだ説明文はありません';
 }
 
+function createMix() {
+  const mix = h('div', 'mix');
+  const kinds = h('div', 'kinds');
+  for (const [k, label] of KINDS) {
+    const seg = h('i'); seg.dataset.k = k;
+    const chip = h('span', 'kind'); chip.dataset.k = k;
+    chip.append(h('b', '', '0'), label);
+    mix.append(seg); kinds.append(chip);
+  }
+  return { mix, kinds };
+}
+// 件数に比例した幅で帯を塗り、いま動いている種類の札を光らせる
+function updateMix(mix, kinds, counts, current, moving) {
+  KINDS.forEach(([k], i) => {
+    const seg = mix.children[i];
+    const grow = String(counts[k] || 0);
+    if (seg.style.flexGrow !== grow) seg.style.flexGrow = grow;
+    seg.classList.toggle('stripes', moving && k === current);
+    const chip = kinds.children[i];
+    chip.classList.toggle('on', k === current);
+    setNumber(chip.firstChild, counts[k] || 0);
+  });
+  mix.setAttribute('role', 'img');
+  mix.setAttribute('aria-label', 'ステップの内訳 ' + KINDS.map(([k, label]) => `${label} ${counts[k] || 0}`).join('、'));
+}
 function createCard() {
   const el = h('article', 'card');
   const top = h('div', 'top');
@@ -765,12 +845,12 @@ function createCard() {
   fire.hidden = true;
   side.append(fire, h('span', 'eta'));
   mid.append(big, side);
-  const track = h('div', 'track'); track.append(h('div'));
-  el.append(top, h('div', 'cask'), h('div', 'csay'), act, mid, track, h('div', 'cstep'), responseButtons(false));
+  const { mix, kinds } = createMix();
+  el.append(top, h('div', 'cask'), h('div', 'csay'), act, mid, mix, kinds, h('div', 'cstep'), responseButtons(false));
   el._r = {
     sel, name: sel.children[0], branch: sel.children[1], chip: top.children[1], ask: el.children[1], say: el.children[2],
     act, what: act.children[1], bignum: big.children[0], fire, firetxt: fire.lastChild,
-    step: el.children[6], eta: side.children[1], fill: track.firstChild, btns: el.lastChild,
+    step: el.children[7], eta: side.children[1], mix, kinds, btns: el.lastChild,
   };
   return el;
 }
@@ -796,10 +876,12 @@ function updateCard(el, a) {
   r.act.classList.toggle('off', !what);
   setNumber(r.bignum, a.turnSteps, 'roll');
   r.fire.hidden = !a.showRun;
+  const tier = a.showRun ? RUN_TIERS.filter((n) => a.run >= n).length : 0;
+  r.fire.classList.toggle('f2', tier === 1); r.fire.classList.toggle('f3', tier === 2);
+  el.classList.toggle('hot2', tier === 1); el.classList.toggle('hot3', tier === 2);
   text(r.firetxt, `${a.run}ステップ連続で進行中`);
   text(r.step, [`今日 ${num(a.daySteps)} ステップ完了`, factsLine(a)].filter(Boolean).join(' ・ '));
-  width(r.fill, a.state === 'idle' ? 0 : 100);
-  r.fill.classList.toggle('stripes', WORKING.has(a.state));
+  updateMix(r.mix, r.kinds, a.kinds, WORKING.has(a.state) ? KIND_OF_STATE[a.state] : '', true);
   const eta = etaOf(a, now);
   text(r.eta, eta.label);
   if (r.eta.className !== eta.cls) r.eta.className = eta.cls;
@@ -843,9 +925,6 @@ function renderDetail(a) {
   text($('dTitle'), a.title || '指示を待っています');
   $('dBig').style.color = st.color;
   setNumber($('dBigNum'), a.turnSteps);
-  const eta = etaOf(a, now);
-  text($('dEta'), eta.label);
-  if ($('dEta').className !== eta.cls) $('dEta').className = eta.cls;
   // 説明文と操作を起きた順に並べ、「何を考えて・何をしたか」の流れとして見せる
   const rows = a.flow.slice(-DETAIL_FLOW).map((f) => (f.kind === 'say'
     ? { id: f.t + f.text, text: f.text, cls: 'say', mark: '”', state: '説明' }
@@ -882,6 +961,9 @@ function renderPace(now) {
   }
   text($('paceNum'), total);
   $('pace').classList.toggle('live', total > 0);
+  const edge = EDGE_TIERS.filter((n) => total >= n).length;
+  const cls = edge ? 'edge p' + edge : 'edge';
+  if ($('edge').className !== cls) $('edge').className = cls;
   const bars = $('paceBars');
   while (bars.children.length < PACE_BARS) bars.append(h('i'));
   [...bars.children].forEach((el, i) => {
@@ -908,7 +990,7 @@ function renderClock() {
     if (a) text(el._r.waited, `待ち時間 ${Math.max(0, Math.round((now - a.blockedSince) / 1000))}秒`);
   }
   const sel = snap.agents.find((a) => a.key === selectedKey);
-  if (sel) { text($('dEta'), etaOf(sel, now).label); text($('dElapsed'), fmt(elapsedOf(sel, now))); }
+  if (sel) text($('dElapsed'), fmt(elapsedOf(sel, now)));
 }
 
 function render(s) {
@@ -944,15 +1026,15 @@ function render(s) {
 
   reconcile($('missions'), t.missions, (m) => m.id, () => {
     const el = h('div', 'mission');
-    const row = h('div', 'mrow'); row.append(h('span'), h('span', 'tag'));
     const bar = h('div', 'thin'); bar.append(h('div'));
-    el.append(row, bar);
+    el.append(h('span', 'mlabel'), bar, h('span', 'tag'));
     return el;
   }, (el, m) => {
     el.classList.toggle('ok', m.done);
-    text(el.firstChild.children[0], m.label);
-    text(el.firstChild.children[1], m.done ? '達成' : `${num(m.value)} / ${num(m.target)}`);
-    width(el.lastChild.firstChild, (m.value / m.target) * 100);
+    text(el.children[0], m.label);
+    el.children[0].title = m.label;
+    text(el.children[2], m.done ? '達成' : `${num(m.value)} / ${num(m.target)}`);
+    width(el.children[1].firstChild, (m.value / m.target) * 100);
   });
 
   const maxSteps = Math.max(1, ...t.rank.map((r) => r.steps));
@@ -986,6 +1068,9 @@ function render(s) {
     text(el.children[0], clock(d.t)); text(el.children[1], d.name);
     text(el.children[2], d.title || 'タスク完了'); text(el.children[3], `${num(d.steps)} ステップ`);
   });
+
+  if (!$('dayMix').firstChild) { const m = createMix(); $('dayMix').append(m.mix, m.kinds); }
+  updateMix($('dayMix').children[0], $('dayMix').children[1], t.kinds, '', false);
 
   const hours = $('hours');
   while (hours.children.length < HOURS) hours.append(h('i'));
