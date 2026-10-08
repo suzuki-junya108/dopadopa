@@ -54,6 +54,7 @@
 | タスク完了 | `Stop` が届いたとき（1 回の指示への対応が終わった）。フックが届かないセッションは、herdr が `working` → `idle`/`done` に変わったとき |
 | 今日完了したステップ | ステップ完了の合計（日付で区切る） |
 | 次の区切り | 100 ステップごと |
+| 小さな区切り | 今日完了したステップが 25 の倍数になったとき（100 の倍数は大きな区切りが出るので除く）。カードごとには、いまの指示のステップが 10 の倍数になったとき |
 | セッション別 今日の完了ステップ | 名前（フォルダ名）ごとの合計 |
 | 止まらずに進んだステップ | ステップ完了で +1。最後のステップ完了から一定時間（`DOPADOPA_STREAK_SECONDS`、既定 180 秒）ステップがなければ 0。ボードからの承認でもタイマーを戻す |
 | 最高 | 今日の「止まらずに進んだステップ」の最大値 |
@@ -84,5 +85,5 @@
 `GET /stream` に、1 行 1 件の JSON を `data:` で送る。
 
 - スナップショット（`type: "snapshot"`、変化があったとき、最大で毎秒）: セッション一覧、今日の数、目標、最近の出来事。時間とともに進む表示（経過・待ち時間・連続のバー）は、時刻を渡して画面側で進める
-- イベント（`type: "event"`、起きた瞬間）: `kind` が `step` / `task` / `tests` / `milestone` / `goal` / `streak` / `streak_reset` / `approved` / `blocked` / `error` / `mission`。`step` は `run`（そのセッションの連続数。音の高さに使う）・`stepKind`（内訳の種類）・`first`（いまの指示でその種類の最初の 1 回か）、`task` は `steps` と `seconds`、`tests` は `passed`（読み取れた通過件数）と `recovered`（失敗のあとの通過か）を持つ。`tests` は通過件数が読み取れたときか、失敗のあとに通ったときだけ出す
+- イベント（`type: "event"`、起きた瞬間）: `kind` が `step` / `turn_mark` / `mark` / `task` / `tests` / `milestone` / `goal` / `streak` / `streak_reset` / `approved` / `blocked` / `error` / `mission`。`step` は `run`（そのセッションの連続数。音の高さに使う）・`stepKind`（内訳の種類）・`first`（いまの指示でその種類の最初の 1 回か）、`task` は `steps` と `seconds`、`tests` は `passed`（読み取れた通過件数）と `recovered`（失敗のあとの通過か）を持つ。`tests` は通過件数が読み取れたときか、失敗のあとに通ったときだけ出す。`turn_mark` は `turnSteps`、`mark` は `steps` と `next`（次の大きな区切り）を持ち、どちらも同じステップの `step` より後に送る
   - UI はスナップショットで表示を更新し、イベントで演出だけを起こす

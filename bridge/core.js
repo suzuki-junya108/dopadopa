@@ -9,6 +9,9 @@
 const path = require('node:path');
 
 const MILESTONE_STEPS = 100;
+// 大きな区切りの間が空きすぎないよう、その手前に小さな区切りを置く
+const SMALL_MARK_STEPS = 25;
+const TURN_MARK_STEPS = 10;
 const STREAK_MARKS = [50, 100, 150];
 const RUN_BADGE_MIN = 10;
 const GOAL_START = 10;
@@ -252,6 +255,10 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     recent.push(now());
     recent = recent.filter((t) => t > now() - PACE_WINDOW_MS);
     send('step', a, { steps: today.steps, run: a.run, turnSteps: a.turnSteps, stepKind: kind, first: a.kinds[kind] === 1 });
+    if (a.turnSteps % TURN_MARK_STEPS === 0) send('turn_mark', a, { turnSteps: a.turnSteps });
+    if (today.steps % MILESTONE_STEPS !== 0 && today.steps % SMALL_MARK_STEPS === 0) {
+      send('mark', null, { steps: today.steps, next: (Math.floor(today.steps / MILESTONE_STEPS) + 1) * MILESTONE_STEPS });
+    }
     if (today.steps % MILESTONE_STEPS === 0) {
       pushFeed('今日完了したステップ', `今日 ${today.steps} ステップ完了`, 'done');
       send('milestone', null, { steps: today.steps, next: today.steps + MILESTONE_STEPS });
@@ -542,4 +549,4 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
   return { handleHook, handleDerived, addNarration, setHerdrAgents, setPaneStatus, recordResponse, canRespond, tick, snapshot, exportStats, importStats, agents, dayKey: () => today.day };
 }
 
-module.exports = { createCore, dayKeyOf, plainText, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };
+module.exports = { createCore, dayKeyOf, plainText, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, SMALL_MARK_STEPS, TURN_MARK_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };
