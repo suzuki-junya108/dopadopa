@@ -366,3 +366,19 @@ test('大きな区切りの手前に小さな区切りが出る（今日 25 ご�
   const order = events.filter((e) => e.type === 'step' || e.type === 'turn_mark').map((e) => e.type);
   assert.equal(order[order.indexOf('turn_mark') - 1], 'step', 'ステップの出来事のあとに届く');
 });
+
+test('同じ状態どうしは、待たせている順・新しく指示を受けた順・最近まで動いていた順に並ぶ', () => {
+  const { core, clock } = setup();
+  const all = (st) => ['a', 'b', 'c', 'd', 'e', 'f'].map((n, i) => herdr('p' + (i + 1), st[i], { name: n }));
+  core.setHerdrAgents(all(['working', 'working', 'working', 'working', 'idle', 'idle']));
+  prompt(core, 'p1', '先の指示'); clock.t += 1000;
+  prompt(core, 'p2', '後の指示'); clock.t += 1000;
+  runTool(core, 'p1', 'Read', { file_path: 'x' });
+  assert.deepEqual(core.snapshot().agents.slice(0, 2).map((a) => a.name), ['b', 'a'], 'ステップが進んでも作業中の並びは変わらない');
+
+  prompt(core, 'p3', 'x'); core.handleHook('p3', { hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'a' }, tool_use_id: 'w3' }); core.setPaneStatus('p3', 'blocked'); clock.t += 1000;
+  prompt(core, 'p4', 'x'); core.handleHook('p4', { hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'b' }, tool_use_id: 'w4' }); core.setPaneStatus('p4', 'blocked'); clock.t += 1000;
+  stop(core, 'p1'); clock.t += 1000;
+  stop(core, 'p2');
+  assert.deepEqual(core.snapshot().agents.map((a) => a.name), ['c', 'd', 'b', 'a', 'e', 'f']);
+});
