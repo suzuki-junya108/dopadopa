@@ -353,3 +353,16 @@ test('テストが通ると件数つきの出来事が出て、失敗のあと�
   runTool(core, 'p1', 'Bash', { command: 'npm test' }, { response: { stdout: 'Tests: 24 passed, 24 total' } });
   assert.deepEqual(events.filter((e) => e.type === 'tests').map((e) => [e.passed, e.recovered]), [[24, true], [24, false]]);
 });
+
+test('大きな区切りの手前に小さな区切りが出る（今日 25 ごと、指示ごとに 10 ごと）', () => {
+  const { core, events } = setup();
+  core.setHerdrAgents([herdr('p1', 'working')]);
+  prompt(core, 'p1', '一つ目');
+  for (let i = 0; i < 12; i++) runTool(core, 'p1', 'Read', { file_path: 'a' });
+  prompt(core, 'p1', '二つ目');
+  for (let i = 0; i < MILESTONE_STEPS - 12; i++) runTool(core, 'p1', 'Read', { file_path: 'a' });
+  assert.deepEqual(events.filter((e) => e.type === 'mark').map((e) => [e.steps, e.next]), [[25, 100], [50, 100], [75, 100]], '100 は大きな区切りだけを出す');
+  assert.deepEqual(events.filter((e) => e.type === 'turn_mark').map((e) => e.turnSteps), [10, 10, 20, 30, 40, 50, 60, 70, 80], '新しい指示で数え直す');
+  const order = events.filter((e) => e.type === 'step' || e.type === 'turn_mark').map((e) => e.type);
+  assert.equal(order[order.indexOf('turn_mark') - 1], 'step', 'ステップの出来事のあとに届く');
+});

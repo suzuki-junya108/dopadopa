@@ -410,6 +410,7 @@ const SFX = {
   big: [[392, .1], [523, .1], [659, .1], [784, .1], [1047, .1], [1319, .35]],
   approve: [[1175, .05], [1568, .1]],
   pass: [[784, .07], [988, .07], [1319, .07], [1568, .2]],
+  mark: [[659, .07], [880, .07], [1175, .18]],
   wait: [[660, .12, 'triangle'], [660, .12, 'triangle']],
   error: [[330, .12, 'sawtooth'], [247, .2, 'sawtooth']],
   reset: [[523, .1, 'triangle'], [392, .1, 'triangle'], [262, .22, 'triangle']],
@@ -420,6 +421,7 @@ const BANNER_MS = 1900;
 const MEGA_BANNER_MS = 3200;
 const FALL_COUNT = 70;
 const MEGA_FALL_COUNT = 150;
+const SMALL_FALL_COUNT = 28;
 const FALL_MS = 2600;
 const RING_MS = 900;
 const SPARK_COUNT = 9;
@@ -637,6 +639,10 @@ function celebrate(key) {
   if (!card) return;
   for (const old of card.querySelectorAll('.stamp')) old.remove();
   temporary(h('div', 'stamp', '完了！'), card, STAMP_MS);
+  cardParty(card);
+}
+// カードの中だけに降る紙吹雪
+function cardParty(card) {
   if (reduceMotion.matches) return;
   restart(card, 'boing');
   const party = h('div', 'party');
@@ -691,6 +697,18 @@ function onEvent(e) {
       else cardPop(e.key, `${KIND_LABEL[e.stepKind] || 'ステップ'} +1`, false);
       stepBurst(e.key);
       play(['step'], 2 ** (Math.min(e.run || 0, PITCH_RUN_STEPS) / PITCH_RUN_STEPS));
+      break;
+    case 'turn_mark': {
+      // 同じステップのポップより後に届くので、こちらが残る
+      cardPop(e.key, `${num(e.turnSteps)} ステップ到達！`, true);
+      const card = cardOf(e.key);
+      if (card) cardParty(card);
+      play(['mark']);
+      break;
+    }
+    case 'mark':
+      banner(`今日 ${num(e.steps)} ステップ完了`, `次の区切り ${num(e.next)} ステップまで あと ${num(e.next - e.steps)}`, '#FFE53B', '#2A1E00');
+      fall(SMALL_FALL_COUNT); play(['mark']);
       break;
     case 'task':
       cardPop(e.key, 'タスク完了！', true);
