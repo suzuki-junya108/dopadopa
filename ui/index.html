@@ -120,7 +120,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .mix i{display:block;flex:0 0 0;min-width:0;background-color:var(--k);transition:flex-grow .5s cubic-bezier(.2,.9,.3,1.3)}
 .mix i+i{box-shadow:-2px 0 0 #000}
 .kinds{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-.kind{display:flex;align-items:baseline;justify-content:center;gap:5px;min-width:0;border:2px solid transparent;border-radius:10px;padding:1px 4px;font-size:12px;font-weight:800;color:var(--soft);white-space:nowrap}
+.kind{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;border:2px solid transparent;border-radius:10px;padding:2px 2px 3px;line-height:1;font-size:11px;font-weight:800;color:var(--soft);white-space:nowrap}
 .kind b{display:inline-block;font-family:var(--f-num);font-weight:400;font-size:19px;color:var(--k)}
 .kind.on{background:var(--k);border-color:#000;color:var(--kf);box-shadow:3px 3px 0 #000}
 .kind.on b{color:var(--kf)}
@@ -228,6 +228,39 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .ring{position:fixed;left:50%;top:38%;z-index:26;width:120px;height:120px;margin:-60px 0 0 -60px;border:10px solid var(--rc);border-radius:50%;pointer-events:none;animation:ring .9s cubic-bezier(.1,.7,.3,1) forwards}
 .fall{position:fixed;top:-24px;z-index:28;width:12px;height:18px;border:2px solid #000;border-radius:3px;pointer-events:none;animation:fall var(--dur) cubic-bezier(.3,.2,.6,1) forwards}
 .plus1{position:absolute;right:14px;top:-8px;font-family:var(--f-num);font-size:20px;color:var(--test);-webkit-text-stroke:1.5px #000;pointer-events:none;animation:plus .7s cubic-bezier(.2,.9,.3,1.4) forwards}
+.focus{position:fixed;inset:0;z-index:20;overflow:auto;padding:20px;background:rgba(11,6,24,.94)}
+.fbox{--c:var(--mute);--fg:#1A0838;min-height:calc(100vh - 40px);background:var(--card);border:3px solid #000;box-shadow:10px 10px 0 var(--c);border-radius:22px;padding:22px 26px;display:flex;flex-direction:column;gap:18px}
+.fbox.zap{animation:zap .5s ease-out}
+.fhead{display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+.fhead .fwho{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:4px}
+.fhead h2{margin:0;font-family:var(--f-num);font-weight:400;font-size:clamp(26px,4vw,44px);line-height:1.1;overflow-wrap:anywhere}
+.fhead .chip{font-size:18px}
+.fbody{flex:1 1 auto;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:26px}
+.fleft,.fright{min-width:0;display:flex;flex-direction:column;gap:14px}
+.fask{font-size:17px;font-weight:800;color:var(--sub);overflow-wrap:anywhere}
+.fsay{margin:0;font-size:clamp(19px,2.1vw,27px);font-weight:800;line-height:1.55;padding-left:14px;border-left:7px solid var(--c);overflow-wrap:anywhere}
+.fsay.none{color:var(--mute)}
+.focus .cact{font-size:18px;min-height:28px}
+.focus .cact .mark{width:24px;height:24px;font-size:13px}
+.focus .cact .what{white-space:normal;overflow-wrap:anywhere}
+.fnum{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+.fnum .big{font-size:clamp(70px,11vw,130px)}
+.fnum .big small{font-size:22px}
+.fnum .bignum{transform-origin:0 100%}
+.fnum .eta{font-size:18px}
+.focus .mix{height:24px;border-radius:12px}
+.focus .kind{font-size:15px;padding:5px 4px 6px;gap:4px}
+.focus .kind b{font-size:30px}
+.focus .facts dt{font-size:14px}
+.focus .facts dd{font-size:24px}
+.fright h3{margin:0;font-family:var(--f-head);font-weight:400;font-size:20px}
+.focus .ops{gap:6px}
+.focus .ops li{align-items:flex-start}
+.focus .ops .label{font-size:16px;white-space:normal;overflow-wrap:anywhere;line-height:1.45;display:block}
+.focus .ops li.say .label{font-size:17px;-webkit-line-clamp:unset;display:block}
+.focus .ops .state{font-size:14px}
+.focus .btns{flex-wrap:wrap}
+@media (max-width:899px){.fbody{grid-template-columns:minmax(0,1fr)}.focus{padding:10px}.fbox{padding:16px;min-height:calc(100vh - 20px)}}
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .edge{position:fixed;inset:0;z-index:2;pointer-events:none;border:6px solid var(--edit);opacity:0}
 .edge.p1{animation:edge 2s ease-in-out infinite}
@@ -356,6 +389,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
         <div><dt>変更行</dt><dd id="dLines" style="color:var(--edit)">+0</dd></div>
         <div><dt>テスト通過</dt><dd id="dTests" style="color:var(--test)">0</dd></div>
       </dl>
+      <button type="button" class="btn deny" id="dZoom" data-act="zoom">大きく表示</button>
       <button type="button" class="btn open" id="dOpen">herdr で開く</button>
     </div>
   </section>
@@ -384,6 +418,35 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 <template id="flameIcon"><svg width="16" height="18" viewBox="0 0 16 18" aria-hidden="true"><path d="M8 1 C9 5 14 7 14 12 A6 6 0 0 1 2 12 C2 9 4 8 5 5 C6 7 7 7 8 1 Z" fill="#FFE53B" stroke="#000000" stroke-width="1.6" stroke-linejoin="round"></path></svg></template>
 <div class="sr" id="live" aria-live="polite"></div>
 </div>
+<section class="focus" id="focus" role="dialog" aria-modal="true" aria-labelledby="fName" hidden>
+  <div class="fbox" id="fBox">
+    <div class="fhead">
+      <div class="fwho"><h2 id="fName"></h2><span class="cbranch" id="fBranch"></span></div>
+      <span class="chip" id="fChip"></span>
+      <button type="button" class="btn deny" id="fClose">閉じる</button>
+    </div>
+    <div class="fbody">
+      <div class="fleft">
+        <div class="fask" id="fAsk"></div>
+        <p class="fsay" id="fSay"></p>
+        <div class="cact" id="fAct"><span class="mark" aria-hidden="true">▶</span><span class="what" id="fWhat"></span></div>
+        <div class="fnum"><span class="big"><span class="bignum" id="fBig">0</span><small>ステップ</small></span><span class="eta" id="fEta"></span></div>
+        <div id="fMix" style="display:flex;flex-direction:column;gap:8px"></div>
+        <dl class="facts">
+          <div><dt>経過</dt><dd id="fElapsed">0:00</dd></div>
+          <div><dt>変更行</dt><dd id="fLines" style="color:var(--edit)">+0</dd></div>
+          <div><dt>テスト通過</dt><dd id="fTests" style="color:var(--test)">0</dd></div>
+        </dl>
+        <div class="btns">
+          <button type="button" class="btn open" id="fOpen" data-act="focus">herdr で開く</button>
+          <button type="button" class="btn deny" id="fDeny" data-act="deny">拒否</button>
+          <button type="button" class="btn approve" id="fApprove" data-act="approve">承認する</button>
+        </div>
+      </div>
+      <div class="fright"><h3>流れ</h3><ul class="ops" id="fOps"></ul></div>
+    </div>
+  </div>
+</section>
 <div id="fx"></div>
 
 <script>
@@ -696,6 +759,7 @@ function onEvent(e) {
       else if (e.first && e.stepKind === 'write') cardPop(e.key, 'この指示で最初の編集', true);
       else cardPop(e.key, `${KIND_LABEL[e.stepKind] || 'ステップ'} +1`, false);
       stepBurst(e.key);
+      if (e.key === focusKey && !reduceMotion.matches) restart($('fBox'), 'zap');
       play(['step'], 2 ** (Math.min(e.run || 0, PITCH_RUN_STEPS) / PITCH_RUN_STEPS));
       break;
     case 'turn_mark': {
@@ -780,6 +844,7 @@ document.addEventListener('click', (e) => {
   const key = b.dataset.key || (b.closest('[data-key]') || {}).dataset?.key;
   if (!key) return;
   if (b.dataset.act === 'select') { selectedKey = key; if (snap) render(snap); }
+  else if (b.dataset.act === 'zoom') openFocus(key);
   else if (b.dataset.act === 'focus') focusPane(key);
   else respond(key, b.dataset.act);
 });
@@ -931,6 +996,76 @@ function updateAsk(el, a) {
   r.open.hidden = a.canRespond || !a.pane;
 }
 
+// 説明文と操作を起きた順に並べ、「何を考えて・何をしたか」の流れとして見せる
+function renderFlow(list, a, limit) {
+  const rows = a.flow.slice(-limit).map((f) => (f.kind === 'say'
+    ? { id: f.t + f.text, text: f.text, cls: 'say', mark: '”', state: '説明' }
+    : { id: f.t + f.text, text: f.text, cls: f.ok ? '' : 'ng', mark: f.ok ? '✓' : '×', state: f.ok ? '完了' : '失敗' }));
+  if (WORKING.has(a.state) && a.activity) rows.push({ id: 'cur', text: a.activity, cls: 'cur', mark: '▶', state: '進行中' });
+  if (a.state === 'wait') rows.push({ id: 'cur', text: activityOf(a), cls: 'cur', mark: '▶', state: a.canRespond ? '許可待ち' : 'あなた待ち' });
+  reconcile(list, rows, (r) => r.id, () => {
+    const li = h('li');
+    li.append(h('span', 'mark'), h('span', 'label'), h('span', 'state'));
+    return li;
+  }, (li, r) => {
+    if (li.className !== r.cls) li.className = r.cls;
+    text(li.children[0], r.mark); text(li.children[1], r.text); text(li.children[2], r.state);
+  });
+}
+
+// ---------------------------------------------------------------- 1 セッションを大きく表示
+// 全体を 1 画面に収めると字が小さくなるので、読みたいセッションだけ縮めずに映す
+let focusKey = null;
+let focusOpener = null;
+function openFocus(key) {
+  focusKey = key;
+  focusOpener = document.activeElement;
+  $('focus').hidden = false;
+  $('root').inert = true;
+  if (snap) renderFocus();
+  $('fClose').focus();
+}
+function closeFocus() {
+  if (!focusKey) return;
+  focusKey = null;
+  $('focus').hidden = true;
+  $('root').inert = false;
+  if (focusOpener && focusOpener.isConnected) focusOpener.focus();
+}
+$('fClose').addEventListener('click', closeFocus);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFocus(); });
+function renderFocus() {
+  if (!focusKey) return;
+  const a = snap.agents.find((x) => x.key === focusKey);
+  if (!a) { closeFocus(); return; }
+  const st = STATES[a.state] || STATES.idle;
+  const now = serverNow();
+  const box = $('fBox');
+  box.dataset.key = a.key;
+  box.style.setProperty('--c', st.color);
+  box.style.setProperty('--fg', st.fg);
+  text($('fName'), a.name); text($('fBranch'), a.branch); text($('fChip'), st.label);
+  text($('fAsk'), a.title ? `指示: ${a.title}` : '');
+  text($('fSay'), sayOf(a));
+  $('fSay').classList.toggle('none', !a.say);
+  const what = activityOf(a);
+  text($('fWhat'), what);
+  $('fAct').classList.toggle('off', !what);
+  setNumber($('fBig'), a.turnSteps, 'roll');
+  $('fBig').parentNode.style.color = st.color;
+  const eta = etaOf(a, now);
+  text($('fEta'), eta.label);
+  if ($('fEta').className !== eta.cls) $('fEta').className = eta.cls;
+  if (!$('fMix').firstChild) { const m = createMix(); $('fMix').append(m.mix, m.kinds); }
+  updateMix($('fMix').children[0], $('fMix').children[1], a.kinds, WORKING.has(a.state) ? KIND_OF_STATE[a.state] : '', true);
+  text($('fElapsed'), fmt(elapsedOf(a, now)));
+  text($('fLines'), '+' + num(a.lines));
+  text($('fTests'), num(a.tests));
+  $('fOpen').hidden = !a.pane;
+  $('fDeny').hidden = !a.canRespond; $('fApprove').hidden = !a.canRespond;
+  renderFlow($('fOps'), a, a.flow.length || 1);
+}
+
 function renderDetail(a) {
   const panel = $('detail');
   panel.hidden = !a;
@@ -943,26 +1078,14 @@ function renderDetail(a) {
   text($('dTitle'), a.title || '指示を待っています');
   $('dBig').style.color = st.color;
   setNumber($('dBigNum'), a.turnSteps);
-  // 説明文と操作を起きた順に並べ、「何を考えて・何をしたか」の流れとして見せる
-  const rows = a.flow.slice(-DETAIL_FLOW).map((f) => (f.kind === 'say'
-    ? { id: f.t + f.text, text: f.text, cls: 'say', mark: '”', state: '説明' }
-    : { id: f.t + f.text, text: f.text, cls: f.ok ? '' : 'ng', mark: f.ok ? '✓' : '×', state: f.ok ? '完了' : '失敗' }));
-  if (WORKING.has(a.state) && a.activity) rows.push({ id: 'cur', text: a.activity, cls: 'cur', mark: '▶', state: '進行中' });
-  if (a.state === 'wait') rows.push({ id: 'cur', text: activityOf(a), cls: 'cur', mark: '▶', state: a.canRespond ? '許可待ち' : 'あなた待ち' });
-  reconcile($('dOps'), rows, (r) => r.id, () => {
-    const li = h('li');
-    li.append(h('span', 'mark'), h('span', 'label'), h('span', 'state'));
-    return li;
-  }, (li, r) => {
-    if (li.className !== r.cls) li.className = r.cls;
-    text(li.children[0], r.mark); text(li.children[1], r.text); text(li.children[2], r.state);
-  });
+  renderFlow($('dOps'), a, DETAIL_FLOW);
   text($('dElapsed'), fmt(elapsedOf(a, now)));
   text($('dLines'), '+' + num(a.lines));
   text($('dTests'), num(a.tests));
   $('dOpen').hidden = !a.pane;
   $('dOpen').dataset.act = 'focus';
   $('dOpen').dataset.key = a.key;
+  $('dZoom').dataset.key = a.key;
 }
 
 // 直近 1 分を等分し、区間ごとのステップ数を棒の高さにする（右端がいま）
@@ -1009,6 +1132,8 @@ function renderClock() {
   }
   const sel = snap.agents.find((a) => a.key === selectedKey);
   if (sel) text($('dElapsed'), fmt(elapsedOf(sel, now)));
+  const big = focusKey && snap.agents.find((a) => a.key === focusKey);
+  if (big) { text($('fEta'), etaOf(big, now).label); text($('fElapsed'), fmt(elapsedOf(big, now))); }
 }
 
 function render(s) {
@@ -1041,6 +1166,7 @@ function render(s) {
   $('cards').hidden = s.agents.length === 0;
   reconcile($('cards'), s.agents, (a) => a.key, createCard, updateCard);
   renderDetail(s.agents.find((a) => a.key === selectedKey));
+  renderFocus();
 
   reconcile($('missions'), t.missions, (m) => m.id, () => {
     const el = h('div', 'mission');
