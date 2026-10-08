@@ -31,6 +31,8 @@ const DONE_SHOWN = 30;
 // ステップの内訳。実測では操作は調べる → 書く → 確かめるの順に進まず行き来するので、段階ではなく種類ごとの件数として出す
 const KINDS = ['look', 'write', 'run', 'check'];
 const KIND_OF_MODE = { think: 'look', edit: 'write', run: 'run', test: 'check' };
+// フックを設定ファイルとプラグインの両方に入れると、同じ出来事が同時に 2 通届く（実測で中身は 1 バイトも違わない）
+const REPEAT_WINDOW_MS = 2000;
 
 const MISSIONS = [
   { id: 'fast', label: '許可待ちを10秒以内に承認する（2回）', target: 2 },
@@ -559,4 +561,16 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
   return { handleHook, handleDerived, addNarration, setHerdrAgents, setPaneStatus, recordResponse, canRespond, tick, snapshot, exportStats, importStats, agents, dayKey: () => today.day };
 }
 
-module.exports = { createCore, dayKeyOf, plainText, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, SMALL_MARK_STEPS, TURN_MARK_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };
+// 同じ内容が短い間に続けて届いたら、2 通目以降を知らせる。二重に入ったフックでステップを倍に数えないため
+function createRepeatFilter({ windowMs = REPEAT_WINDOW_MS, now = Date.now } = {}) {
+  const seenAt = new Map();
+  return (key) => {
+    const t = now();
+    for (const [k, at] of seenAt) if (t - at >= windowMs) seenAt.delete(k);
+    if (seenAt.has(key)) return true;
+    seenAt.set(key, t);
+    return false;
+  };
+}
+
+module.exports = { createCore, createRepeatFilter, REPEAT_WINDOW_MS, dayKeyOf, plainText, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, SMALL_MARK_STEPS, TURN_MARK_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };

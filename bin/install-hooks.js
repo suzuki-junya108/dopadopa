@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
-// hooks/claude-settings.json の内容を ~/.claude/settings.json に足す（--remove で外す）。
+// claude-code-plugin/hooks/hooks.json の内容を ~/.claude/settings.json に足す（--remove で外す）。
+// フックの定義は Claude Code プラグインとして配るものと同じファイルを使い、2 か所に持たない。
 // 既存のフックには触れず、dopadopa の行だけを出し入れする。書き換える前に必ずバックアップを取る。
 // 使い方: node bin/install-hooks.js [--remove] [--settings <path>]
 
@@ -14,7 +15,7 @@ const settingsArg = args.indexOf('--settings');
 const requested = settingsArg >= 0 ? args[settingsArg + 1] : path.join(os.homedir(), '.claude', 'settings.json');
 // 設定がシンボリックリンクのとき、リンクを実ファイルで置き換えてしまわないよう実体のほうを書き換える
 const target = requested && fs.existsSync(requested) ? fs.realpathSync(requested) : requested;
-const source = path.join(__dirname, '..', 'hooks', 'claude-settings.json');
+const source = path.join(__dirname, '..', 'claude-code-plugin', 'hooks', 'hooks.json');
 const OURS = /[\\/]\.dopadopa[\\/]forward\.sh/;
 
 function fail(message) {

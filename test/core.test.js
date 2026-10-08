@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createCore, plainText, countPassedTests, isTestCommand, changedLines, MILESTONE_STEPS, GOAL_START, GOAL_INCREMENT } = require('../bridge/core.js');
+const { createCore, createRepeatFilter, REPEAT_WINDOW_MS, plainText, countPassedTests, isTestCommand, changedLines, MILESTONE_STEPS, GOAL_START, GOAL_INCREMENT } = require('../bridge/core.js');
 
 const START = new Date(2026, 9, 7, 10, 0, 0).getTime();
 const STREAK_MS = 180000;
@@ -381,4 +381,17 @@ test('同じ状態どうしは、待たせている順・新しく指示を受�
   stop(core, 'p1'); clock.t += 1000;
   stop(core, 'p2');
   assert.deepEqual(core.snapshot().agents.map((a) => a.name), ['c', 'd', 'b', 'a', 'e', 'f']);
+});
+
+test('同じ内容が続けて届いたら 2 回目は捨て、時間が空けば受け取る', () => {
+  const clock = { t: START };
+  const isRepeat = createRepeatFilter({ now: () => clock.t });
+  assert.equal(isRepeat('a'), false);
+  assert.equal(isRepeat('a'), true);
+  assert.equal(isRepeat('b'), false);
+  clock.t += REPEAT_WINDOW_MS - 1;
+  assert.equal(isRepeat('a'), true);
+  clock.t += 1;
+  assert.equal(isRepeat('a'), false);
+  assert.equal(isRepeat('b'), false);
 });

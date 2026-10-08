@@ -28,7 +28,8 @@ Claude Code ×N（herdr のペイン）
 | `bridge/terminal.js` | herdr を表示している端末アプリを `ps` の出力から探す（「herdr で開く」で前に出すため）。入出力なし |
 | `bin/install-hooks.js` | `~/.claude/settings.json` にフックを足す / 外す（`--remove`）。先にバックアップを取る |
 | `hooks/forward.sh` | Claude Code hook → ブリッジへ転送。失敗しても必ず exit 0 |
-| `hooks/claude-settings.json` | `~/.claude/settings.json` に足す hooks 設定 |
+| `claude-code-plugin/` | フックを Claude Code のプラグインとして配るためのフォルダ。`hooks/hooks.json` がフックの定義（`bin/install-hooks.js` も同じファイルを読む） |
+| `.claude-plugin/marketplace.json` | Claude Code に配布元として登録するための定義 |
 | `ui/index.html` | ボード（確定デザインを移植済み。スナップショットで表示を更新し、イベントで演出を起こす） |
 | `design/prototype.dc.html` | 確定デザインの試作（Claude の Design 形式。参照用で、そのままは動かない） |
 
