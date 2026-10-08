@@ -20,9 +20,10 @@ const FAST_APPROVAL_SECONDS = 10;
 const DEFAULT_STREAK_MS = 3 * 60 * 1000;
 const FEED_MAX = 200;
 const FLOW_MAX = 14;
-const TITLE_MAX = 60;
+const TITLE_MAX = 120;
 const SAY_MAX = 280;
-const OP_TEXT_MAX = 70;
+// 実測でコマンドの説明は最長 126 文字。途中で切らずに渡し、何行見せるかは画面が決める
+const OP_TEXT_MAX = 130;
 const PACE_WINDOW_MS = 60 * 1000;
 const HOURS_IN_DAY = 24;
 const DONE_MAX = 200;
@@ -170,7 +171,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       key, pane: key.startsWith('session:') ? null : key, name: key, kind: '', cwd: '', branch: '',
       status: 'unknown', hooked: false, terminalTitle: '',
       title: '', activity: '', notice: '', mode: 'think', failing: false,
-      turnOpen: false, turnStartedAt: null, doneAt: null, blockedSince: null, responded: false,
+      turnOpen: false, turnStartedAt: null, doneAt: null, activeAt: 0, blockedSince: null, responded: false,
       turnSteps: 0, run: 0, lines: 0, tests: 0, kinds: blankKinds(), say: '', sayAt: null, flow: [], pending: new Map(),
     };
   }
@@ -271,6 +272,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     if (!status || status === a.status) return;
     const prev = a.status;
     a.status = status;
+    a.activeAt = now();
     if (status === 'blocked') {
       a.blockedSince = now();
       const ask = currentAsk(a);
@@ -337,6 +339,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     const a = getAgent(resolveKey(pane, ev));
     if (derived && a.hooked) return;
     if (!derived) a.hooked = true;
+    a.activeAt = now();
     if (!a.cwd && ev.cwd) { a.cwd = ev.cwd; a.name = path.basename(ev.cwd) || a.name; }
     const tool = ev.tool_name;
     const input = ev.tool_input || {};
@@ -418,6 +421,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     if (!text || (initial && a.say)) return;
     a.say = text;
     a.sayAt = now();
+    if (!initial) a.activeAt = now();
     if (!initial) pushFlow(a, { kind: 'say', text });
     onChange();
   }
@@ -491,10 +495,16 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
         blockedSince: a.blockedSince, turnStartedAt: a.turnOpen || a.doneAt ? a.turnStartedAt : null, doneAt: a.doneAt,
         turnSteps: a.turnSteps, daySteps: today.perSession[a.name] || 0,
         run: a.run, showRun: a.run >= RUN_BADGE_MIN && WORKING_STATES.has(state),
-        lines: a.lines, tests: a.tests, kinds: { ...a.kinds }, say: a.say, sayAt: a.sayAt, flow: a.flow.slice(),
+        activeAt: a.activeAt, lines: a.lines, tests: a.tests, kinds: { ...a.kinds }, say: a.say, sayAt: a.sayAt, flow: a.flow.slice(),
       };
     });
-    list.sort((x, y) => order[x.state] - order[y.state] || x.name.localeCompare(y.name) || x.key.localeCompare(y.key));
+    // 左から: 長く待たせている順 → 新しく指示を受けた順 → 最近まで動いていた順。作業中の並びはステップごとに入れ替えない
+    const within = (x, y) => {
+      if (order[x.state] === 0) return x.blockedSince - y.blockedSince;
+      if (order[x.state] === 1) return (y.turnStartedAt || 0) - (x.turnStartedAt || 0);
+      return y.activeAt - x.activeAt;
+    };
+    list.sort((x, y) => order[x.state] - order[y.state] || within(x, y) || x.name.localeCompare(y.name) || x.key.localeCompare(y.key));
     const vals = missionValues();
     return {
       type: 'snapshot', now: now(),

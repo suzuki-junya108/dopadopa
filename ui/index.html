@@ -88,9 +88,11 @@ header{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px}
 button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .ask button:focus-visible{outline-color:#000}
 
-.cards{min-width:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+.cardswrap{min-width:0;display:flex;align-items:stretch;gap:10px}
+.cards{flex:1 1 auto;min-width:0;display:flex;gap:16px;overflow-x:auto;padding:4px 14px 16px 4px;scroll-snap-type:x proximity;scroll-padding:0 4px;scrollbar-color:var(--think) var(--well)}
+.more{flex:0 0 48px;margin:4px 0 16px;padding:10px 0;writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.08em;background:#FFFFFF;color:#1A0838;font-family:var(--f-head);font-size:18px}
 .empty{color:var(--sub);font-weight:800;padding:32px 16px;text-align:center}
-.card{--c:var(--mute);--fg:#1A0838;position:relative;background:var(--card);border:3px solid #000;box-shadow:6px 6px 0 var(--c);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;transition:transform .2s cubic-bezier(.2,.9,.3,1.6)}
+.card{--c:var(--mute);--fg:#1A0838;flex:1 0 440px;min-width:0;scroll-snap-align:start;position:relative;background:var(--card);border:3px solid #000;box-shadow:6px 6px 0 var(--c);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;transition:transform .2s cubic-bezier(.2,.9,.3,1.6)}
 .card:hover{transform:translate(-3px,-3px) rotate(-.4deg)}
 .card.sel{box-shadow:8px 8px 0 #FFFFFF}
 .card.is-wait{animation:waitpulse 1s ease-in-out infinite}
@@ -130,14 +132,13 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 [data-k="check"]{--k:var(--test);--kf:#2A1E00}
 .wave{position:absolute;inset:0;pointer-events:none;background:var(--wc);opacity:.55;animation:wave .7s cubic-bezier(.3,.6,.4,1) forwards}
 .stripes{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.3) 0 8px,rgba(255,255,255,0) 8px 16px);background-size:22.6px 22.6px;animation:stripes .6s linear infinite}
-.cask{font-size:12px;font-weight:800;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cask{font-size:12px;font-weight:800;line-height:1.4;height:2.8em;color:var(--sub);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .csay{font-size:15px;font-weight:800;line-height:1.45;height:4.35em;padding:0 0 0 10px;border-left:5px solid var(--c);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
 .csay.none{color:var(--mute)}
-.cact{display:flex;align-items:center;gap:8px;min-height:22px;font-size:13px;font-weight:800;color:var(--soft)}
+.cact{display:flex;align-items:flex-start;gap:8px;height:4.2em;line-height:1.4;font-size:13px;font-weight:800;color:var(--soft)}
 .cact .mark{flex:0 0 auto;width:18px;height:18px;border-radius:6px;border:2px solid #000;background:var(--c);color:var(--fg);font-size:10px;display:flex;align-items:center;justify-content:center}
-.cact .what{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cact .what{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
 .cact.off .mark{visibility:hidden}
-.cstep{font-size:12px;color:var(--soft);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .eta{font-family:var(--f-num);font-size:14px;border:2px solid #000;border-radius:10px;padding:4px 10px;box-shadow:3px 3px 0 #000;background:#FFFFFF;color:#1A0838}
 .eta.wait{background:var(--wait);color:#2A1200}
 .eta.done{background:var(--done);color:#102400}
@@ -161,7 +162,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .detail .dbig small{font-family:'M PLUS Rounded 1c','Hiragino Sans',sans-serif;font-weight:800;font-size:13px;margin-left:4px}
 .detail .drow{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px}
 .detail .drow .facts{flex:1 1 220px}
-.detail .btn{min-height:44px}
+.detail .btn{min-height:44px;flex:0 0 auto}
 .ops{display:flex;flex-direction:column;gap:2px;list-style:none;margin:0;padding:0}
 .ops li{display:flex;align-items:center;gap:12px;padding:3px 0}
 .ops .mark{flex:0 0 auto;width:22px;height:22px;border-radius:7px;border:2px solid #000;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:var(--done);color:#102400}
@@ -193,7 +194,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .donerow .txt{flex:1 1 auto;min-width:0;color:var(--soft);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .donerow .n{flex:0 0 auto;font-family:var(--f-num);font-size:12px;color:var(--test)}
 .hoursbox{box-shadow:6px 6px 0 var(--test)}
-.hours{display:flex;align-items:flex-end;gap:2px;height:64px;border-bottom:3px solid #000}
+.hours{display:flex;align-items:flex-end;gap:2px;height:48px;border-bottom:3px solid #000}
 .hours i{flex:1 1 0;min-width:0;min-height:2px;height:2px;background:var(--think);border:1px solid #000;border-bottom:none;border-radius:3px 3px 0 0;transition:height .5s cubic-bezier(.2,.9,.3,1.4)}
 .hours i.now{background:var(--test)}
 .axis{display:flex;justify-content:space-between;font-family:var(--f-num);font-size:11px;color:var(--sub)}
@@ -240,9 +241,9 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .fask{font-size:17px;font-weight:800;color:var(--sub);overflow-wrap:anywhere}
 .fsay{margin:0;font-size:clamp(19px,2.1vw,27px);font-weight:800;line-height:1.55;padding-left:14px;border-left:7px solid var(--c);overflow-wrap:anywhere}
 .fsay.none{color:var(--mute)}
-.focus .cact{font-size:18px;min-height:28px}
+.focus .cact{font-size:18px;height:auto;min-height:28px}
 .focus .cact .mark{width:24px;height:24px;font-size:13px}
-.focus .cact .what{white-space:normal;overflow-wrap:anywhere}
+.focus .cact .what{display:block;overflow:visible}
 .fnum{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
 .fnum .big{font-size:clamp(70px,11vw,130px)}
 .fnum .big small{font-size:22px}
@@ -260,7 +261,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .focus .ops li.say .label{font-size:17px;-webkit-line-clamp:unset;display:block}
 .focus .ops .state{font-size:14px}
 .focus .btns{flex-wrap:wrap}
-@media (max-width:899px){.fbody{grid-template-columns:minmax(0,1fr)}.focus{padding:10px}.fbox{padding:16px;min-height:calc(100vh - 20px)}}
+@media (max-width:899px){.cards{flex-direction:column;overflow-x:visible;padding:0}.card{flex:0 0 auto}.more{display:none}.fbody{grid-template-columns:minmax(0,1fr)}.focus{padding:10px}.fbox{padding:16px;min-height:calc(100vh - 20px)}}
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .edge{position:fixed;inset:0;z-index:2;pointer-events:none;border:6px solid var(--edit);opacity:0}
 .edge.p1{animation:edge 2s ease-in-out infinite}
@@ -373,13 +374,18 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 <div class="band conn" id="conn" role="status" hidden></div>
 <div id="asks" style="display:flex;flex-direction:column;gap:14px"></div>
 
-<div class="cards" id="cards"></div>
+<div class="cardswrap" id="cardsWrap">
+  <button type="button" class="btn more" id="morePrev" hidden></button>
+  <div class="cards" id="cards" role="group" aria-label="セッション"></div>
+  <button type="button" class="btn more" id="moreNext" hidden></button>
+</div>
 <div class="empty" id="empty">herdr のエージェントを待っています…</div>
 
 <div class="lower">
   <section class="panel detail" id="detail" aria-label="選択中のセッション" hidden>
     <div class="dhead">
       <div style="display:flex;flex-direction:column;gap:4px;min-width:0"><span class="dname" id="dName"></span><span class="dtitle" id="dTitle"></span></div>
+      <button type="button" class="btn deny" id="dZoom" data-act="zoom">大きく表示</button>
       <span class="dbig" id="dBig"><span id="dBigNum">0</span><small>ステップ</small></span>
     </div>
     <ul class="ops" id="dOps"></ul>
@@ -389,7 +395,6 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
         <div><dt>変更行</dt><dd id="dLines" style="color:var(--edit)">+0</dd></div>
         <div><dt>テスト通過</dt><dd id="dTests" style="color:var(--test)">0</dd></div>
       </dl>
-      <button type="button" class="btn deny" id="dZoom" data-act="zoom">大きく表示</button>
       <button type="button" class="btn open" id="dOpen">herdr で開く</button>
     </div>
   </section>
@@ -510,7 +515,8 @@ const POP_MS = 1700;
 const STAMP_MS = 8000;
 const PARTY_MS = 1800;
 const PLUS_MS = 900;
-const DETAIL_FLOW = 6;
+const DETAIL_FLOW = 5;
+const REORDER_MS = 450;
 // これより狭い画面（スマホ幅）は縮めると読めなくなるので、従来どおり縦スクロールにする
 const FIT_MIN_WIDTH = 900;
 const FIT_MIN_PERCENT = 50;
@@ -868,12 +874,6 @@ function elapsedOf(a, now) {
   if (!a.turnStartedAt) return 0;
   return ((a.doneAt || now) - a.turnStartedAt) / 1000;
 }
-function factsLine(a) {
-  const parts = [];
-  if (a.lines) parts.push(`変更 +${num(a.lines)} 行`);
-  if (a.tests) parts.push(`テスト ${num(a.tests)} 件通過`);
-  return parts.join(' ・ ');
-}
 function activityOf(a) {
   if (a.state === 'wait') return a.ask ? `「${a.ask}」の実行許可を待っています` : (a.notice || 'あなたの対応を待っています');
   if (a.state === 'done' || a.state === 'idle') return '';
@@ -929,11 +929,11 @@ function createCard() {
   side.append(fire, h('span', 'eta'));
   mid.append(big, side);
   const { mix, kinds } = createMix();
-  el.append(top, h('div', 'cask'), h('div', 'csay'), act, mid, mix, kinds, h('div', 'cstep'), responseButtons(false));
+  el.append(top, h('div', 'cask'), h('div', 'csay'), act, mid, mix, kinds, responseButtons(false));
   el._r = {
     sel, name: sel.children[0], branch: sel.children[1], chip: top.children[1], ask: el.children[1], say: el.children[2],
     act, what: act.children[1], bignum: big.children[0], fire, firetxt: fire.lastChild,
-    step: el.children[7], eta: side.children[1], mix, kinds, btns: el.lastChild,
+    eta: side.children[1], mix, kinds, btns: el.lastChild,
   };
   return el;
 }
@@ -956,6 +956,8 @@ function updateCard(el, a) {
   r.say.classList.toggle('none', !a.say);
   const what = activityOf(a);
   text(r.what, what);
+  r.what.title = what;
+  r.ask.title = a.title || '';
   r.act.classList.toggle('off', !what);
   setNumber(r.bignum, a.turnSteps, 'roll');
   r.fire.hidden = !a.showRun;
@@ -963,7 +965,6 @@ function updateCard(el, a) {
   r.fire.classList.toggle('f2', tier === 1); r.fire.classList.toggle('f3', tier === 2);
   el.classList.toggle('hot2', tier === 1); el.classList.toggle('hot3', tier === 2);
   text(r.firetxt, `${a.run}ステップ連続で進行中`);
-  text(r.step, [`今日 ${num(a.daySteps)} ステップ完了`, factsLine(a)].filter(Boolean).join(' ・ '));
   updateMix(r.mix, r.kinds, a.kinds, WORKING.has(a.state) ? KIND_OF_STATE[a.state] : '', true);
   const eta = etaOf(a, now);
   text(r.eta, eta.label);
@@ -1010,6 +1011,7 @@ function renderFlow(list, a, limit) {
   }, (li, r) => {
     if (li.className !== r.cls) li.className = r.cls;
     text(li.children[0], r.mark); text(li.children[1], r.text); text(li.children[2], r.state);
+    li.children[1].title = r.text;
   });
 }
 
@@ -1163,8 +1165,10 @@ function render(s) {
 
   if (!s.agents.some((a) => a.key === selectedKey)) selectedKey = s.agents.length ? s.agents[0].key : null;
   $('empty').hidden = s.agents.length > 0;
-  $('cards').hidden = s.agents.length === 0;
+  $('cardsWrap').hidden = s.agents.length === 0;
+  const before = cardLefts();
   reconcile($('cards'), s.agents, (a) => a.key, createCard, updateCard);
+  slideCards(before);
   renderDetail(s.agents.find((a) => a.key === selectedKey));
   renderFocus();
 
@@ -1231,6 +1235,47 @@ function render(s) {
   fit();
 }
 
+// ---------------------------------------------------------------- カードの横並び
+// カードは文が読める幅を保って 1 列に並べ、入りきらない分は横に送る。左ほど、いま見るべきセッション
+function cardLefts() {
+  const lefts = new Map();
+  for (const el of $('cards').children) lefts.set(el.dataset.key, el.getBoundingClientRect().left);
+  return lefts;
+}
+// 並びが入れ替わったとき、元の位置から滑らせて「どれがどこへ動いたか」を追えるようにする
+function slideCards(before) {
+  if (reduceMotion.matches) return;
+  for (const el of $('cards').children) {
+    if (!before.has(el.dataset.key)) continue;
+    // 位置は縮小後の画面上の値で取れるので、縮小前の長さに戻す
+    const dx = (before.get(el.dataset.key) - el.getBoundingClientRect().left) / (fitPercent / 100);
+    if (Math.abs(dx) < 2) continue;
+    el.animate([{ transform: `translateX(${dx}px)` }, { transform: 'none' }], { duration: REORDER_MS, easing: 'cubic-bezier(.2,.9,.3,1.2)' });
+  }
+}
+function updateMore() {
+  const box = $('cards');
+  const view = box.getBoundingClientRect();
+  let left = 0;
+  let right = 0;
+  for (const el of box.children) {
+    const r = el.getBoundingClientRect();
+    if (r.left < view.left - 1) left++;
+    else if (r.right > view.right + 1) right++;
+  }
+  $('morePrev').hidden = left === 0; $('moreNext').hidden = right === 0;
+  text($('morePrev'), `◀ ほか ${left} 件`); text($('moreNext'), `ほか ${right} 件 ▶`);
+}
+function scrollCards(dir) {
+  const first = $('cards').firstElementChild;
+  if (!first) return;
+  const gap = parseFloat(getComputedStyle($('cards')).columnGap) || 0;
+  $('cards').scrollBy({ left: dir * (first.offsetWidth + gap), behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+}
+$('morePrev').addEventListener('click', () => scrollCards(-1));
+$('moreNext').addEventListener('click', () => scrollCards(1));
+$('cards').addEventListener('scroll', updateMore, { passive: true });
+
 // ---------------------------------------------------------------- 1 画面に収める
 // 全体を見渡すための画面なので、縦にはみ出す分は全体を縮めて収める。縮めると横に置ける数が増えて
 // 高さが段階的に変わる（倍率と高さが比例しない）ため、大きい倍率から順に実際に当てはめて探す
@@ -1240,6 +1285,10 @@ function fitsAt(zoom) {
 }
 let fitPercent = 100;
 function fit() {
+  fitZoom();
+  updateMore();
+}
+function fitZoom() {
   if (window.innerWidth < FIT_MIN_WIDTH) { $('root').style.zoom = ''; fitPercent = 100; return; }
   // 毎秒の更新で探し直すと無駄が多いので、前回の倍率がまだ最大なら（収まり、1 段上は収まらない）そのまま使う
   if (fitsAt(fitPercent / 100) && (fitPercent === 100 || !fitsAt((fitPercent + FIT_STEP_PERCENT) / 100))) { fitsAt(fitPercent / 100); return; }
