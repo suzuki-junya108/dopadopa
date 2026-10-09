@@ -3,5 +3,6 @@
   "version": "0.1.0",
   "description": "Claude Code の出来事（指示・操作・許可待ち・完了）を、このマシン内の dopadopa のボードへ送るフック",
   "author": { "name": "suzuki-junya108" },
+  "license": "MIT",
   "repository": "https://github.com/suzuki-junya108/dopadopa"
 }

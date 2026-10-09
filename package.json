@@ -2,6 +2,7 @@
   "name": "dopadopa",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "Claude Code の複数セッションをライブボードで見渡す herdr プラグイン",
   "engines": {
     "node": ">=18"

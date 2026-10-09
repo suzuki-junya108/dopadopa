@@ -1,7 +1,7 @@
 id = "dopadopa.board"
 name = "dopadopa"
 version = "0.1.0"
-min_herdr_version = "0.9.0"
+min_herdr_version = "0.9.1"
 description = "Claude Code の複数セッションをブラウザのライブボードで見渡す"
 platforms = ["macos", "linux"]
 
