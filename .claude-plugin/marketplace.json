@@ -1,0 +1,12 @@
+{
+  "name": "dopadopa",
+  "description": "dopadopa（Claude Code のセッションを見渡すライブボード）のフック",
+  "owner": { "name": "suzuki-junya108" },
+  "plugins": [
+    {
+      "name": "dopadopa-hooks",
+      "source": "./claude-code-plugin",
+      "description": "Claude Code の出来事を、このマシン内の dopadopa のボードへ送るフック"
+    }
+  ]
+}

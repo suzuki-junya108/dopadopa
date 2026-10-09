@@ -15,7 +15,7 @@ const path = require('node:path');
 const os = require('node:os');
 const crypto = require('node:crypto');
 const { spawn } = require('node:child_process');
-const { createCore } = require('./core.js');
+const { createCore, createRepeatFilter } = require('./core.js');
 const { findTerminalApp } = require('./terminal.js');
 
 const PORT = Number(process.env.DOPADOPA_PORT || 4517);
@@ -394,14 +394,19 @@ async function raiseTerminal() {
 const KEYS = { approve: ['Enter'], deny: ['esc'] };
 
 // ---------------------------------------------------------------- HTTP
-function readBody(req) {
+function readText(req) {
   return new Promise((resolve) => {
     let b = '';
     req.on('data', (d) => { b += d; if (b.length > BODY_LIMIT_BYTES) req.destroy(); });
-    req.on('end', () => { try { resolve(JSON.parse(b || '{}')); } catch { resolve({}); } });
-    req.on('error', () => resolve({}));
+    req.on('end', () => resolve(b));
+    req.on('error', () => resolve(''));
   });
 }
+function parseJson(text) {
+  try { return JSON.parse(text || '{}'); } catch { return {}; }
+}
+const readBody = async (req) => parseJson(await readText(req));
+const isRepeatedHook = createRepeatFilter();
 function sameToken(given) {
   const a = Buffer.from(String(given || ''));
   const b = Buffer.from(TOKEN);
@@ -442,10 +447,13 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   if (req.method === 'POST' && url.pathname === '/hook') {
-    const body = await readBody(req);
-    core.handleHook(url.searchParams.get('pane') || '', body);
+    const pane = url.searchParams.get('pane') || '';
+    const text = await readText(req);
+    // 返事を先に返してから処理する（フックを待たせない）
     res.writeHead(204); res.end();
-    // 返事を先に返してから読む（フックを待たせない）
+    if (isRepeatedHook(crypto.createHash('sha256').update(pane + '\n' + text).digest('hex'))) return;
+    const body = parseJson(text);
+    core.handleHook(pane, body);
     followTranscript(body.session_id);
     return;
   }

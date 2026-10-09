@@ -10,12 +10,26 @@ Claude Code の複数セッションを、ブラウザのライブボードで�
 1. 前提: herdr 0.9 以上、Node 18 以上、`herdr integration install claude` 済み
 2. `herdr plugin link "$PWD"`
 3. `herdr plugin action invoke dopadopa.board.restart`（ブリッジ起動）
-4. `herdr plugin action invoke dopadopa.board.install-hooks`（`~/.claude/settings.json` にフックを足す。先にバックアップを取り、既存のフックには触れない。外すときは `node bin/install-hooks.js --remove`）
-   - 実行中の Claude Code には、起動し直すか `/hooks` で確認するまで反映されない
+4. Claude Code にフックを入れる（下の「フックの入れ方」のどちらか）
+   - 実行中の Claude Code には、起動し直すまで反映されない
    - フックを入れないセッションも、会話記録からステップと説明文を拾って表示する（許可待ちの承認ボタンと、タスク完了の正確な瞬間はフックが要る）
 5. `herdr plugin action invoke dopadopa.board.open`
 
 テスト: `npm test`、構文チェック: `npm run check`
+
+## フックの入れ方
+
+どちらも同じフック（`claude-code-plugin/hooks/hooks.json`）を入れる。両方入れてもステップは二重に数えない（ブリッジが同じ内容の 2 通目を捨てる）が、片方だけにしておくこと。
+
+| 方法 | 入れる | 外す |
+|---|---|---|
+| Claude Code のプラグイン（おすすめ） | `claude plugin marketplace add suzuki-junya108/dopadopa` → `claude plugin install dopadopa-hooks@dopadopa` | `claude plugin uninstall dopadopa-hooks@dopadopa` |
+| 設定ファイルに足す | `herdr plugin action invoke dopadopa.board.install-hooks` | `node bin/install-hooks.js --remove` |
+
+- プラグインは `~/.claude/settings.json` のフックを書き換えない。Claude Code の `/plugin` 画面から止めたり消したりできる
+- 設定ファイルに足す方法は、先にバックアップを取り、既存のフックには触れない。herdr からプラグインを消してもフックは残るので、消す前に外すこと
+- 設定ファイルの方法からプラグインへ乗り換えるときは、`node bin/install-hooks.js --remove` で外してからプラグインを入れる
+- リポジトリを手元に持っている場合は、`suzuki-junya108/dopadopa` の代わりにそのフォルダのパスを渡せる
 
 ## セキュリティ
 
