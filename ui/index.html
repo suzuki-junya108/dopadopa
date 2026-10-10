@@ -103,8 +103,8 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .selbtn{flex:1 1 auto;min-width:0;min-height:44px;text-align:left;background:transparent;border:none;padding:0;display:flex;flex-direction:column;gap:8px;cursor:pointer}
 .cname{font-family:var(--f-num);font-size:20px;line-height:1.1;overflow-wrap:anywhere}
 .cbranch{font-family:var(--f-mono);font-size:12px;color:var(--sub);overflow-wrap:anywhere}
-.cherdr{font-size:13px;font-weight:800;line-height:1.4;height:1.4em;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fhead .cherdr{font-size:18px;height:auto;white-space:normal;overflow-wrap:anywhere}
+.cherdr{font-size:13px;font-weight:800;line-height:1.4;height:2.8em;color:var(--soft);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.fhead .cherdr{font-size:18px;height:auto;display:block;overflow:visible}
 .chip{flex:0 0 auto;display:inline-block;background:var(--c);color:var(--fg);font-family:var(--f-head);font-size:14px;padding:6px 12px;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;animation:wiggle 2.4s ease-in-out infinite}
 .card .mid{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
 .big{flex:0 0 auto;white-space:nowrap;font-family:var(--f-num);font-size:60px;line-height:.9;color:var(--c)}
@@ -922,7 +922,7 @@ function createCard() {
   const el = h('article', 'card');
   const top = h('div', 'top');
   const sel = h('button', 'selbtn'); sel.type = 'button'; sel.dataset.act = 'select';
-  sel.append(h('span', 'cname'), h('span', 'cbranch'), h('span', 'cherdr'));
+  sel.append(h('span', 'cname'), h('span', 'cbranch'));
   top.append(sel, h('span', 'chip'));
   const act = h('div', 'cact'); act.append(h('span', 'mark', '▶'), h('span', 'what'));
   const mid = h('div', 'mid');
@@ -935,9 +935,9 @@ function createCard() {
   side.append(fire, h('span', 'eta'));
   mid.append(big, side);
   const { mix, kinds } = createMix();
-  el.append(top, h('div', 'cask'), h('div', 'csay'), act, mid, mix, kinds, responseButtons(false));
+  el.append(top, h('div', 'cherdr'), h('div', 'cask'), h('div', 'csay'), act, mid, mix, kinds, responseButtons(false));
   el._r = {
-    sel, name: sel.children[0], branch: sel.children[1], herdr: sel.children[2], chip: top.children[1], ask: el.children[1], say: el.children[2],
+    sel, name: sel.children[0], branch: sel.children[1], chip: top.children[1], herdr: el.children[1], ask: el.children[2], say: el.children[3],
     act, what: act.children[1], bignum: big.children[0], fire, firetxt: fire.lastChild,
     eta: side.children[1], mix, kinds, btns: el.lastChild,
   };
