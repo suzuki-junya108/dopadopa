@@ -109,6 +109,10 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .rsay{font-size:14px;font-weight:800;line-height:1.4;height:2.8em;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .rsay.none{color:var(--mute)}
 .ract{font-size:12px;font-weight:800;line-height:1.4;height:1.4em;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rbg{min-width:0;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;line-height:1.4}
+.bgchip{flex:0 0 auto;background-color:var(--think);color:#1A0838;border:2px solid #000;border-radius:9px;padding:1px 8px;white-space:nowrap}
+.bgwhat{min-width:0;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bghead{margin:0;font-size:13px;font-weight:800;color:var(--think)}
 .rsteps{min-width:0;display:flex;flex-direction:column;gap:4px}
 .rtop{display:flex;align-items:flex-end;justify-content:space-between;gap:6px}
 .big{flex:0 0 auto;white-space:nowrap;font-family:var(--f-num);font-size:34px;line-height:.9;color:var(--c)}
@@ -116,7 +120,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .bignum{display:inline-block}
 .row .mix{height:10px;border-radius:6px}
 .row .btn{min-height:44px}
-.row.is-wait .rsub,.row.is-wait .rsince,.row.is-wait .ract,.row.is-wait .big{color:#2A1200}
+.row.is-wait .rsub,.row.is-wait .rsince,.row.is-wait .ract,.row.is-wait .bgwhat,.row.is-wait .big{color:#2A1200}
 .row.is-wait .rnow{border-left-color:#2A1200}
 .row.is-wait button:focus-visible{outline-color:#000}
 .row.rest{flex:1 1 300px;max-width:440px;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'who chip' 'who since';gap:2px 10px;padding:6px 12px}
@@ -401,6 +405,8 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
       <span class="dbig" id="dBig"><span id="dBigNum">0</span><small>ステップ</small></span>
     </div>
     <ul class="ops" id="dOps"></ul>
+    <h3 class="bghead" id="dBgHead" hidden>裏で動いている作業</h3>
+    <ul class="ops" id="dBg" hidden></ul>
     <div class="drow">
       <dl class="facts">
         <div><dt>経過</dt><dd id="dElapsed">0:00</dd></div>
@@ -447,6 +453,8 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
         <div class="fask" id="fAsk"></div>
         <p class="fsay" id="fSay"></p>
         <div class="cact" id="fAct"><span class="mark" aria-hidden="true">▶</span><span class="what" id="fWhat"></span></div>
+        <h3 class="bghead" id="fBgHead" hidden>裏で動いている作業</h3>
+        <ul class="ops" id="fBg" hidden></ul>
         <div class="fnum"><span class="big"><span class="bignum" id="fBig">0</span><small>ステップ</small></span><span class="eta" id="fEta"></span></div>
         <div id="fMix" style="display:flex;flex-direction:column;gap:8px"></div>
         <dl class="facts">
@@ -828,6 +836,14 @@ function onEvent(e) {
       cardPop(e.key, e.passed ? `${e.recovered ? '修正後の' : ''}テスト ${num(e.passed)} 件通過！` : '修正後のテストが通りました', true);
       wave(e.key, '#9DFF3A'); play(['pass']);
       break;
+    case 'background': {
+      const label = BACKGROUND_LABEL[e.work];
+      if (e.phase === 'start') { cardPop(e.key, `${label} 開始`, false); wave(e.key, '#C08BFF'); }
+      else if (e.status === 'completed') { cardPop(e.key, `${label} 完了！`, true); wave(e.key, '#9DFF3A'); play(['pass']); }
+      else if (e.status === 'failed') { cardPop(e.key, `${label} 失敗`, false); wave(e.key, '#FF3D8B'); play(['error']); }
+      else cardPop(e.key, `${label} 停止`, false);
+      break;
+    }
     case 'error': play(['error']); break;
     case 'streak_reset': play(['reset']); break;
     case 'mission': toast(e.label); break;
@@ -948,7 +964,9 @@ function createRow(a) {
   const sel = h('button', 'selbtn'); sel.type = 'button'; sel.dataset.act = 'select';
   sel.append(h('span', 'rwho'), h('span', 'rsub'));
   const chipBox = h('div', 'rchip'); chipBox.append(h('span', 'chip'));
-  const nowBox = h('div', 'rnow'); nowBox.append(h('div', 'rsay'), h('div', 'ract'));
+  const bgBox = h('div', 'rbg');
+  bgBox.append(h('span', 'bgchip stripes'), h('span', 'bgchip stripes'), h('span', 'bgwhat'));
+  const nowBox = h('div', 'rnow'); nowBox.append(h('div', 'rsay'), h('div', 'ract'), bgBox);
   const steps = h('div', 'rsteps');
   const top = h('div', 'rtop');
   const big = h('span', 'big');
@@ -964,7 +982,7 @@ function createRow(a) {
   btns.append(open);
   el.append(clip, sel, chipBox, h('div', 'rsince'), nowBox, steps, btns);
   el._r = {
-    clip, sel, who: sel.children[0], sub: sel.children[1], chip: chipBox.firstChild, since: el.children[3], say: nowBox.children[0], act: nowBox.children[1],
+    clip, sel, who: sel.children[0], sub: sel.children[1], chip: chipBox.firstChild, since: el.children[3], say: nowBox.children[0], act: nowBox.children[1], bg: bgBox,
     bignum: big.children[0], fire, firetxt: fire.lastChild, mix, btns, deny: btns.children[0], approve: btns.children[1], open,
   };
   return el;
@@ -1011,6 +1029,15 @@ function updateRow(el, a) {
   const what = a.state === 'wait' ? '' : activityOf(a);
   text(r.act, what ? '▶ ' + what : (a.title ? `指示: ${a.title}` : ''));
   r.act.title = r.act.textContent;
+  const bg = a.background;
+  r.bg.hidden = !bg.length;
+  BACKGROUND_KINDS.forEach(([kind, label], i) => {
+    const n = bg.filter((b) => b.kind === kind).length;
+    r.bg.children[i].hidden = !n;
+    text(r.bg.children[i], `${label} ${n}`);
+  });
+  text(r.bg.children[2], backgroundLine(bg, serverNow()));
+  r.bg.children[2].title = bg.map((b) => b.label).join('\n');
   setNumber(r.bignum, a.turnSteps, 'roll');
   r.fire.hidden = !a.showRun;
   const tier = a.showRun ? RUN_TIERS.filter((n) => a.run >= n).length : 0;
@@ -1022,6 +1049,26 @@ function updateRow(el, a) {
   r.deny.hidden = !a.canRespond; r.approve.hidden = !a.canRespond;
   r.open.hidden = !(a.state === 'wait' && !a.canRespond && a.pane);
   r.btns.hidden = r.deny.hidden && r.open.hidden;
+}
+
+// 裏で動く作業（指示への対応とは別に動き続けるもの）。行には件数といちばん古い 1 件、下段と大きな表示には全件を出す
+const BACKGROUND_KINDS = [['agent', 'サブエージェント'], ['command', 'バックグラウンド']];
+const BACKGROUND_LABEL = Object.fromEntries(BACKGROUND_KINDS);
+function backgroundLine(bg, now) {
+  if (!bg.length) return '';
+  return `${bg[0].label} ・ ${ago(now - bg[0].startedAt)}` + (bg.length > 1 ? ` ほか ${bg.length - 1} 件` : '');
+}
+function renderBackground(list, head, a, now) {
+  head.hidden = list.hidden = !a.background.length;
+  reconcile(list, a.background, (b) => b.id, () => {
+    const li = h('li', 'cur');
+    li.append(h('span', 'mark', '▶'), h('span', 'label'), h('span', 'state'));
+    li.firstChild.setAttribute('aria-hidden', 'true');
+    return li;
+  }, (li, b) => {
+    text(li.children[1], b.label); text(li.children[2], `${BACKGROUND_LABEL[b.kind]} ・ ${ago(now - b.startedAt)}`);
+    li.children[1].title = b.label;
+  });
 }
 
 // 説明文と操作を起きた順に並べ、「何を考えて・何をしたか」の流れとして見せる
@@ -1093,6 +1140,7 @@ function renderFocus() {
   $('fOpen').hidden = !a.pane;
   $('fDeny').hidden = !a.canRespond; $('fApprove').hidden = !a.canRespond;
   renderFlow($('fOps'), a, a.flow.length || 1);
+  renderBackground($('fBg'), $('fBgHead'), a, now);
 }
 
 function renderDetail(a) {
@@ -1108,6 +1156,7 @@ function renderDetail(a) {
   $('dBig').style.color = st.color;
   setNumber($('dBigNum'), a.turnSteps);
   renderFlow($('dOps'), a, DETAIL_FLOW);
+  renderBackground($('dBg'), $('dBgHead'), a, now);
   text($('dElapsed'), fmt(elapsedOf(a, now)));
   text($('dLines'), '+' + num(a.lines));
   text($('dTests'), num(a.tests));

@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createCore, createRepeatFilter, REPEAT_WINDOW_MS, herdrPlace, plainText, countPassedTests, isTestCommand, changedLines, MILESTONE_STEPS, GOAL_START, GOAL_INCREMENT } = require('../bridge/core.js');
+const { createCore, createRepeatFilter, REPEAT_WINDOW_MS, herdrPlace, backgroundEvent, plainText, countPassedTests, isTestCommand, changedLines, MILESTONE_STEPS, GOAL_START, GOAL_INCREMENT } = require('../bridge/core.js');
 
 const START = new Date(2026, 9, 7, 10, 0, 0).getTime();
 const STREAK_MS = 180000;
@@ -437,4 +437,73 @@ test('ブリッジを起動し直して完了の時刻が無くても、herdr �
   const a = agentOf(core, 'p1');
   assert.equal(a.state, 'done');
   assert.equal(a.group, 'need');
+});
+
+test('会話記録の行から、裏で動く作業の始まりと終わりを読む', () => {
+  const result = (toolUseResult, extra = {}) => ({ type: 'user', message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'tu1', ...extra }] }, toolUseResult });
+  const note = (body) => ({ type: 'queue-operation', operation: 'enqueue', content: `<task-notification> ${body} </task-notification>` });
+  const uses = { tu1: { name: 'Bash', input: { command: 'npm test\n# 2 行目', description: '全テストを実行' } } };
+  const toolOf = (id) => uses[id];
+
+  assert.deepEqual(backgroundEvent(result({ isAsync: true, status: 'async_launched', agentId: 'a1b2', description: ' ログを\n調べる ' })), { start: { id: 'a1b2', kind: 'agent', label: 'ログを 調べる' } });
+  assert.deepEqual(backgroundEvent(result({ backgroundTaskId: 'b77', stdout: '' }), toolOf), { start: { id: 'b77', kind: 'command', label: '全テストを実行' } });
+  uses.tu1 = { name: 'Bash', input: { command: 'npm test\n# 2 行目' } };
+  assert.equal(backgroundEvent(result({ backgroundTaskId: 'b77' }), toolOf).start.label, 'npm test', '説明が無ければコマンドの 1 行目');
+  assert.equal(backgroundEvent(result({ backgroundTaskId: 'b77' })).start.label, '', '呼び出しが見つからなくても始まりは拾う');
+
+  assert.deepEqual(backgroundEvent(note('<task-id>b77</task-id> <tool-use-id>tu1</tool-use-id> <status>completed</status> <summary>ok</summary>')), { end: { id: 'b77', status: 'completed' } });
+  assert.deepEqual(backgroundEvent(note('<task-id>b77</task-id> <status>failed</status>')), { end: { id: 'b77', status: 'failed' } });
+  assert.deepEqual(backgroundEvent(result({ message: 'Successfully stopped task: b77', task_id: 'b77', task_type: 'local_bash', command: 'npm test' })), { end: { id: 'b77', status: 'killed' } });
+
+  assert.equal(backgroundEvent(note('<task-id>b77</task-id> <summary>途中経過</summary>')), null, '状態のない通知は終わりではない');
+  assert.equal(backgroundEvent(result({ task_id: 'b77', task_type: 'local_bash' }, { is_error: true })), null, '止められなかった作業は動いたまま');
+  assert.equal(backgroundEvent({ ...result({ backgroundTaskId: 'b78' }), isSidechain: true }), null, 'サブエージェントの中の作業は数えない');
+  assert.equal(backgroundEvent(result({ stdout: 'ok' })), null);
+  assert.equal(backgroundEvent(result('文字列の結果')), null);
+  assert.equal(backgroundEvent({ type: 'queue-operation', operation: 'dequeue' }), null);
+  assert.equal(backgroundEvent(null), null);
+});
+
+test('裏で作業が動いている間は「動いているもの」に置き、終わると元の区切りへ戻して知らせる', () => {
+  const { core, clock, events } = setup();
+  core.setHerdrAgents([herdr('p1', 'working')]);
+  prompt(core, 'p1', 'ビルドを見張って');
+  core.handleBackground('s-p1', { start: { id: 'b1', kind: 'command', label: 'ビルドを実行' } });
+  core.handleBackground('s-p1', { start: { id: 'b1', kind: 'command', label: 'ビルドを実行' } });
+  core.handleBackground('s-p1', { start: { id: 'a1', kind: 'agent', label: 'ログを調べる' } });
+  core.handleBackground('s-nobody', { start: { id: 'x1', kind: 'agent', label: '知らないセッション' } });
+  runTool(core, 'p1', 'Read', { file_path: '/work/web-app/a.ts' });
+  const stepsBefore = core.snapshot().today.steps;
+  stop(core, 'p1');
+  core.setHerdrAgents([herdr('p1', 'done')]);
+
+  let a = agentOf(core, 'p1');
+  assert.deepEqual(a.background, [{ id: 'b1', kind: 'command', label: 'ビルドを実行', startedAt: START }, { id: 'a1', kind: 'agent', label: 'ログを調べる', startedAt: START }]);
+  assert.equal(a.state, 'done');
+  assert.equal(a.group, 'work', '終わると自分で続きを始めるので、まだ対応は要らない');
+
+  clock.t += 65000;
+  core.handleBackground('s-p1', { end: { id: 'zzz', status: 'completed' } });
+  core.handleBackground('s-p1', { end: { id: 'b1', status: 'completed' } });
+  core.handleBackground('s-p1', { end: { id: 'b1', status: 'completed' } });
+  assert.equal(agentOf(core, 'p1').group, 'work');
+  core.handleBackground('s-p1', { end: { id: 'a1', status: 'failed' } });
+  a = agentOf(core, 'p1');
+  assert.deepEqual(a.background, []);
+  assert.equal(a.group, 'need');
+  assert.equal(core.snapshot().today.steps, stepsBefore, '裏の作業はステップに足さない');
+
+  const sent = events.filter((e) => e.type === 'background').map((e) => [e.phase, e.work, e.status || '', e.seconds || 0, e.left]);
+  assert.deepEqual(sent, [['start', 'command', '', 0, 1], ['start', 'agent', '', 0, 2], ['end', 'command', 'completed', 65, 1], ['end', 'agent', 'failed', 65, 0]]);
+});
+
+test('許可待ちは裏で作業が動いていても対応が要るものに置き、Claude Code が終わると裏の作業も消す', () => {
+  const { core } = setup();
+  core.setHerdrAgents([herdr('p1', 'working')]);
+  prompt(core, 'p1', 'x');
+  core.handleBackground('s-p1', { start: { id: 'b1', kind: 'command', label: 'サーバーを起動' } });
+  core.setHerdrAgents([herdr('p1', 'blocked')]);
+  assert.equal(agentOf(core, 'p1').group, 'need');
+  core.handleHook('p1', { hook_event_name: 'SessionEnd', session_id: 's-p1' });
+  assert.deepEqual(agentOf(core, 'p1').background, []);
 });
