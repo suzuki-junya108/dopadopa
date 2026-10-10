@@ -71,12 +71,6 @@ header{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px}
 .marquee span{padding:0 40px}
 
 .band{border:3px solid #000;box-shadow:6px 6px 0 #000;border-radius:18px;padding:14px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;justify-content:space-between}
-.ask{background:var(--wait);color:#2A1200;animation:waitpulse 1s ease-in-out infinite}
-.ask .what{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
-.ask .lead{font-family:var(--f-head);font-size:20px}
-.ask .msg{font-size:16px;font-weight:800;overflow-wrap:anywhere}
-.ask code{font-family:var(--f-mono);background:#FFFFFF;padding:2px 8px;border-radius:8px;border:2px solid #000}
-.ask .waited{font-size:14px;font-weight:800;background:#FFFFFF;border:2px solid #000;border-radius:10px;padding:3px 10px}
 .conn{background:#FFFFFF;color:#1A0838;font-weight:800}
 .btns{display:flex;gap:10px}
 .btn{cursor:pointer;min-height:48px;border-radius:14px;border:3px solid #000;box-shadow:4px 4px 0 #000;font-weight:800;padding:0 18px;transition:transform .1s,box-shadow .1s}
@@ -86,39 +80,63 @@ header{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px}
 .btn.approve{background:var(--done);color:#102400;font-family:var(--f-head);font-weight:400;font-size:18px;padding:0 24px}
 .btn.open{background:var(--edit);color:#04161A}
 button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
-.ask button:focus-visible{outline-color:#000}
 
-.cardswrap{min-width:0;display:flex;align-items:stretch;gap:10px}
-.cards{flex:1 1 auto;min-width:0;display:flex;gap:16px;overflow-x:auto;padding:4px 14px 16px 4px;scroll-snap-type:x proximity;scroll-padding:0 4px;scrollbar-color:var(--think) var(--well)}
-.more{flex:0 0 48px;margin:4px 0 16px;padding:10px 0;writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.08em;background:#FFFFFF;color:#1A0838;font-family:var(--f-head);font-size:18px}
+.rows{display:flex;flex-wrap:wrap;gap:8px 12px;padding:0 10px 8px 0}
+.sect,.row{flex:0 0 100%;min-width:0}
 .empty{color:var(--sub);font-weight:800;padding:32px 16px;text-align:center}
-.card{--c:var(--mute);--fg:#1A0838;flex:1 0 440px;min-width:0;scroll-snap-align:start;position:relative;background:var(--card);border:3px solid #000;box-shadow:6px 6px 0 var(--c);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;transition:transform .2s cubic-bezier(.2,.9,.3,1.6)}
-.card:hover{transform:translate(-3px,-3px) rotate(-.4deg)}
-.card.sel{box-shadow:8px 8px 0 #FFFFFF}
-.card.is-wait{animation:waitpulse 1s ease-in-out infinite}
-.card.is-work::before{content:'';position:absolute;top:0;left:0;width:34%;height:6px;background:var(--c);border-bottom:2px solid #000;animation:runner 1.3s linear infinite}
-.card.zap{animation:zap .5s ease-out}
-.card.boing{animation:boing .7s cubic-bezier(.2,.9,.3,1.8)}
-.card .top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
-.selbtn{flex:1 1 auto;min-width:0;min-height:44px;text-align:left;background:transparent;border:none;padding:0;display:flex;flex-direction:column;gap:8px;cursor:pointer}
-.cname{font-family:var(--f-num);font-size:20px;line-height:1.1;overflow-wrap:anywhere}
-.cbranch{font-family:var(--f-mono);font-size:12px;color:var(--sub);overflow-wrap:anywhere}
-.cherdr{font-size:13px;font-weight:800;line-height:1.4;height:2.8em;color:var(--soft);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-.fhead .cherdr{font-size:18px;height:auto;display:block;overflow:visible}
-.chip{flex:0 0 auto;display:inline-block;background:var(--c);color:var(--fg);font-family:var(--f-head);font-size:14px;padding:6px 12px;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;animation:wiggle 2.4s ease-in-out infinite}
-.card .mid{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
-.big{flex:0 0 auto;white-space:nowrap;font-family:var(--f-num);font-size:60px;line-height:.9;color:var(--c)}
-.big small{font-family:'M PLUS Rounded 1c','Hiragino Sans',sans-serif;font-weight:800;font-size:15px;margin-left:6px}
+.sect{display:flex;align-items:baseline;gap:10px;margin-top:2px;font-family:var(--f-head);font-size:15px;color:var(--soft)}
+.sect b{font-family:var(--f-num);font-weight:400;font-size:18px;color:var(--text)}
+.sect.need{font-size:24px;line-height:1.2;color:var(--wait);gap:0}
+.sect.need b{display:inline-block;font-size:36px;line-height:1;margin:0 8px;color:var(--wait)}
+.sect.need.clear{color:var(--done)}
+.row{--c:var(--mute);--fg:#1A0838;position:relative;display:grid;grid-template-columns:minmax(0,1.25fr) 156px 96px minmax(0,2.3fr) 168px auto;align-items:center;gap:14px;background:var(--card);border:3px solid #000;box-shadow:6px 6px 0 var(--c);border-radius:18px;padding:8px 14px;transition:transform .2s cubic-bezier(.2,.9,.3,1.6)}
+.row:hover{transform:translate(-2px,-2px)}
+.row:has(.pop,.party,.stamp,.bit){z-index:3}
+.row.sel{box-shadow:8px 8px 0 #FFFFFF}
+.row.is-wait{background:var(--wait);color:#2A1200;animation:waitpulse 1s ease-in-out infinite}
+.row.zap{animation:zap .5s ease-out}
+.row.boing{animation:boing .7s cubic-bezier(.2,.9,.3,1.8)}
+.row.hot2{box-shadow:9px 9px 0 var(--c)}
+.row.hot3{box-shadow:12px 12px 0 var(--test)}
+.rclip{position:absolute;inset:0;border-radius:15px;overflow:hidden;pointer-events:none}
+.row.is-work .rclip::before{content:'';position:absolute;bottom:0;left:0;width:18%;height:6px;background:var(--c);border-top:2px solid #000;animation:runner 1.6s linear infinite}
+.selbtn{min-width:0;min-height:44px;text-align:left;background:transparent;border:none;padding:0;display:flex;flex-direction:column;justify-content:center;gap:3px;cursor:pointer}
+.rwho{font-size:15px;font-weight:800;line-height:1.3;max-height:2.6em;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.rsub{font-family:var(--f-mono);font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rchip{display:flex;justify-content:center}
+.rsince{font-family:var(--f-num);font-size:13px;color:var(--soft);text-align:right;white-space:nowrap}
+.rnow{min-width:0;display:flex;flex-direction:column;gap:3px;padding-left:10px;border-left:5px solid var(--c)}
+.rsay{font-size:14px;font-weight:800;line-height:1.4;height:2.8em;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.rsay.none{color:var(--mute)}
+.ract{font-size:12px;font-weight:800;line-height:1.4;height:1.4em;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsteps{min-width:0;display:flex;flex-direction:column;gap:4px}
+.rtop{display:flex;align-items:flex-end;justify-content:space-between;gap:6px}
+.big{flex:0 0 auto;white-space:nowrap;font-family:var(--f-num);font-size:34px;line-height:.9;color:var(--c)}
+.big small{font-family:'M PLUS Rounded 1c','Hiragino Sans',sans-serif;font-weight:800;font-size:11px;margin-left:4px}
 .bignum{display:inline-block}
-.side{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.row .mix{height:10px;border-radius:6px}
+.row .btn{min-height:44px}
+.row.is-wait .rsub,.row.is-wait .rsince,.row.is-wait .ract,.row.is-wait .big{color:#2A1200}
+.row.is-wait .rnow{border-left-color:#2A1200}
+.row.is-wait button:focus-visible{outline-color:#000}
+.row.rest.tight{flex:1 1 300px;max-width:440px;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'who chip' 'who since';gap:2px 10px;padding:6px 12px}
+.row.rest.tight .selbtn{grid-area:who}
+.row.rest.tight .rchip{grid-area:chip;justify-content:flex-end}
+.row.rest.tight .rsince{grid-area:since}
+.row.rest.tight .chip{font-size:12px;padding:3px 9px;animation:none}
+.row.rest.tight .rnow,.row.rest.tight .rsteps,.row.rest.tight .btns{display:none}
+.row.rest.tight .pop{right:14px}
+.row.rest.tight .stamp{right:14px}
+.cross{position:absolute;top:50%;left:0;white-space:nowrap;font-family:var(--f-head);font-size:34px;line-height:1;color:var(--test);-webkit-text-stroke:2px #000;paint-order:stroke fill;animation:cross 1.5s cubic-bezier(.2,.7,.4,1) forwards}
+.cherdr{font-size:18px;font-weight:800;line-height:1.4;color:var(--soft);overflow-wrap:anywhere}
+.cbranch{font-family:var(--f-mono);font-size:12px;color:var(--sub);overflow-wrap:anywhere}
+.chip{flex:0 0 auto;display:inline-block;background:var(--c);color:var(--fg);font-family:var(--f-head);font-size:14px;padding:6px 12px;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;animation:wiggle 2.4s ease-in-out infinite}
 .fire{white-space:nowrap;display:inline-flex;align-items:center;gap:4px;background:var(--error);color:#2A0414;border:2px solid #000;border-radius:10px;padding:2px 9px 2px 5px;font-size:12px;font-weight:800}
 .fire svg{animation:flame .5s ease-in-out infinite alternate;transform-origin:50% 100%}
 .fire.f2{font-size:13px;padding:3px 11px 3px 6px;box-shadow:3px 3px 0 #000}
 .fire.f2 svg{width:20px;height:22px;animation-duration:.36s}
 .fire.f3{font-size:14px;padding:4px 12px 4px 6px;box-shadow:4px 4px 0 #000;background:var(--test)}
 .fire.f3 svg{width:26px;height:29px;animation-duration:.24s}
-.card.hot2{box-shadow:9px 9px 0 var(--c)}
-.card.hot3{box-shadow:12px 12px 0 var(--c)}
 .day{font-size:13px;font-weight:800;color:var(--test)}
 .mix{display:flex;height:16px;background:var(--well);border:2px solid #000;border-radius:8px;overflow:hidden}
 .mix i{display:block;flex:0 0 0;min-width:0;background-color:var(--k);transition:flex-grow .5s cubic-bezier(.2,.9,.3,1.3)}
@@ -134,22 +152,17 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 [data-k="check"]{--k:var(--test);--kf:#2A1E00}
 .wave{position:absolute;inset:0;pointer-events:none;background:var(--wc);opacity:.55;animation:wave .7s cubic-bezier(.3,.6,.4,1) forwards}
 .stripes{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.3) 0 8px,rgba(255,255,255,0) 8px 16px);background-size:22.6px 22.6px;animation:stripes .6s linear infinite}
-.cask{font-size:12px;font-weight:800;line-height:1.4;height:2.8em;color:var(--sub);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-.csay{font-size:15px;font-weight:800;line-height:1.45;height:7.25em;padding:0 0 0 10px;border-left:5px solid var(--c);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden}
-.csay.none{color:var(--mute)}
-.cact{display:flex;align-items:flex-start;gap:8px;height:4.2em;line-height:1.4;font-size:13px;font-weight:800;color:var(--soft)}
+.cact{display:flex;align-items:flex-start;gap:8px;line-height:1.4;font-size:13px;font-weight:800;color:var(--soft)}
 .cact .mark{flex:0 0 auto;width:18px;height:18px;border-radius:6px;border:2px solid #000;background:var(--c);color:var(--fg);font-size:10px;display:flex;align-items:center;justify-content:center}
-.cact .what{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.cact .what{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
 .cact.off .mark{visibility:hidden}
 .eta{font-family:var(--f-num);font-size:14px;border:2px solid #000;border-radius:10px;padding:4px 10px;box-shadow:3px 3px 0 #000;background:#FFFFFF;color:#1A0838}
 .eta.wait{background:var(--wait);color:#2A1200}
 .eta.done{background:var(--done);color:#102400}
-.card .btns .deny{flex:1}
-.card .btns .approve{flex:2;font-size:17px}
 .bit{position:absolute;width:9px;height:9px;border:2px solid #000;border-radius:2px;pointer-events:none;animation:sparkfly .6s cubic-bezier(.1,.7,.3,1) forwards}
-.pop{position:absolute;top:58px;right:18px;border:3px solid #000;box-shadow:4px 4px 0 #000;font-family:var(--f-head);padding:6px 14px;border-radius:14px;pointer-events:none;white-space:nowrap;background:var(--test);color:#2A1E00;font-size:17px;animation:pop 1.7s cubic-bezier(.2,.9,.3,1.4) forwards}
+.pop{position:absolute;top:-16px;right:190px;z-index:2;border:3px solid #000;box-shadow:4px 4px 0 #000;font-family:var(--f-head);padding:6px 14px;border-radius:14px;pointer-events:none;white-space:nowrap;background:var(--test);color:#2A1E00;font-size:17px;animation:pop 1.7s cubic-bezier(.2,.9,.3,1.4) forwards}
 .pop.bigpop{background:var(--done);color:#102400;font-size:24px}
-.stamp{position:absolute;right:16px;bottom:14px;background:var(--done);color:#102400;border:4px solid #000;box-shadow:5px 5px 0 #000;font-family:var(--f-head);font-size:30px;padding:4px 16px;border-radius:14px;transform:rotate(-9deg);pointer-events:none;animation:stamp .5s cubic-bezier(.2,.9,.3,1.8)}
+.stamp{position:absolute;right:200px;bottom:4px;z-index:2;background:var(--done);color:#102400;border:4px solid #000;box-shadow:5px 5px 0 #000;font-family:var(--f-head);font-size:24px;padding:2px 14px;border-radius:14px;transform:rotate(-9deg);pointer-events:none;animation:stamp .5s cubic-bezier(.2,.9,.3,1.8)}
 .party{position:absolute;inset:0;pointer-events:none}
 .confetti{position:absolute;top:24%;width:10px;height:16px;border-radius:2px;border:2px solid #000;animation:confetti 1.6s cubic-bezier(.1,.6,.4,1) forwards}
 
@@ -263,7 +276,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .focus .ops li.say .label{font-size:17px;-webkit-line-clamp:unset;display:block}
 .focus .ops .state{font-size:14px}
 .focus .btns{flex-wrap:wrap}
-@media (max-width:899px){.cards{flex-direction:column;overflow-x:visible;padding:0}.card{flex:0 0 auto}.more{display:none}.fbody{grid-template-columns:minmax(0,1fr)}.focus{padding:10px}.fbox{padding:16px;min-height:calc(100vh - 20px)}}
+@media (max-width:899px){.row{grid-template-columns:minmax(0,1fr);gap:8px}.rchip{justify-content:flex-start}.rsince{text-align:left}.pop{right:14px}.stamp{right:14px}.fbody{grid-template-columns:minmax(0,1fr)}.focus{padding:10px}.fbox{padding:16px;min-height:calc(100vh - 20px)}}
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .edge{position:fixed;inset:0;z-index:2;pointer-events:none;border:6px solid var(--edit);opacity:0}
 .edge.p1{animation:edge 2s ease-in-out infinite}
@@ -298,7 +311,8 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 @keyframes flash{0%{opacity:.75}100%{opacity:0}}
 @keyframes plus{0%{opacity:0;transform:translateY(10px) scale(.5)}20%{opacity:1;transform:translateY(-6px) scale(1.3)}100%{opacity:0;transform:translateY(-30px) scale(1)}}
 @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@keyframes runner{from{transform:translateX(-100%)}to{transform:translateX(295%)}}
+@keyframes runner{from{transform:translateX(-100%)}to{transform:translateX(560%)}}
+@keyframes cross{0%{opacity:0;transform:translate(-100%,-50%) skewX(-12deg)}15%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translate(120vw,-50%) skewX(-12deg)}}
 @keyframes zap{0%{filter:brightness(1.9);transform:scale(1.035)}100%{filter:brightness(1);transform:scale(1)}}
 @keyframes sparkfly{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1.2)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(.5)}}
 @keyframes eq{from{transform:scaleY(.72)}to{transform:scaleY(1.08)}}
@@ -374,13 +388,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 </div>
 
 <div class="band conn" id="conn" role="status" hidden></div>
-<div id="asks" style="display:flex;flex-direction:column;gap:14px"></div>
-
-<div class="cardswrap" id="cardsWrap">
-  <button type="button" class="btn more" id="morePrev" hidden></button>
-  <div class="cards" id="cards" role="group" aria-label="セッション"></div>
-  <button type="button" class="btn more" id="moreNext" hidden></button>
-</div>
+<div class="rows" id="cards" role="group" aria-label="セッション"></div>
 <div class="empty" id="empty">herdr のエージェントを待っています…</div>
 
 <div class="lower">
@@ -499,7 +507,7 @@ const SPARK_MS = 600;
 const ZAP_MS = 500;
 const PLUS1_MS = 700;
 const WAVE_MS = 700;
-// 連続がこの数に届くたびに、カードの炎と影を一段大きくする
+// 連続がこの数に届くたびに、行の炎と影を一段大きくする
 const RUN_TIERS = [25, 50];
 // 勢い（直近 1 分のステップ数）がこの数以上で、画面の縁の脈を一段速くする
 const EDGE_TIERS = [1, 8, 20];
@@ -519,6 +527,10 @@ const PARTY_MS = 1800;
 const PLUS_MS = 900;
 const DETAIL_FLOW = 5;
 const REORDER_MS = 450;
+const CROSS_MS = 1500;
+// 行に軽く走らせる光。ステップのたびに出るので薄くする
+const STEP_SWEEP = 'rgba(255,255,255,.5)';
+const SECTIONS = [['need', 'あなたの対応が要るもの'], ['work', '動いているもの'], ['rest', '指示を待っているもの']];
 // これより狭い画面（スマホ幅）は縮めると読めなくなるので、従来どおり縦スクロールにする
 const FIT_MIN_WIDTH = 900;
 const FIT_MIN_PERCENT = 50;
@@ -536,6 +548,8 @@ const num = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 let snap = null;
 let clockOffset = 0;
 let selectedKey = null;
+// 試作用: 指示を待っている行を 1 行に畳むか（?tight=1）
+const tightRest = new URLSearchParams(location.search).get('tight') === '1';
 let soundOn = false;
 let audio = null;
 let shakeOn = true;
@@ -712,7 +726,7 @@ function celebrate(key) {
   temporary(h('div', 'stamp', '完了！'), card, STAMP_MS);
   cardParty(card);
 }
-// カードの中だけに降る紙吹雪
+// 行から降る紙吹雪
 function cardParty(card) {
   if (reduceMotion.matches) return;
   restart(card, 'boing');
@@ -753,7 +767,12 @@ function wave(key, color) {
   if (!card || reduceMotion.matches) return;
   const el = h('div', 'wave');
   el.style.setProperty('--wc', color);
-  temporary(el, card, WAVE_MS);
+  temporary(el, card._r.clip, WAVE_MS);
+}
+// 行の端から端まで文字を横切らせる
+function cross(card, label) {
+  if (reduceMotion.matches) { cardPop(card.dataset.key, label, true); return; }
+  temporary(h('div', 'cross', label), card._r.clip, CROSS_MS);
 }
 function goalPlus() {
   if (reduceMotion.matches) return;
@@ -766,15 +785,13 @@ function onEvent(e) {
       if (RUN_TIERS.includes(e.run)) { cardPop(e.key, `${e.run} ステップ連続！`, true); wave(e.key, '#FF3D8B'); }
       else if (e.first && e.stepKind === 'write') cardPop(e.key, 'この指示で最初の編集', true);
       else cardPop(e.key, `${KIND_LABEL[e.stepKind] || 'ステップ'} +1`, false);
-      stepBurst(e.key);
+      stepBurst(e.key); wave(e.key, STEP_SWEEP);
       if (e.key === focusKey && !reduceMotion.matches) restart($('fBox'), 'zap');
       play(['step'], 2 ** (Math.min(e.run || 0, PITCH_RUN_STEPS) / PITCH_RUN_STEPS));
       break;
     case 'turn_mark': {
-      // 同じステップのポップより後に届くので、こちらが残る
-      cardPop(e.key, `${num(e.turnSteps)} ステップ到達！`, true);
       const card = cardOf(e.key);
-      if (card) cardParty(card);
+      if (card) { cross(card, `${num(e.turnSteps)} ステップ到達！`); cardParty(card); }
       play(['mark']);
       break;
     }
@@ -856,12 +873,11 @@ document.addEventListener('click', (e) => {
   else if (b.dataset.act === 'focus') focusPane(key);
   else respond(key, b.dataset.act);
 });
-function responseButtons(big) {
+function responseButtons() {
   const wrap = h('div', 'btns');
   const deny = h('button', 'btn deny', '拒否'); deny.type = 'button'; deny.dataset.act = 'deny';
   const approve = h('button', 'btn approve', '承認する'); approve.type = 'button'; approve.dataset.act = 'approve';
   wrap.append(deny, approve);
-  if (!big) wrap.hidden = true;
   return wrap;
 }
 
@@ -907,6 +923,7 @@ function updateMix(mix, kinds, counts, current, moving) {
     const grow = String(counts[k] || 0);
     if (seg.style.flexGrow !== grow) seg.style.flexGrow = grow;
     seg.classList.toggle('stripes', moving && k === current);
+    if (!kinds) return;
     const chip = kinds.children[i];
     chip.classList.toggle('on', k === current);
     setNumber(chip.firstChild, counts[k] || 0);
@@ -918,92 +935,93 @@ function updateMix(mix, kinds, counts, current, moving) {
 function herdrLine(a) {
   return [a.place === a.name ? '' : a.place, a.herdrTitle].filter(Boolean).join(' ｜ ');
 }
-function createCard() {
-  const el = h('article', 'card');
-  const top = h('div', 'top');
+function createRow(a) {
+  if (a.head) {
+    const el = h('h2', 'sect'); el.style.margin = '0'; el.style.fontWeight = '400';
+    el.append(h('span'), h('b'), h('span'));
+    if (a.head === 'need') el.setAttribute('role', 'status');
+    return el;
+  }
+  const el = h('article', 'row');
+  const clip = h('div', 'rclip');
   const sel = h('button', 'selbtn'); sel.type = 'button'; sel.dataset.act = 'select';
-  sel.append(h('span', 'cname'), h('span', 'cbranch'));
-  top.append(sel, h('span', 'chip'));
-  const act = h('div', 'cact'); act.append(h('span', 'mark', '▶'), h('span', 'what'));
-  const mid = h('div', 'mid');
+  sel.append(h('span', 'rwho'), h('span', 'rsub'));
+  const chipBox = h('div', 'rchip'); chipBox.append(h('span', 'chip'));
+  const nowBox = h('div', 'rnow'); nowBox.append(h('div', 'rsay'), h('div', 'ract'));
+  const steps = h('div', 'rsteps');
+  const top = h('div', 'rtop');
   const big = h('span', 'big');
   big.append(h('span', 'bignum', '0'), h('small', '', 'ステップ'));
-  const side = h('div', 'side');
   const fire = h('span', 'fire');
   fire.append($('flameIcon').content.cloneNode(true), h('span', 'firetxt'));
   fire.hidden = true;
-  side.append(fire, h('span', 'eta'));
-  mid.append(big, side);
-  const { mix, kinds } = createMix();
-  el.append(top, h('div', 'cherdr'), h('div', 'cask'), h('div', 'csay'), act, mid, mix, kinds, responseButtons(false));
+  top.append(big, fire);
+  const { mix } = createMix();
+  steps.append(top, mix);
+  const btns = responseButtons();
+  const open = h('button', 'btn deny', 'herdr で開く'); open.type = 'button'; open.dataset.act = 'focus';
+  btns.append(open);
+  el.append(clip, sel, chipBox, h('div', 'rsince'), nowBox, steps, btns);
   el._r = {
-    sel, name: sel.children[0], branch: sel.children[1], chip: top.children[1], herdr: el.children[1], ask: el.children[2], say: el.children[3],
-    act, what: act.children[1], bignum: big.children[0], fire, firetxt: fire.lastChild,
-    eta: side.children[1], mix, kinds, btns: el.lastChild,
+    clip, sel, who: sel.children[0], sub: sel.children[1], chip: chipBox.firstChild, since: el.children[3], say: nowBox.children[0], act: nowBox.children[1],
+    bignum: big.children[0], fire, firetxt: fire.lastChild, mix, btns, deny: btns.children[0], approve: btns.children[1], open,
   };
   return el;
 }
-function updateCard(el, a) {
+const ago = (ms) => { const sec = Math.max(0, Math.round(ms / 1000)); return sec < 60 ? `${sec}秒` : sec < 3600 ? `${Math.floor(sec / 60)}分` : `${Math.floor(sec / 3600)}時間`; };
+// いつからその状態かを、状態ごとの言葉で出す
+function sinceOf(a, now) {
+  if (a.state === 'wait') return `待ち ${ago(now - a.blockedSince)}`;
+  if (WORKING.has(a.state)) return '経過 ' + fmt(a.turnStartedAt ? (now - a.turnStartedAt) / 1000 : 0);
+  const at = a.doneAt || a.activeAt;
+  return at ? `${ago(now - at)}前` : '';
+}
+function updateRow(el, a) {
+  if (a.head) {
+    const cls = 'sect ' + a.head + (a.head === 'need' && a.count === 0 ? ' clear' : '');
+    if (el.className !== cls) el.className = cls;
+    // 冒頭の 1 文を、対応が要るものの見出しにする
+    if (a.head !== 'need') { text(el.children[0], a.label); text(el.children[1], a.count); return; }
+    text(el.children[0], a.count ? 'あなたの対応が要るものは' : 'あなたの対応が要るものはありません');
+    el.children[1].hidden = a.count === 0;
+    setNumber(el.children[1], a.count);
+    text(el.children[2], a.count ? '件です' : '');
+    return;
+  }
   const r = el._r;
   const st = STATES[a.state] || STATES.idle;
-  const now = serverNow();
   el.style.setProperty('--c', st.color);
   el.style.setProperty('--fg', st.fg);
   el.classList.toggle('sel', a.key === selectedKey);
   el.classList.toggle('is-wait', a.state === 'wait');
   el.classList.toggle('is-work', WORKING.has(a.state));
+  el.classList.toggle('rest', a.group === 'rest');
+  el.classList.toggle('tight', tightRest);
   const where = herdrLine(a);
   r.sel.setAttribute('aria-label', `${[a.name, where].filter(Boolean).join(' ')} の詳細を表示`);
   r.sel.setAttribute('aria-pressed', String(a.key === selectedKey));
-  text(r.name, a.name);
-  text(r.branch, a.branch);
-  text(r.herdr, where);
-  r.herdr.title = where;
+  text(r.who, where || a.name);
+  r.who.title = where || a.name;
+  text(r.sub, [a.name, a.branch].filter(Boolean).join(' ・ '));
   text(r.chip, st.label);
-  text(r.ask, a.title ? `指示: ${a.title}` : '');
-  text(r.say, sayOf(a));
-  r.say.classList.toggle('none', !a.say);
-  const what = activityOf(a);
-  text(r.what, what);
-  r.what.title = what;
-  r.ask.title = a.title || '';
-  r.act.classList.toggle('off', !what);
+  text(r.since, sinceOf(a, serverNow()));
+  text(r.say, a.state === 'wait' ? activityOf(a) : sayOf(a));
+  r.say.classList.toggle('none', a.state !== 'wait' && !a.say);
+  r.say.title = r.say.textContent;
+  const what = a.state === 'wait' ? '' : activityOf(a);
+  text(r.act, what ? '▶ ' + what : (a.title ? `指示: ${a.title}` : ''));
+  r.act.title = r.act.textContent;
   setNumber(r.bignum, a.turnSteps, 'roll');
   r.fire.hidden = !a.showRun;
   const tier = a.showRun ? RUN_TIERS.filter((n) => a.run >= n).length : 0;
   r.fire.classList.toggle('f2', tier === 1); r.fire.classList.toggle('f3', tier === 2);
   el.classList.toggle('hot2', tier === 1); el.classList.toggle('hot3', tier === 2);
-  text(r.firetxt, `${a.run}ステップ連続で進行中`);
-  updateMix(r.mix, r.kinds, a.kinds, WORKING.has(a.state) ? KIND_OF_STATE[a.state] : '', true);
-  const eta = etaOf(a, now);
-  text(r.eta, eta.label);
-  if (r.eta.className !== eta.cls) r.eta.className = eta.cls;
-  r.btns.hidden = !a.canRespond;
-}
-
-function createAsk() {
-  const el = h('div', 'band ask');
-  const what = h('div', 'what');
-  what.append(h('span', 'lead'), h('span', 'msg'), h('span', 'waited'));
-  const open = h('button', 'btn deny', 'herdr で開く'); open.type = 'button'; open.dataset.act = 'focus';
-  const btns = responseButtons(true);
-  el.append(what, btns, open);
-  el._r = { lead: what.children[0], msg: what.children[1], waited: what.children[2], btns, open, shownAsk: null };
-  return el;
-}
-function updateAsk(el, a) {
-  const r = el._r;
-  text(r.lead, a.canRespond ? '許可待ち' : 'あなた待ち');
-  const shown = a.canRespond ? 'ask:' + a.name + '\n' + a.ask : 'msg:' + a.name + '\n' + a.notice;
-  if (r.shownAsk !== shown) {
-    r.shownAsk = shown;
-    r.msg.replaceChildren();
-    if (a.canRespond) r.msg.append(`${a.name} が `, h('code', '', a.ask), ' の実行許可を待っています');
-    else r.msg.append(`${a.name}：${a.notice || 'あなたの対応を待っています'}`);
-  }
-  text(r.waited, `待ち時間 ${Math.max(0, Math.round((serverNow() - a.blockedSince) / 1000))}秒`);
-  r.btns.hidden = !a.canRespond;
-  r.open.hidden = a.canRespond || !a.pane;
+  text(r.firetxt, `${a.run}連続`);
+  r.fire.title = `${a.run}ステップ連続で進行中`;
+  updateMix(r.mix, null, a.kinds, WORKING.has(a.state) ? KIND_OF_STATE[a.state] : '', true);
+  r.deny.hidden = !a.canRespond; r.approve.hidden = !a.canRespond;
+  r.open.hidden = !(a.state === 'wait' && !a.canRespond && a.pane);
+  r.btns.hidden = r.deny.hidden && r.open.hidden;
 }
 
 // 説明文と操作を起きた順に並べ、「何を考えて・何をしたか」の流れとして見せる
@@ -1134,12 +1152,7 @@ function renderClock() {
   renderPace(now);
   for (const a of snap.agents) {
     const card = cardOf(a.key);
-    if (card) text(card._r.eta, etaOf(a, now).label);
-  }
-  const waiting = snap.agents.filter((a) => a.state === 'wait');
-  for (const el of $('asks').children) {
-    const a = waiting.find((x) => x.key === el.dataset.key);
-    if (a) text(el._r.waited, `待ち時間 ${Math.max(0, Math.round((now - a.blockedSince) / 1000))}秒`);
+    if (card) text(card._r.since, sinceOf(a, now));
   }
   const sel = snap.agents.find((a) => a.key === selectedKey);
   if (sel) text($('dElapsed'), fmt(elapsedOf(sel, now)));
@@ -1170,14 +1183,16 @@ function render(s) {
   const ticker = s.feed.slice(0, TICKER_ITEMS).map((e) => `${e.name}｜${e.text}`).join('　／　') || 'まだ出来事はありません';
   text($('tickA'), ticker); text($('tickB'), ticker);
 
-  reconcile($('asks'), waiting, (a) => a.key, createAsk, updateAsk);
-
   if (!s.agents.some((a) => a.key === selectedKey)) selectedKey = s.agents.length ? s.agents[0].key : null;
   $('empty').hidden = s.agents.length > 0;
-  $('cardsWrap').hidden = s.agents.length === 0;
-  const before = cardLefts();
-  reconcile($('cards'), s.agents, (a) => a.key, createCard, updateCard);
-  slideCards(before);
+  const items = [];
+  for (const [id, label] of SECTIONS) {
+    const list = s.agents.filter((a) => a.group === id);
+    if (list.length || (id === 'need' && s.agents.length)) items.push({ head: id, key: 'sect:' + id, label, count: list.length }, ...list);
+  }
+  const before = rowTops();
+  reconcile($('cards'), items, (a) => a.key, createRow, updateRow);
+  slideRows(before);
   renderDetail(s.agents.find((a) => a.key === selectedKey));
   renderFocus();
 
@@ -1244,46 +1259,26 @@ function render(s) {
   fit();
 }
 
-// ---------------------------------------------------------------- カードの横並び
-// カードは文が読める幅を保って 1 列に並べ、入りきらない分は横に送る。左ほど、いま見るべきセッション
-function cardLefts() {
-  const lefts = new Map();
-  for (const el of $('cards').children) lefts.set(el.dataset.key, el.getBoundingClientRect().left);
-  return lefts;
+// ---------------------------------------------------------------- 行の入れ替わり
+function rowTops() {
+  const tops = new Map();
+  for (const el of $('cards').children) { const r = el.getBoundingClientRect(); tops.set(el.dataset.key, [r.left, r.top]); }
+  return tops;
 }
-// 並びが入れ替わったとき、元の位置から滑らせて「どれがどこへ動いたか」を追えるようにする
-function slideCards(before) {
+// 区切りをまたいで移るとき、元の位置から滑らせて「どれがどこへ動いたか」を追えるようにする
+function slideRows(before) {
   if (reduceMotion.matches) return;
   for (const el of $('cards').children) {
     if (!before.has(el.dataset.key)) continue;
     // 位置は縮小後の画面上の値で取れるので、縮小前の長さに戻す
-    const dx = (before.get(el.dataset.key) - el.getBoundingClientRect().left) / (fitPercent / 100);
-    if (Math.abs(dx) < 2) continue;
-    el.animate([{ transform: `translateX(${dx}px)` }, { transform: 'none' }], { duration: REORDER_MS, easing: 'cubic-bezier(.2,.9,.3,1.2)' });
-  }
-}
-function updateMore() {
-  const box = $('cards');
-  const view = box.getBoundingClientRect();
-  let left = 0;
-  let right = 0;
-  for (const el of box.children) {
     const r = el.getBoundingClientRect();
-    if (r.left < view.left - 1) left++;
-    else if (r.right > view.right + 1) right++;
+    const [x, y] = before.get(el.dataset.key);
+    const dx = (x - r.left) / (fitPercent / 100);
+    const dy = (y - r.top) / (fitPercent / 100);
+    if (Math.abs(dx) < 2 && Math.abs(dy) < 2) continue;
+    el.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { duration: REORDER_MS, easing: 'cubic-bezier(.2,.9,.3,1.2)' });
   }
-  $('morePrev').hidden = left === 0; $('moreNext').hidden = right === 0;
-  text($('morePrev'), `◀ ほか ${left} 件`); text($('moreNext'), `ほか ${right} 件 ▶`);
 }
-function scrollCards(dir) {
-  const first = $('cards').firstElementChild;
-  if (!first) return;
-  const gap = parseFloat(getComputedStyle($('cards')).columnGap) || 0;
-  $('cards').scrollBy({ left: dir * (first.offsetWidth + gap), behavior: reduceMotion.matches ? 'auto' : 'smooth' });
-}
-$('morePrev').addEventListener('click', () => scrollCards(-1));
-$('moreNext').addEventListener('click', () => scrollCards(1));
-$('cards').addEventListener('scroll', updateMore, { passive: true });
 
 // ---------------------------------------------------------------- 1 画面に収める
 // 全体を見渡すための画面なので、縦にはみ出す分は全体を縮めて収める。縮めると横に置ける数が増えて
@@ -1295,7 +1290,6 @@ function fitsAt(zoom) {
 let fitPercent = 100;
 function fit() {
   fitZoom();
-  updateMore();
 }
 function fitZoom() {
   if (window.innerWidth < FIT_MIN_WIDTH) { $('root').style.zoom = ''; fitPercent = 100; return; }
