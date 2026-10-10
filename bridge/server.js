@@ -46,9 +46,6 @@ const NEWLINE = 0x0a;
 
 fs.mkdirSync(RUNTIME, { recursive: true, mode: 0o700 });
 fs.mkdirSync(STATE_DIR, { recursive: true, mode: 0o700 });
-fs.writeFileSync(path.join(RUNTIME, 'token'), TOKEN, { mode: 0o600 });
-fs.chmodSync(path.join(RUNTIME, 'token'), 0o600);
-fs.writeFileSync(path.join(RUNTIME, 'port'), String(PORT));
 fs.copyFileSync(path.join(ROOT, 'hooks', 'forward.sh'), path.join(RUNTIME, 'forward.sh'));
 
 const log = (...a) => console.log(new Date().toISOString(), ...a);
@@ -487,7 +484,14 @@ const server = http.createServer(async (req, res) => {
   res.writeHead(404); res.end('not found');
 });
 
-server.listen(PORT, '127.0.0.1', () => log(`dopadopa bridge on http://127.0.0.1:${PORT} (herdr socket: ${SOCK})`));
+// 待ち受けに失敗したブリッジが合言葉を書き換えると、動いている別のブリッジに誰もつなげなくなる。待ち受けてから書く
+server.on('error', (e) => { log('listen failed:', e.message); process.exit(1); });
+server.listen(PORT, '127.0.0.1', () => {
+  fs.writeFileSync(path.join(RUNTIME, 'token'), TOKEN, { mode: 0o600 });
+  fs.chmodSync(path.join(RUNTIME, 'token'), 0o600);
+  fs.writeFileSync(path.join(RUNTIME, 'port'), String(PORT));
+  log(`dopadopa bridge on http://127.0.0.1:${PORT} (herdr socket: ${SOCK})`);
+});
 function shutdown() {
   saveNow();
   process.exit(0);
