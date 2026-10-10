@@ -22,6 +22,8 @@ const FEED_MAX = 200;
 const FLOW_MAX = 14;
 const TITLE_MAX = 120;
 const SAY_MAX = 280;
+const BACKGROUND_MAX = 50;
+const BACKGROUND_LABEL = { agent: 'サブエージェント', command: 'バックグラウンドのコマンド' };
 // 実測でコマンドの説明は最長 126 文字。途中で切らずに渡し、何行見せるかは画面が決める
 const OP_TEXT_MAX = 130;
 const PACE_WINDOW_MS = 60 * 1000;
@@ -132,6 +134,36 @@ function describe(tool, input = {}, finished = false) {
   }
 }
 
+// 会話記録の 1 行から、裏で動く作業（サブエージェント・バックグラウンドのコマンド）の始まりと終わりを読む。
+// 実測（2026-10-10、直近 3 日の会話記録 84 本）: バックグラウンドのコマンド 188 回・サブエージェント 20 回。
+// 終わりは「終了の通知」（190 回）か「止める操作」（18 回）のどちらかで必ず残っていた
+const BACKGROUND_END = new Set(['completed', 'failed', 'killed']);
+function backgroundEvent(e, toolOf = () => null) {
+  if (!e || typeof e !== 'object' || e.isSidechain) return null;
+  if (e.type === 'queue-operation') {
+    if (e.operation !== 'enqueue' || typeof e.content !== 'string' || !e.content.includes('<task-notification>')) return null;
+    const id = (e.content.match(/<task-id>([^<]+)</) || [])[1];
+    const status = (e.content.match(/<status>([^<]+)</) || [])[1];
+    return id && BACKGROUND_END.has(status) ? { end: { id, status } } : null;
+  }
+  const r = e.toolUseResult;
+  if (e.type !== 'user' || !r || typeof r !== 'object') return null;
+  if (r.status === 'async_launched' && r.agentId) {
+    return { start: { id: String(r.agentId), kind: 'agent', label: String(r.description || '').replace(/\s+/g, ' ').trim().slice(0, OP_TEXT_MAX) } };
+  }
+  const content = e.message && e.message.content;
+  const result = Array.isArray(content) ? content.find((b) => b && b.type === 'tool_result') : null;
+  if (r.backgroundTaskId) {
+    const use = (result && toolOf(result.tool_use_id)) || {};
+    const input = use.input || {};
+    const label = input.description ? String(input.description).replace(/\s+/g, ' ').trim() : firstLine(input.command);
+    return { start: { id: String(r.backgroundTaskId), kind: 'command', label: label.slice(0, OP_TEXT_MAX) } };
+  }
+  // 止める操作（TaskStop）の結果。失敗した停止は、まだ動いているので終わりにしない
+  if (r.task_id && r.task_type && !(result && result.is_error)) return { end: { id: String(r.task_id), status: 'killed' } };
+  return null;
+}
+
 // 許可待ちの帯に出す「何の許可か」
 function askText(tool, input = {}) {
   if (tool === 'Bash') return firstLine(input.command).slice(0, 80);
@@ -174,7 +206,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       status: 'unknown', hooked: false, terminalTitle: '', place: '',
       title: '', activity: '', notice: '', mode: 'think', failing: false,
       turnOpen: false, turnStartedAt: null, doneAt: null, activeAt: 0, blockedSince: null, responded: false,
-      turnSteps: 0, run: 0, lines: 0, tests: 0, kinds: blankKinds(), say: '', sayAt: null, flow: [], pending: new Map(),
+      turnSteps: 0, run: 0, lines: 0, tests: 0, kinds: blankKinds(), say: '', sayAt: null, flow: [], pending: new Map(), background: new Map(),
     };
   }
   function getAgent(key) {
@@ -410,6 +442,8 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
         if (paneless) setStatus(a, 'done');
         break;
       case 'SessionEnd':
+        // Claude Code が終わると、裏の作業も一緒に終わる
+        a.background.clear();
         if (paneless) agents.delete(a.key);
         break;
     }
@@ -427,6 +461,29 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     a.sayAt = now();
     if (!initial) a.activeAt = now();
     if (!initial) pushFlow(a, { kind: 'say', text });
+    onChange();
+  }
+  // 裏で動く作業。指示への対応が終わったあとも動き続け、終わると Claude が自分で続きを始める
+  function handleBackground(sessionId, ev) {
+    const a = agents.get(sessionToKey.get(sessionId));
+    if (!a || !ev) return;
+    if (ev.start) {
+      if (a.background.has(ev.start.id)) return;
+      a.background.set(ev.start.id, { kind: ev.start.kind, label: ev.start.label, startedAt: now() });
+      if (a.background.size > BACKGROUND_MAX) a.background.delete(a.background.keys().next().value);
+      pushFeed(a.name, `${BACKGROUND_LABEL[ev.start.kind]}を開始: ${ev.start.label}`, 'think');
+      send('background', a, { phase: 'start', work: ev.start.kind, label: ev.start.label, left: a.background.size });
+    } else if (ev.end) {
+      const b = a.background.get(ev.end.id);
+      if (!b) return;
+      a.background.delete(ev.end.id);
+      const ok = ev.end.status === 'completed';
+      const how = ok ? '完了' : ev.end.status === 'failed' ? '失敗' : '停止';
+      pushFeed(a.name, `${BACKGROUND_LABEL[b.kind]}が${how}: ${b.label}`, ok ? 'done' : 'error');
+      send('background', a, { phase: 'end', work: b.kind, label: b.label, status: ev.end.status, seconds: Math.round((now() - b.startedAt) / 1000), left: a.background.size });
+    } else {
+      return;
+    }
     onChange();
   }
   function handleDerived(sessionId, ev) {
@@ -487,7 +544,10 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
   }
   // herdr の done は「終わったが、まだ見ていない」、idle は「見た」。見ていない完了は、あなたの対応が要るものとして上に出す
   function groupOf(a, state) {
-    if (state === 'wait' || a.status === 'done') return 'need';
+    if (state === 'wait') return 'need';
+    // 裏で作業が動いている間は、指示への対応が終わっていても「動いているもの」に置く（終わると自分で続きを始めるので、まだ対応は要らない）
+    if (a.background.size) return 'work';
+    if (a.status === 'done') return 'need';
     // Stop が届いてから herdr が見た・見ていないを知らせるまでの短い間は、動いているものの中に置いたままにする（行き先が決まる前に動かさない）
     return a.status === 'working' || state === 'error' || WORKING_STATES.has(state) ? 'work' : 'rest';
   }
@@ -500,6 +560,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       const ask = a.status === 'blocked' ? currentAsk(a) : null;
       return {
         key: a.key, pane: a.pane, name: a.name, branch: a.branch, state, group: groupOf(a, state),
+        background: [...a.background].map(([id, b]) => ({ id, ...b })),
         title: a.title, herdrTitle: a.terminalTitle, place: a.place,
         activity: a.activity, notice: a.status === 'blocked' ? waitNotice(a, ask) : '',
         ask: ask && ask.canRespond ? ask.text : '', canRespond: canRespond(a.key),
@@ -567,7 +628,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     return true;
   }
 
-  return { handleHook, handleDerived, addNarration, setHerdrAgents, setPaneStatus, recordResponse, canRespond, tick, snapshot, exportStats, importStats, agents, dayKey: () => today.day };
+  return { handleHook, handleDerived, handleBackground, addNarration, setHerdrAgents, setPaneStatus, recordResponse, canRespond, tick, snapshot, exportStats, importStats, agents, dayKey: () => today.day };
 }
 
 // 同じ内容が短い間に続けて届いたら、2 通目以降を知らせる。二重に入ったフックでステップを倍に数えないため
@@ -590,4 +651,4 @@ function createRepeatFilter({ windowMs = REPEAT_WINDOW_MS, now = Date.now } = {}
   };
 }
 
-module.exports = { createCore, createRepeatFilter, REPEAT_WINDOW_MS, herdrPlace, dayKeyOf, plainText, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, SMALL_MARK_STEPS, TURN_MARK_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };
+module.exports = { createCore, createRepeatFilter, REPEAT_WINDOW_MS, herdrPlace, backgroundEvent, dayKeyOf, plainText, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, SMALL_MARK_STEPS, TURN_MARK_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };

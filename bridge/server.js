@@ -15,7 +15,7 @@ const path = require('node:path');
 const os = require('node:os');
 const crypto = require('node:crypto');
 const { spawn } = require('node:child_process');
-const { createCore, createRepeatFilter } = require('./core.js');
+const { createCore, createRepeatFilter, backgroundEvent } = require('./core.js');
 const { findTerminalApp } = require('./terminal.js');
 
 const PORT = Number(process.env.DOPADOPA_PORT || 4517);
@@ -174,6 +174,11 @@ function blockText(content) {
 function transcriptItems(line, tools) {
   let e;
   try { e = JSON.parse(line); } catch { return []; }
+  // 道具の呼び出しは下で消すので、裏で動く作業の始まりと終わりは先に読む
+  const bg = backgroundEvent(e, (id) => tools.get(id));
+  return (bg ? [{ bg }] : []).concat(transcriptMessageItems(e, tools));
+}
+function transcriptMessageItems(e, tools) {
   // サブエージェントの発言・画面に出ない補助行・要約の差し込みは、そのセッションの「いま」ではない
   if (!e || e.isSidechain || e.isMeta || e.isCompactSummary || !e.message) return [];
   const content = e.message.content;
@@ -258,6 +263,7 @@ async function followTranscript(sessionId, alive = true) {
       if (!line) continue;
       for (const it of transcriptItems(line, st.tools)) {
         if (it.say) core.addNarration(sessionId, it.say);
+        else if (it.bg) core.handleBackground(sessionId, it.bg);
         else core.handleDerived(sessionId, it.hook);
       }
     }
