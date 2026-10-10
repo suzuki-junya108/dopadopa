@@ -336,11 +336,19 @@ function subscribe(pane) {
   c.on('error', drop); c.on('close', drop);
 }
 
+function placeOf(w, t) {
+  return { workspace: (w && w.label) || '', tabCount: (w && w.tab_count) || 0, tab: (t && t.label) || '', tabNumber: (t && t.number) || 0 };
+}
+
 let herdrOk = null;
 async function poll() {
   try {
     const r = await request('agent.list');
     const items = Array.isArray(r) ? r : (r && r.agents) || [];
+    // 名前が取れなくてもボードは出す（場所の名前が空になるだけ）
+    const [ws, tabs] = await Promise.all([request('workspace.list').catch(() => null), request('tab.list').catch(() => null)]);
+    const workspaces = new Map(((ws && ws.workspaces) || []).map((w) => [w.workspace_id, w]));
+    const tabById = new Map(((tabs && tabs.tabs) || []).map((t) => [t.tab_id, t]));
     const seen = new Set();
     core.setHerdrAgents(items.filter((it) => it.pane_id).map((it) => {
       seen.add(it.pane_id);
@@ -349,6 +357,7 @@ async function poll() {
         pane: it.pane_id, status: it.agent_status, cwd: it.cwd || it.foreground_cwd || '', kind: it.agent || '',
         title: it.terminal_title_stripped || '', sessionId: it.agent_session && it.agent_session.value,
         branch: readBranch(it.cwd || it.foreground_cwd || ''),
+        ...placeOf(workspaces.get(it.workspace_id), tabById.get(it.tab_id)),
       };
     }));
     for (const [pane, sock] of subscribed) if (!seen.has(pane)) sock.destroy();

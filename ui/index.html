@@ -103,6 +103,8 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .selbtn{flex:1 1 auto;min-width:0;min-height:44px;text-align:left;background:transparent;border:none;padding:0;display:flex;flex-direction:column;gap:8px;cursor:pointer}
 .cname{font-family:var(--f-num);font-size:20px;line-height:1.1;overflow-wrap:anywhere}
 .cbranch{font-family:var(--f-mono);font-size:12px;color:var(--sub);overflow-wrap:anywhere}
+.cherdr{font-size:13px;font-weight:800;line-height:1.4;height:1.4em;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fhead .cherdr{font-size:18px;height:auto;white-space:normal;overflow-wrap:anywhere}
 .chip{flex:0 0 auto;display:inline-block;background:var(--c);color:var(--fg);font-family:var(--f-head);font-size:14px;padding:6px 12px;border:3px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;animation:wiggle 2.4s ease-in-out infinite}
 .card .mid{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
 .big{flex:0 0 auto;white-space:nowrap;font-family:var(--f-num);font-size:60px;line-height:.9;color:var(--c)}
@@ -426,7 +428,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 <section class="focus" id="focus" role="dialog" aria-modal="true" aria-labelledby="fName" hidden>
   <div class="fbox" id="fBox">
     <div class="fhead">
-      <div class="fwho"><h2 id="fName"></h2><span class="cbranch" id="fBranch"></span></div>
+      <div class="fwho"><h2 id="fName"></h2><span class="cbranch" id="fBranch"></span><span class="cherdr" id="fHerdr"></span></div>
       <span class="chip" id="fChip"></span>
       <button type="button" class="btn deny" id="fClose">閉じる</button>
     </div>
@@ -912,11 +914,15 @@ function updateMix(mix, kinds, counts, current, moving) {
   mix.setAttribute('role', 'img');
   mix.setAttribute('aria-label', 'ステップの内訳 ' + KINDS.map(([k, label]) => `${label} ${counts[k] || 0}`).join('、'));
 }
+// herdr の画面と見比べるための 1 行。場所の名前がフォルダ名と同じなら繰り返さない
+function herdrLine(a) {
+  return [a.place === a.name ? '' : a.place, a.herdrTitle].filter(Boolean).join(' ｜ ');
+}
 function createCard() {
   const el = h('article', 'card');
   const top = h('div', 'top');
   const sel = h('button', 'selbtn'); sel.type = 'button'; sel.dataset.act = 'select';
-  sel.append(h('span', 'cname'), h('span', 'cbranch'));
+  sel.append(h('span', 'cname'), h('span', 'cbranch'), h('span', 'cherdr'));
   top.append(sel, h('span', 'chip'));
   const act = h('div', 'cact'); act.append(h('span', 'mark', '▶'), h('span', 'what'));
   const mid = h('div', 'mid');
@@ -931,7 +937,7 @@ function createCard() {
   const { mix, kinds } = createMix();
   el.append(top, h('div', 'cask'), h('div', 'csay'), act, mid, mix, kinds, responseButtons(false));
   el._r = {
-    sel, name: sel.children[0], branch: sel.children[1], chip: top.children[1], ask: el.children[1], say: el.children[2],
+    sel, name: sel.children[0], branch: sel.children[1], herdr: sel.children[2], chip: top.children[1], ask: el.children[1], say: el.children[2],
     act, what: act.children[1], bignum: big.children[0], fire, firetxt: fire.lastChild,
     eta: side.children[1], mix, kinds, btns: el.lastChild,
   };
@@ -946,10 +952,13 @@ function updateCard(el, a) {
   el.classList.toggle('sel', a.key === selectedKey);
   el.classList.toggle('is-wait', a.state === 'wait');
   el.classList.toggle('is-work', WORKING.has(a.state));
-  r.sel.setAttribute('aria-label', `${a.name} の詳細を表示`);
+  const where = herdrLine(a);
+  r.sel.setAttribute('aria-label', `${[a.name, where].filter(Boolean).join(' ')} の詳細を表示`);
   r.sel.setAttribute('aria-pressed', String(a.key === selectedKey));
   text(r.name, a.name);
   text(r.branch, a.branch);
+  text(r.herdr, where);
+  r.herdr.title = where;
   text(r.chip, st.label);
   text(r.ask, a.title ? `指示: ${a.title}` : '');
   text(r.say, sayOf(a));
@@ -1046,7 +1055,7 @@ function renderFocus() {
   box.dataset.key = a.key;
   box.style.setProperty('--c', st.color);
   box.style.setProperty('--fg', st.fg);
-  text($('fName'), a.name); text($('fBranch'), a.branch); text($('fChip'), st.label);
+  text($('fName'), a.name); text($('fBranch'), a.branch); text($('fHerdr'), herdrLine(a)); text($('fChip'), st.label);
   text($('fAsk'), a.title ? `指示: ${a.title}` : '');
   text($('fSay'), sayOf(a));
   $('fSay').classList.toggle('none', !a.say);
