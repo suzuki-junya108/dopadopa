@@ -274,7 +274,8 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     if (!status || status === a.status) return;
     const prev = a.status;
     a.status = status;
-    a.activeAt = now();
+    // 初めて見たセッションは、いつからその状態なのか分からない。動いていたかのような時刻を作らない
+    if (prev !== 'unknown' || status === 'working') a.activeAt = now();
     if (status === 'blocked') {
       a.blockedSince = now();
       const ask = currentAsk(a);
@@ -482,16 +483,23 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     if (a.status === 'blocked') return 'wait';
     // Stop が届いてから herdr が idle に変わるまでの短い間を「考え中」と見せない
     if (a.status === 'working' && (a.turnOpen || !a.hooked)) return a.failing ? 'error' : a.mode;
-    return a.doneAt ? 'done' : 'idle';
+    return a.doneAt || a.status === 'done' ? 'done' : 'idle';
+  }
+  // herdr の done は「終わったが、まだ見ていない」、idle は「見た」。見ていない完了は、あなたの対応が要るものとして上に出す
+  function groupOf(a, state) {
+    if (state === 'wait' || a.status === 'done') return 'need';
+    // Stop が届いてから herdr が見た・見ていないを知らせるまでの短い間は、動いているものの中に置いたままにする（行き先が決まる前に動かさない）
+    return a.status === 'working' || state === 'error' || WORKING_STATES.has(state) ? 'work' : 'rest';
   }
 
   function snapshot() {
-    const order = { wait: 0, error: 1, think: 1, edit: 1, run: 1, test: 1, done: 2, idle: 3 };
+    const order = { wait: 0, error: 2, think: 2, edit: 2, run: 2, test: 2, done: 3, idle: 4 };
+    const rank = (x) => (x.state === 'done' && x.group === 'need' ? 1 : order[x.state]);
     const list = [...agents.values()].map((a) => {
       const state = displayState(a);
       const ask = a.status === 'blocked' ? currentAsk(a) : null;
       return {
-        key: a.key, pane: a.pane, name: a.name, branch: a.branch, state,
+        key: a.key, pane: a.pane, name: a.name, branch: a.branch, state, group: groupOf(a, state),
         title: a.title, herdrTitle: a.terminalTitle, place: a.place,
         activity: a.activity, notice: a.status === 'blocked' ? waitNotice(a, ask) : '',
         ask: ask && ask.canRespond ? ask.text : '', canRespond: canRespond(a.key),
@@ -503,11 +511,11 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     });
     // 左から: 長く待たせている順 → 新しく指示を受けた順 → 最近まで動いていた順。作業中の並びはステップごとに入れ替えない
     const within = (x, y) => {
-      if (order[x.state] === 0) return x.blockedSince - y.blockedSince;
-      if (order[x.state] === 1) return (y.turnStartedAt || 0) - (x.turnStartedAt || 0);
+      if (rank(x) === 0) return x.blockedSince - y.blockedSince;
+      if (rank(x) === 2) return (y.turnStartedAt || 0) - (x.turnStartedAt || 0);
       return y.activeAt - x.activeAt;
     };
-    list.sort((x, y) => order[x.state] - order[y.state] || within(x, y) || x.name.localeCompare(y.name) || x.key.localeCompare(y.key));
+    list.sort((x, y) => rank(x) - rank(y) || within(x, y) || x.name.localeCompare(y.name) || x.key.localeCompare(y.key));
     const vals = missionValues();
     return {
       type: 'snapshot', now: now(),
