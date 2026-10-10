@@ -10,7 +10,8 @@
 
 | 入力 | 中身 |
 |---|---|
-| herdr `agent.list`（3秒ごと） | `pane_id`、`agent`、`agent_status`、`cwd`、`terminal_title_stripped`、`agent_session.value` |
+| herdr `agent.list`（3秒ごと） | `pane_id`、`agent`、`agent_status`、`cwd`、`terminal_title_stripped`、`agent_session.value`、`workspace_id`、`tab_id` |
+| herdr `workspace.list` / `tab.list`（3秒ごと） | ワークスペースの `label`・`tab_count`、タブの `label`・`number`。herdr の画面と見比べるための場所の名前に使う。取れなくてもボードは出す |
 | herdr `events.subscribe`（`pane.agent_status_changed`） | 状態の変化を即時に |
 | Claude Code hooks（`POST /hook?pane=$HERDR_PANE_ID`） | `SessionStart` / `UserPromptSubmit` / `PreToolUse` / `PostToolUse` / `PostToolUseFailure` / `Notification` / `Stop` / `SessionEnd` の JSON |
 

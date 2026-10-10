@@ -171,7 +171,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
   function blankAgent(key) {
     return {
       key, pane: key.startsWith('session:') ? null : key, name: key, kind: '', cwd: '', branch: '',
-      status: 'unknown', hooked: false, terminalTitle: '',
+      status: 'unknown', hooked: false, terminalTitle: '', place: '',
       title: '', activity: '', notice: '', mode: 'think', failing: false,
       turnOpen: false, turnStartedAt: null, doneAt: null, activeAt: 0, blockedSince: null, responded: false,
       turnSteps: 0, run: 0, lines: 0, tests: 0, kinds: blankKinds(), say: '', sayAt: null, flow: [], pending: new Map(),
@@ -311,6 +311,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       a.kind = it.kind || a.kind;
       a.branch = it.branch || '';
       a.terminalTitle = it.title || '';
+      a.place = herdrPlace(it);
       if (it.sessionId) sessionToKey.set(it.sessionId, it.pane);
       setStatus(a, it.status);
     }
@@ -491,7 +492,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       const ask = a.status === 'blocked' ? currentAsk(a) : null;
       return {
         key: a.key, pane: a.pane, name: a.name, branch: a.branch, state,
-        title: a.title || a.terminalTitle,
+        title: a.title, herdrTitle: a.terminalTitle, place: a.place,
         activity: a.activity, notice: a.status === 'blocked' ? waitNotice(a, ask) : '',
         ask: ask && ask.canRespond ? ask.text : '', canRespond: canRespond(a.key),
         blockedSince: a.blockedSince, turnStartedAt: a.turnOpen || a.doneAt ? a.turnStartedAt : null, doneAt: a.doneAt,
@@ -562,6 +563,14 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
 }
 
 // 同じ内容が短い間に続けて届いたら、2 通目以降を知らせる。二重に入ったフックでステップを倍に数えないため
+// herdr の画面でそのセッションを探すための場所の名前。タブに名前を付けていないとき herdr はタブ番号をそのまま名前にするので、
+// タブが 1 つだけならワークスペース名だけにする
+function herdrPlace({ workspace, tab, tabNumber, tabCount } = {}) {
+  const named = tab && tab !== String(tabNumber);
+  const tabName = named ? tab : (tabCount > 1 && tabNumber ? `タブ ${tabNumber}` : '');
+  return [workspace, tabName].filter(Boolean).join(' / ');
+}
+
 function createRepeatFilter({ windowMs = REPEAT_WINDOW_MS, now = Date.now } = {}) {
   const seenAt = new Map();
   return (key) => {
@@ -573,4 +582,4 @@ function createRepeatFilter({ windowMs = REPEAT_WINDOW_MS, now = Date.now } = {}
   };
 }
 
-module.exports = { createCore, createRepeatFilter, REPEAT_WINDOW_MS, dayKeyOf, plainText, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, SMALL_MARK_STEPS, TURN_MARK_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };
+module.exports = { createCore, createRepeatFilter, REPEAT_WINDOW_MS, herdrPlace, dayKeyOf, plainText, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, SMALL_MARK_STEPS, TURN_MARK_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };

@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createCore, createRepeatFilter, REPEAT_WINDOW_MS, plainText, countPassedTests, isTestCommand, changedLines, MILESTONE_STEPS, GOAL_START, GOAL_INCREMENT } = require('../bridge/core.js');
+const { createCore, createRepeatFilter, REPEAT_WINDOW_MS, herdrPlace, plainText, countPassedTests, isTestCommand, changedLines, MILESTONE_STEPS, GOAL_START, GOAL_INCREMENT } = require('../bridge/core.js');
 
 const START = new Date(2026, 9, 7, 10, 0, 0).getTime();
 const STREAK_MS = 180000;
@@ -394,4 +394,23 @@ test('同じ内容が続けて届いたら 2 回目は捨て、時間が空け�
   clock.t += 1;
   assert.equal(isRepeat('a'), false);
   assert.equal(isRepeat('b'), false);
+});
+
+test('herdr の題名は指示が届いても残り、場所の名前はタブに名前があるか複数あるときだけタブを添える', () => {
+  const { core } = setup();
+  core.setHerdrAgents([
+    herdr('p1', 'working', { title: '売上の集計', workspace: 'web-app', tab: 'podcast', tabNumber: 3, tabCount: 4 }),
+    herdr('p2', 'idle', { title: '表示速度の調査', workspace: 'web-app', tab: '4', tabNumber: 4, tabCount: 4 }),
+  ]);
+  prompt(core, 'p1', '月ごとに分けて');
+  const a = agentOf(core, 'p1');
+  assert.equal(a.herdrTitle, '売上の集計');
+  assert.equal(a.title, '月ごとに分けて');
+  assert.equal(a.place, 'web-app / podcast');
+  assert.equal(agentOf(core, 'p2').place, 'web-app / タブ 4');
+  assert.equal(agentOf(core, 'p2').title, '', '題名を指示として出さない');
+
+  assert.equal(herdrPlace({ workspace: 'api', tab: '1', tabNumber: 1, tabCount: 1 }), 'api');
+  assert.equal(herdrPlace({}), '');
+  assert.equal(herdrPlace(), '');
 });
