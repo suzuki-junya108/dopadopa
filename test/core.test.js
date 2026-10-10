@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createCore, createRepeatFilter, REPEAT_WINDOW_MS, herdrPlace, backgroundEvent, plainText, countPassedTests, isTestCommand, changedLines, MILESTONE_STEPS, GOAL_START, GOAL_INCREMENT } = require('../bridge/core.js');
+const { createCore, createRepeatFilter, REPEAT_WINDOW_MS, herdrPlace, backgroundEvent, sideEvent, plainText, countPassedTests, isTestCommand, changedLines, MILESTONE_STEPS, GOAL_START, GOAL_INCREMENT } = require('../bridge/core.js');
 
 const START = new Date(2026, 9, 7, 10, 0, 0).getTime();
 const STREAK_MS = 180000;
@@ -455,7 +455,11 @@ test('会話記録の行から、裏で動く作業の始まりと終わりを�
   assert.deepEqual(backgroundEvent(note('<task-id>b77</task-id> <status>failed</status>')), { end: { id: 'b77', status: 'failed' } });
   assert.deepEqual(backgroundEvent(result({ message: 'Successfully stopped task: b77', task_id: 'b77', task_type: 'local_bash', command: 'npm test' })), { end: { id: 'b77', status: 'killed' } });
 
-  assert.equal(backgroundEvent(note('<task-id>b77</task-id> <summary>途中経過</summary>')), null, '状態のない通知は終わりではない');
+  assert.deepEqual(backgroundEvent(note('<task-id>b77</task-id> <summary>Monitor event: "配備を見張る"</summary> <event>配備 3/5 完了</event>')), { note: { id: 'b77', text: '配備 3/5 完了' } }, '状態のない通知は終わりではなく途中経過');
+  assert.deepEqual(backgroundEvent(note('<task-id>b77</task-id> <summary>Monitor event: "配備を見張る"</summary>')), { note: { id: 'b77', text: '配備を見張る' } });
+  assert.equal(backgroundEvent(note('<task-type>artifact-watch-lifecycle</task-type> <summary>Stopped watching</summary>')), null, '作業の ID が無い通知は使わない');
+  uses.tu1 = { name: 'Monitor', input: { command: 'tail -f deploy.log', description: '配備のログを見張る', timeout_ms: 600000 } };
+  assert.deepEqual(backgroundEvent(result({ taskId: 'm1', timeoutMs: 600000, persistent: false }), toolOf), { start: { id: 'm1', kind: 'monitor', label: '配備のログを見張る', timeoutMs: 600000, persistent: false } });
   assert.equal(backgroundEvent(result({ task_id: 'b77', task_type: 'local_bash' }, { is_error: true })), null, '止められなかった作業は動いたまま');
   assert.equal(backgroundEvent({ ...result({ backgroundTaskId: 'b78' }), isSidechain: true }), null, 'サブエージェントの中の作業は数えない');
   assert.equal(backgroundEvent(result({ stdout: 'ok' })), null);
@@ -478,7 +482,7 @@ test('裏で作業が動いている間は「動いているもの」に置き�
   core.setHerdrAgents([herdr('p1', 'done')]);
 
   let a = agentOf(core, 'p1');
-  assert.deepEqual(a.background, [{ id: 'b1', kind: 'command', label: 'ビルドを実行', startedAt: START }, { id: 'a1', kind: 'agent', label: 'ログを調べる', startedAt: START }]);
+  assert.deepEqual(a.background, [{ id: 'b1', kind: 'command', label: 'ビルドを実行', startedAt: START, steps: 0, activity: '' }, { id: 'a1', kind: 'agent', label: 'ログを調べる', startedAt: START, steps: 0, activity: '' }]);
   assert.equal(a.state, 'done');
   assert.equal(a.group, 'work', '終わると自分で続きを始めるので、まだ対応は要らない');
 
@@ -515,4 +519,77 @@ test('裏の作業が終わった通知が指示として届いたら、題は�
   assert.equal(agentOf(core, 'p1').title, '裏で動いていた作業の結果を受けて続行');
   prompt(core, 'p1', ' ログインを\n直して ');
   assert.equal(agentOf(core, 'p1').title, 'ログインを 直して');
+});
+
+test('サブエージェントの中の操作と見張りの途中経過を出し、見張りは決めた時間を過ぎたら消す', () => {
+  const { core, clock, events } = setup();
+  core.setHerdrAgents([herdr('p1', 'working')]);
+  prompt(core, 'p1', 'x');
+  core.handleBackground('s-p1', { start: { id: 'a1', kind: 'agent', label: 'ログを調べる' } });
+  core.handleBackground('s-p1', { start: { id: 'm1', kind: 'monitor', label: '配備を見張る', timeoutMs: 600000, persistent: false } });
+  core.handleBackground('s-p1', { start: { id: 'm2', kind: 'monitor', label: '常駐の見張り', timeoutMs: 600000, persistent: true } });
+  assert.deepEqual(core.openSubagents('s-p1'), ['a1']);
+  assert.deepEqual(core.openSubagents('s-nobody'), []);
+  const stepsBefore = core.snapshot().today.steps;
+  core.handleSubagent('s-p1', 'a1', { steps: 12, activity: 'error.log を読み込み中' });
+  core.handleSubagent('s-p1', 'zzz', { steps: 1, activity: 'x' });
+  core.handleBackground('s-p1', { note: { id: 'm1', text: '配備 3/5 完了' } });
+  core.handleBackground('s-p1', { note: { id: 'zzz', text: '知らない作業' } });
+  const bg = agentOf(core, 'p1').background;
+  assert.deepEqual(bg.map((b) => [b.id, b.steps, b.activity]), [['a1', 12, 'error.log を読み込み中'], ['m1', 0, '配備 3/5 完了'], ['m2', 0, '']]);
+  assert.equal(core.snapshot().today.steps, stepsBefore, 'サブエージェントの中の操作はステップに足さない');
+
+  clock.t += 600000 + 59000;
+  assert.equal(agentOf(core, 'p1').background.length, 3);
+  clock.t += 2000;
+  assert.deepEqual(agentOf(core, 'p1').background.map((b) => b.id), ['a1', 'm2'], '常駐の見張りは時間で消さない');
+  assert.equal(events.filter((e) => e.type === 'background' && e.phase === 'end').length, 0);
+});
+
+test('ブリッジを起動し直したときは、動き続けている裏の作業を元の開始時刻で戻し、古すぎるものは戻さない', () => {
+  const { core, events } = setup();
+  core.setHerdrAgents([herdr('p1', 'idle')]);
+  core.handleHook('p1', { hook_event_name: 'SessionStart', session_id: 's-p1' });
+  const HOUR = 3600000;
+  core.handleBackground('s-p1', { start: { id: 'b1', kind: 'command', label: '負荷試験' } }, { restoredAt: START - 2 * HOUR });
+  core.handleBackground('s-p1', { start: { id: 'b2', kind: 'command', label: '止まったままの古い作業' } }, { restoredAt: START - 25 * HOUR });
+  core.handleBackground('s-p1', { start: { id: 'm1', kind: 'monitor', label: '終わったはずの見張り', timeoutMs: 600000, persistent: false } }, { restoredAt: START - HOUR });
+  const a = agentOf(core, 'p1');
+  assert.deepEqual(a.background.map((b) => [b.id, b.startedAt]), [['b1', START - 2 * HOUR]]);
+  assert.equal(a.group, 'work');
+  assert.equal(events.filter((e) => e.type === 'background').length, 0, '戻した分は、いま始まった出来事として知らせない');
+  assert.equal(core.snapshot().feed.length, 0);
+});
+
+test('順番待ちの指示・会話の要約・ここまでのまとめを読む', () => {
+  const q = (operation, content) => ({ type: 'queue-operation', operation, ...(content === undefined ? {} : { content }) });
+  assert.deepEqual(sideEvent(q('enqueue', '次はテストも直して')), { queue: { op: 'add', user: true } });
+  assert.deepEqual(sideEvent(q('enqueue', '<task-notification> <task-id>b1</task-id> </task-notification>')), { queue: { op: 'add', user: false } });
+  assert.deepEqual(sideEvent(q('dequeue')), { queue: { op: 'take' } });
+  assert.deepEqual(sideEvent(q('remove', '次はテストも直して')), { queue: { op: 'drop', user: true } });
+  assert.deepEqual(sideEvent({ type: 'system', subtype: 'compact_boundary', compactMetadata: { durationMs: 57189 } }), { compact: { seconds: 57 } });
+  assert.deepEqual(sideEvent({ type: 'system', subtype: 'away_summary', content: '集計を直しました。' }), { summary: '集計を直しました。' });
+  assert.equal(sideEvent({ type: 'system', subtype: 'turn_duration' }), null);
+  assert.equal(sideEvent({ type: 'queue-operation', operation: 'enqueue', content: 'x', isSidechain: true }), null);
+  assert.equal(sideEvent(null), null);
+
+  const { core } = setup();
+  core.setHerdrAgents([herdr('p1', 'working')]);
+  prompt(core, 'p1', 'x');
+  for (const ev of [{ op: 'add', user: false }, { op: 'add', user: true }, { op: 'add', user: true }]) core.handleSide('s-p1', { queue: ev });
+  assert.equal(agentOf(core, 'p1').queued, 2, '通知や報告は指示に数えない');
+  core.handleSide('s-p1', { queue: { op: 'take' } });
+  assert.equal(agentOf(core, 'p1').queued, 2, '先頭から取り出す');
+  core.handleSide('s-p1', { queue: { op: 'drop', user: true } });
+  core.handleSide('s-p1', { queue: { op: 'take' } });
+  core.handleSide('s-p1', { queue: { op: 'take' } });
+  assert.equal(agentOf(core, 'p1').queued, 0);
+
+  core.handleSide('s-p1', { compact: { seconds: 57 } });
+  core.handleSide('s-p1', { summary: '**集計**を直しました。\n次はグラフです。' });
+  let a = agentOf(core, 'p1');
+  assert.deepEqual(a.flow.map((f) => f.text), ['会話を要約しました（57 秒）']);
+  assert.equal(a.summary, '集計を直しました。 次はグラフです。');
+  prompt(core, 'p1', '次の指示');
+  assert.equal(agentOf(core, 'p1').summary, '', '新しい指示が来たら、前のまとめは出さない');
 });

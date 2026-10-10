@@ -111,9 +111,12 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .rsay{font-size:14px;font-weight:800;line-height:1.4;height:2.8em;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .rsay.none{color:var(--mute)}
 .ract{font-size:12px;font-weight:800;line-height:1.4;height:1.4em;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rbg{min-width:0;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;line-height:1.4}
+.rbg{min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;font-size:12px;font-weight:800;line-height:1.4}
 .bgchip{flex:0 0 auto;background-color:var(--think);color:#1A0838;border:2px solid #000;border-radius:9px;padding:1px 8px;white-space:nowrap}
-.bgwhat{min-width:0;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bgchip.q{background-color:var(--test);color:#2A1E00}
+.dsum{margin:0;font-size:13px;font-weight:800;line-height:1.5;color:var(--soft);overflow-wrap:anywhere;padding-left:10px;border-left:4px solid var(--think)}
+.focus .dsum{font-size:16px}
+.bgwhat{flex:1 1 180px;min-width:0;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bghead{margin:0;font-size:13px;font-weight:800;color:var(--think)}
 .rsteps{min-width:0;display:flex;flex-direction:column;gap:4px}
 .rtop{display:flex;align-items:flex-end;justify-content:space-between;gap:6px}
@@ -406,6 +409,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
       <button type="button" class="btn deny" id="dZoom" data-act="zoom">大きく表示</button>
       <span class="dbig" id="dBig"><span id="dBigNum">0</span><small>ステップ</small></span>
     </div>
+    <p class="dsum" id="dSum" hidden></p>
     <ul class="ops" id="dOps"></ul>
     <h3 class="bghead" id="dBgHead" hidden>裏で動いている作業</h3>
     <ul class="ops" id="dBg" hidden></ul>
@@ -454,6 +458,7 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
       <div class="fleft">
         <div class="fask" id="fAsk"></div>
         <p class="fsay" id="fSay"></p>
+        <p class="dsum" id="fSum" hidden></p>
         <div class="cact" id="fAct"><span class="mark" aria-hidden="true">▶</span><span class="what" id="fWhat"></span></div>
         <h3 class="bghead" id="fBgHead" hidden>裏で動いている作業</h3>
         <ul class="ops" id="fBg" hidden></ul>
@@ -967,7 +972,7 @@ function createRow(a) {
   sel.append(h('span', 'rwho'), h('span', 'rsub'));
   const chipBox = h('div', 'rchip'); chipBox.append(h('span', 'chip'));
   const bgBox = h('div', 'rbg');
-  bgBox.append(h('span', 'bgchip stripes'), h('span', 'bgchip stripes'), h('span', 'bgwhat'));
+  bgBox.append(...BACKGROUND_KINDS.map(() => h('span', 'bgchip stripes')), h('span', 'bgchip q'), h('span', 'bgwhat'));
   const nowBox = h('div', 'rnow'); nowBox.append(h('div', 'rsay'), h('div', 'ract'), bgBox);
   const steps = h('div', 'rsteps');
   const top = h('div', 'rtop');
@@ -1035,14 +1040,17 @@ function updateRow(el, a) {
   text(r.act, unseen ? '結果をまだ見ていません。herdr で開いて確かめてください' : what ? '▶ ' + what : (a.title ? `指示: ${a.title}` : ''));
   r.act.title = r.act.textContent;
   const bg = a.background;
-  r.bg.hidden = !bg.length;
+  r.bg.hidden = !bg.length && !a.queued;
   BACKGROUND_KINDS.forEach(([kind, label], i) => {
     const n = bg.filter((b) => b.kind === kind).length;
     r.bg.children[i].hidden = !n;
     text(r.bg.children[i], `${label} ${n}`);
   });
-  text(r.bg.children[2], backgroundLine(bg, serverNow()));
-  r.bg.children[2].title = bg.map((b) => b.label).join('\n');
+  const [queuedChip, bgWhat] = [...r.bg.children].slice(BACKGROUND_KINDS.length);
+  queuedChip.hidden = !a.queued;
+  text(queuedChip, `順番待ちの指示 ${a.queued}`);
+  text(bgWhat, backgroundLine(bg, serverNow()));
+  bgWhat.title = bg.map(backgroundText).join('\n');
   setNumber(r.bignum, a.turnSteps, 'roll');
   r.fire.hidden = !a.showRun;
   const tier = a.showRun ? RUN_TIERS.filter((n) => a.run >= n).length : 0;
@@ -1057,11 +1065,21 @@ function updateRow(el, a) {
 }
 
 // 裏で動く作業（指示への対応とは別に動き続けるもの）。行には件数といちばん古い 1 件、下段と大きな表示には全件を出す
-const BACKGROUND_KINDS = [['agent', 'サブエージェント'], ['command', 'バックグラウンド']];
+const BACKGROUND_KINDS = [['agent', 'サブエージェント'], ['command', 'バックグラウンド'], ['monitor', '見張り']];
+// 内容と、分かっていればいまの様子（サブエージェントのいまの操作、見張りが最後に知らせたこと）
+const backgroundText = (b) => (b.activity ? `${b.label} ▶ ${b.activity}` : b.label);
+const backgroundSteps = (b) => (b.steps ? `${num(b.steps)} 操作 ・ ` : '');
 const BACKGROUND_LABEL = Object.fromEntries(BACKGROUND_KINDS);
 function backgroundLine(bg, now) {
   if (!bg.length) return '';
-  return `${bg[0].label} ・ ${ago(now - bg[0].startedAt)}` + (bg.length > 1 ? ` ほか ${bg.length - 1} 件` : '');
+  // いまの様子が分かっているものを先に見せる（無ければいちばん古いもの）
+  const b = bg.find((x) => x.activity) || bg[0];
+  return `${backgroundText(b)} ・ ${backgroundSteps(b)}${ago(now - b.startedAt)}` + (bg.length > 1 ? ` ほか ${bg.length - 1} 件` : '');
+}
+// Claude Code が、席を外している間のためにまとめた「ここまでと次」。指示ごとに書かれるわけではないので、あるときだけ出す
+function renderSummary(el, a) {
+  el.hidden = !a.summary;
+  text(el, a.summary ? `ここまでのまとめ: ${a.summary}` : '');
 }
 function renderBackground(list, head, a, now) {
   head.hidden = list.hidden = !a.background.length;
@@ -1071,8 +1089,8 @@ function renderBackground(list, head, a, now) {
     li.firstChild.setAttribute('aria-hidden', 'true');
     return li;
   }, (li, b) => {
-    text(li.children[1], b.label); text(li.children[2], `${BACKGROUND_LABEL[b.kind]} ・ ${ago(now - b.startedAt)}`);
-    li.children[1].title = b.label;
+    text(li.children[1], backgroundText(b)); text(li.children[2], `${BACKGROUND_LABEL[b.kind]} ・ ${backgroundSteps(b)}${ago(now - b.startedAt)}`);
+    li.children[1].title = backgroundText(b);
   });
 }
 
@@ -1146,6 +1164,7 @@ function renderFocus() {
   $('fDeny').hidden = !a.canRespond; $('fApprove').hidden = !a.canRespond;
   renderFlow($('fOps'), a, a.flow.length || 1);
   renderBackground($('fBg'), $('fBgHead'), a, now);
+  renderSummary($('fSum'), a);
 }
 
 function renderDetail(a) {
@@ -1162,6 +1181,7 @@ function renderDetail(a) {
   setNumber($('dBigNum'), a.turnSteps);
   renderFlow($('dOps'), a, DETAIL_FLOW);
   renderBackground($('dBg'), $('dBgHead'), a, now);
+  renderSummary($('dSum'), a);
   text($('dElapsed'), fmt(elapsedOf(a, now)));
   text($('dLines'), '+' + num(a.lines));
   text($('dTests'), num(a.tests));
