@@ -93,6 +93,8 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .row:hover{transform:translate(-2px,-2px)}
 .row:has(.pop,.party,.stamp,.bit){z-index:3}
 .row.sel{box-shadow:8px 8px 0 #FFFFFF}
+.row.is-unseen{border-color:var(--done)}
+.row.is-unseen .ract{height:auto;min-height:1.4em;white-space:normal;overflow-wrap:anywhere}
 .row.is-wait{background:var(--wait);color:#2A1200;animation:waitpulse 1s ease-in-out infinite}
 .row.zap{animation:rowzap .5s ease-out}
 .row.boing{animation:rowboing .7s cubic-bezier(.2,.9,.3,1.8)}
@@ -1015,19 +1017,22 @@ function updateRow(el, a) {
   el.classList.toggle('is-wait', a.state === 'wait');
   el.classList.toggle('is-work', WORKING.has(a.state));
   el.classList.toggle('rest', a.group === 'rest');
+  // 終わったのに、まだ herdr で見ていないセッション。何をすればよいかを行の中で言う
+  const unseen = a.group === 'need' && a.state === 'done';
+  el.classList.toggle('is-unseen', unseen);
   const where = herdrLine(a);
   r.sel.setAttribute('aria-label', `${[a.name, where].filter(Boolean).join(' ')} の詳細を表示`);
   r.sel.setAttribute('aria-pressed', String(a.key === selectedKey));
   text(r.who, where || a.name);
   r.who.title = where || a.name;
   text(r.sub, [a.name, a.branch].filter(Boolean).join(' ・ '));
-  text(r.chip, st.label);
+  text(r.chip, unseen ? '完了・未確認' : st.label);
   text(r.since, sinceOf(a, serverNow()));
   text(r.say, a.state === 'wait' ? activityOf(a) : sayOf(a));
   r.say.classList.toggle('none', a.state !== 'wait' && !a.say);
   r.say.title = r.say.textContent;
   const what = a.state === 'wait' ? '' : activityOf(a);
-  text(r.act, what ? '▶ ' + what : (a.title ? `指示: ${a.title}` : ''));
+  text(r.act, unseen ? '結果をまだ見ていません。herdr で開いて確かめてください' : what ? '▶ ' + what : (a.title ? `指示: ${a.title}` : ''));
   r.act.title = r.act.textContent;
   const bg = a.background;
   r.bg.hidden = !bg.length;
@@ -1047,7 +1052,7 @@ function updateRow(el, a) {
   r.fire.title = `${a.run}ステップ連続で進行中`;
   updateMix(r.mix, null, a.kinds, WORKING.has(a.state) ? KIND_OF_STATE[a.state] : '', true);
   r.deny.hidden = !a.canRespond; r.approve.hidden = !a.canRespond;
-  r.open.hidden = !(a.state === 'wait' && !a.canRespond && a.pane);
+  r.open.hidden = !(((a.state === 'wait' && !a.canRespond) || unseen) && a.pane);
   r.btns.hidden = r.deny.hidden && r.open.hidden;
 }
 

@@ -507,3 +507,12 @@ test('許可待ちは裏で作業が動いていても対応が要るものに�
   core.handleHook('p1', { hook_event_name: 'SessionEnd', session_id: 's-p1' });
   assert.deepEqual(agentOf(core, 'p1').background, []);
 });
+
+test('裏の作業が終わった通知が指示として届いたら、題は記号のままにせず言葉にする', () => {
+  const { core } = setup();
+  core.setHerdrAgents([herdr('p1', 'working')]);
+  prompt(core, 'p1', '<task-notification>\n<task-id>b77</task-id>\n<status>completed</status>\n<summary>Background command "x" completed</summary>\n</task-notification>');
+  assert.equal(agentOf(core, 'p1').title, '裏で動いていた作業の結果を受けて続行');
+  prompt(core, 'p1', ' ログインを\n直して ');
+  assert.equal(agentOf(core, 'p1').title, 'ログインを 直して');
+});

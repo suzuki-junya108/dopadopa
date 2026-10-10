@@ -85,6 +85,12 @@ function countPassedTests(text) {
 }
 
 // Claude の説明文は Markdown で書かれる。カードに出すのは地の文だけなので、見出し・表・コードの塊を落とす
+// 裏で動いていた作業が終わると、その通知が指示と同じ形で届く。記号のままでは読めないので言葉にする
+const RESUME_TITLE = '裏で動いていた作業の結果を受けて続行';
+function promptTitle(prompt) {
+  const text = String(prompt || '').replace(/\s+/g, ' ').trim();
+  return text.startsWith('<task-notification>') ? RESUME_TITLE : text.slice(0, TITLE_MAX);
+}
 function plainText(markdown) {
   const kept = [];
   let inCode = false;
@@ -383,7 +389,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
 
     switch (ev.hook_event_name) {
       case 'UserPromptSubmit': {
-        const title = String(ev.prompt || '').replace(/\s+/g, ' ').trim().slice(0, TITLE_MAX);
+        const title = promptTitle(ev.prompt);
         // フックなしのセッションは herdr の状態で先に区切りが始まっていることがある。そのときは数字を消さず題だけ入れる
         if (derived && a.turnOpen && a.turnSteps === 0) a.title = title;
         else openTurn(a, title);
