@@ -15,7 +15,8 @@ const path = require('node:path');
 const os = require('node:os');
 const crypto = require('node:crypto');
 const { spawn } = require('node:child_process');
-const { createCore, createRepeatFilter, backgroundEvent } = require('./core.js');
+const readline = require('node:readline');
+const { createCore, createRepeatFilter, backgroundEvent, sideEvent, describe } = require('./core.js');
 const { findTerminalApp } = require('./terminal.js');
 
 const PORT = Number(process.env.DOPADOPA_PORT || 4517);
@@ -43,6 +44,9 @@ const TRANSCRIPT_TAIL_BYTES = 256 * 1024;
 const TRANSCRIPT_FORGET_MS = 10 * 60 * 1000;
 const TRANSCRIPT_PENDING_TOOLS_MAX = 200;
 const NEWLINE = 0x0a;
+const SUBAGENT_ID = /^[A-Za-z0-9_-]{1,64}$/;
+// 裏で動く作業の始まり・終わりの行にだけ現れる文字列。数百 MB の記録を 1 行ずつ JSON にすると重いので、先にこれでふるう
+const BACKGROUND_HINTS = ['backgroundTaskId', 'async_launched', '<task-notification>', '"task_id"', '"taskId"'];
 
 fs.mkdirSync(RUNTIME, { recursive: true, mode: 0o700 });
 fs.mkdirSync(STATE_DIR, { recursive: true, mode: 0o700 });
@@ -176,7 +180,8 @@ function transcriptItems(line, tools) {
   try { e = JSON.parse(line); } catch { return []; }
   // 道具の呼び出しは下で消すので、裏で動く作業の始まりと終わりは先に読む
   const bg = backgroundEvent(e, (id) => tools.get(id));
-  return (bg ? [{ bg }] : []).concat(transcriptMessageItems(e, tools));
+  const side = sideEvent(e);
+  return (bg ? [{ bg }] : []).concat(side ? [{ side }] : [], transcriptMessageItems(e, tools));
 }
 function transcriptMessageItems(e, tools) {
   // サブエージェントの発言・画面に出ない補助行・要約の差し込みは、そのセッションの「いま」ではない
@@ -228,11 +233,87 @@ async function lastNarration(file, size) {
   }
 }
 
+// ブリッジを起動し直しても、動き続けている裏の作業を出せるよう、会話記録の全体から「始まったが終わっていない」ものを探す。
+// 最後まで読まないと終わったかどうかが分からないので、先頭から size まですべて読む（流し読みで、メモリには載せない）
+async function eachLine(file, size, onLine) {
+  if (size <= 0) return;
+  const rl = readline.createInterface({ input: fs.createReadStream(file, { end: size - 1 }), crlfDelay: Infinity });
+  for await (const line of rl) onLine(line);
+}
+async function restoreBackground(sessionId, file, size) {
+  const open = new Map(); // 作業の ID -> { e, useId }
+  await eachLine(file, size, (line) => {
+    if (!BACKGROUND_HINTS.some((h) => line.includes(h))) return;
+    let e;
+    try { e = JSON.parse(line); } catch { return; }
+    const ev = backgroundEvent(e);
+    if (!ev) return;
+    if (ev.end) { open.delete(ev.end.id); return; }
+    if (!ev.start) return;
+    const content = e.message && e.message.content;
+    const result = Array.isArray(content) ? content.find((b) => b && b.type === 'tool_result') : null;
+    open.set(ev.start.id, { e, useId: result ? result.tool_use_id : '' });
+  });
+  if (!open.size) return;
+  // コマンドと見張りの内容は、呼び出しの行にしか無い。残ったものの呼び出しだけを探しに、もう一度読む
+  const wanted = new Set([...open.values()].map((o) => o.useId).filter(Boolean));
+  const uses = new Map();
+  if (wanted.size) {
+    await eachLine(file, size, (line) => {
+      if (![...wanted].some((id) => line.includes(id))) return;
+      let e;
+      try { e = JSON.parse(line); } catch { return; }
+      const content = e && e.message && e.message.content;
+      if (e.type !== 'assistant' || !Array.isArray(content)) return;
+      for (const b of content) if (b && b.type === 'tool_use' && wanted.has(b.id)) uses.set(b.id, { name: b.name, input: b.input || {} });
+    });
+  }
+  for (const { e } of open.values()) {
+    const at = Date.parse(e.timestamp);
+    core.handleBackground(sessionId, backgroundEvent(e, (id) => uses.get(id)), { restoredAt: Number.isFinite(at) ? at : Date.now() });
+  }
+}
+
+// サブエージェントは自分の会話記録（<セッションID>/subagents/agent-<ID>.jsonl）を持つ。動いている分だけ追い、操作の数といまの操作を読む
+async function followSubagents(sessionId, st) {
+  const ids = core.openSubagents(sessionId);
+  for (const id of st.subs.keys()) if (!ids.includes(id)) st.subs.delete(id);
+  for (const id of ids) {
+    if (!SUBAGENT_ID.test(id)) continue;
+    let sub = st.subs.get(id);
+    if (!sub) { sub = { offset: 0, rest: Buffer.alloc(0), steps: 0, activity: '' }; st.subs.set(id, sub); }
+    const file = path.join(st.file.replace(/\.jsonl$/, ''), 'subagents', `agent-${id}.jsonl`);
+    let size;
+    try { ({ size } = await fs.promises.stat(file)); } catch { continue; } // まだ書かれていない
+    if (size < sub.offset) { sub.offset = 0; sub.rest = Buffer.alloc(0); sub.steps = 0; }
+    if (size === sub.offset) continue;
+    const chunk = await readRange(file, sub.offset, size);
+    sub.offset += chunk.length;
+    const all = Buffer.concat([sub.rest, chunk]);
+    const cut = all.lastIndexOf(NEWLINE);
+    sub.rest = all.subarray(cut + 1);
+    if (cut < 0) continue;
+    for (const line of all.subarray(0, cut).toString('utf8').split('\n')) {
+      if (!line.includes('"tool_use"')) continue;
+      let e;
+      try { e = JSON.parse(line); } catch { continue; }
+      const content = e && e.message && e.message.content;
+      if (e.type !== 'assistant' || !Array.isArray(content)) continue;
+      for (const b of content) {
+        if (!b || b.type !== 'tool_use') continue;
+        sub.steps++;
+        sub.activity = describe(b.name, b.input || {});
+      }
+    }
+    core.handleSubagent(sessionId, id, { steps: sub.steps, activity: sub.activity });
+  }
+}
+
 // alive = herdr かフックがそのセッションをいま見せた。定期の読み直しでは寿命を延ばさない
 async function followTranscript(sessionId, alive = true) {
   if (!SESSION_ID.test(String(sessionId || ''))) return;
   let st = transcripts.get(sessionId);
-  if (!st) { st = { file: '', offset: null, rest: Buffer.alloc(0), busy: false, lookedAt: 0, seenAt: 0, tools: new Map() }; transcripts.set(sessionId, st); }
+  if (!st) { st = { file: '', offset: null, rest: Buffer.alloc(0), busy: false, lookedAt: 0, seenAt: 0, tools: new Map(), subs: new Map() }; transcripts.set(sessionId, st); }
   if (alive) st.seenAt = Date.now();
   if (st.busy) return;
   st.busy = true;
@@ -248,8 +329,10 @@ async function followTranscript(sessionId, alive = true) {
       st.offset = size;
       const text = await lastNarration(st.file, size);
       if (text) core.addNarration(sessionId, text, { initial: true });
+      await restoreBackground(sessionId, st.file, size);
       return;
     }
+    await followSubagents(sessionId, st);
     if (size < st.offset) { st.offset = 0; st.rest = Buffer.alloc(0); } // 作り直された
     if (size === st.offset) return;
     const chunk = await readRange(st.file, st.offset, size);
@@ -264,6 +347,7 @@ async function followTranscript(sessionId, alive = true) {
       for (const it of transcriptItems(line, st.tools)) {
         if (it.say) core.addNarration(sessionId, it.say);
         else if (it.bg) core.handleBackground(sessionId, it.bg);
+        else if (it.side) core.handleSide(sessionId, it.side);
         else core.handleDerived(sessionId, it.hook);
       }
     }

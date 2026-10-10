@@ -23,7 +23,14 @@ const FLOW_MAX = 14;
 const TITLE_MAX = 120;
 const SAY_MAX = 280;
 const BACKGROUND_MAX = 50;
-const BACKGROUND_LABEL = { agent: 'サブエージェント', command: 'バックグラウンドのコマンド' };
+const BACKGROUND_LABEL = { agent: 'サブエージェント', command: 'バックグラウンドのコマンド', monitor: '見張り' };
+// 起動し直したときに会話記録から戻す作業の古さの上限。実測（2026-10-10、30 日分の開始 561 回）: 終わりの記録が無い 5 回は
+// どれも開始から 42 時間以上あとまで記録が続いていた（動いていない）。実際に 24 時間を超えて動いた作業は 1% 未満
+const RESTORE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+// 見張りは決めた時間で自分から終わる。終わりの行が届かなかったときに、この余裕を過ぎたら消す
+const MONITOR_GRACE_MS = 60 * 1000;
+const SUMMARY_MAX = 400;
+const QUEUE_MAX = 100;
 // 実測でコマンドの説明は最長 126 文字。途中で切らずに渡し、何行見せるかは画面が決める
 const OP_TEXT_MAX = 130;
 const PACE_WINDOW_MS = 60 * 1000;
@@ -150,7 +157,12 @@ function backgroundEvent(e, toolOf = () => null) {
     if (e.operation !== 'enqueue' || typeof e.content !== 'string' || !e.content.includes('<task-notification>')) return null;
     const id = (e.content.match(/<task-id>([^<]+)</) || [])[1];
     const status = (e.content.match(/<status>([^<]+)</) || [])[1];
-    return id && BACKGROUND_END.has(status) ? { end: { id, status } } : null;
+    if (id && BACKGROUND_END.has(status)) return { end: { id, status } };
+    // 状態のない通知は、見張りが拾った途中経過
+    // 途中経過の中身は <event>。<summary> は見張りの名前の繰り返しなので、<event> が無いときだけ使う
+    const body = (e.content.match(/<event>([\s\S]*?)<\/event>/) || e.content.match(/<summary>([\s\S]*?)<\/summary>/) || [])[1];
+    const text = String(body || '').replace(/^\s*Monitor event:\s*/, '').replace(/^"|"$/g, '').replace(/\s+/g, ' ').trim();
+    return id && !status && text ? { note: { id, text: text.slice(0, OP_TEXT_MAX) } } : null;
   }
   const r = e.toolUseResult;
   if (e.type !== 'user' || !r || typeof r !== 'object') return null;
@@ -159,14 +171,37 @@ function backgroundEvent(e, toolOf = () => null) {
   }
   const content = e.message && e.message.content;
   const result = Array.isArray(content) ? content.find((b) => b && b.type === 'tool_result') : null;
-  if (r.backgroundTaskId) {
-    const use = (result && toolOf(result.tool_use_id)) || {};
-    const input = use.input || {};
-    const label = input.description ? String(input.description).replace(/\s+/g, ' ').trim() : firstLine(input.command);
-    return { start: { id: String(r.backgroundTaskId), kind: 'command', label: label.slice(0, OP_TEXT_MAX) } };
+  const labelOf = () => {
+    const input = ((result && toolOf(result.tool_use_id)) || {}).input || {};
+    return (input.description ? String(input.description).replace(/\s+/g, ' ').trim() : firstLine(input.command)).slice(0, OP_TEXT_MAX);
+  };
+  if (r.backgroundTaskId) return { start: { id: String(r.backgroundTaskId), kind: 'command', label: labelOf() } };
+  // 見張り（Monitor）。ログや公開の状況を裏で見続け、変化があるたびに途中経過を知らせる
+  if (r.taskId && r.timeoutMs !== undefined) {
+    return { start: { id: String(r.taskId), kind: 'monitor', label: labelOf(), timeoutMs: Number(r.timeoutMs) || 0, persistent: r.persistent === true } };
   }
   // 止める操作（TaskStop）の結果。失敗した停止は、まだ動いているので終わりにしない
   if (r.task_id && r.task_type && !(result && result.is_error)) return { end: { id: String(r.task_id), status: 'killed' } };
+  return null;
+}
+
+// 会話記録の 1 行から、順番待ちの指示・会話の要約・ここまでのまとめを読む
+function sideEvent(e) {
+  if (!e || typeof e !== 'object' || e.isSidechain) return null;
+  if (e.type === 'queue-operation') {
+    // <...> で始まるものは通知やサブエージェントの報告で、人が打った指示ではない
+    const user = typeof e.content === 'string' && !e.content.trimStart().startsWith('<');
+    if (e.operation === 'enqueue') return { queue: { op: 'add', user } };
+    if (e.operation === 'dequeue') return { queue: { op: 'take' } };
+    if (e.operation === 'remove') return { queue: { op: 'drop', user } };
+    return null;
+  }
+  if (e.type !== 'system') return null;
+  if (e.subtype === 'compact_boundary') {
+    const ms = Number(e.compactMetadata && e.compactMetadata.durationMs) || 0;
+    return { compact: { seconds: Math.round(ms / 1000) } };
+  }
+  if (e.subtype === 'away_summary' && typeof e.content === 'string' && e.content.trim()) return { summary: e.content };
   return null;
 }
 
@@ -212,7 +247,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       status: 'unknown', hooked: false, terminalTitle: '', place: '',
       title: '', activity: '', notice: '', mode: 'think', failing: false,
       turnOpen: false, turnStartedAt: null, doneAt: null, activeAt: 0, blockedSince: null, responded: false,
-      turnSteps: 0, run: 0, lines: 0, tests: 0, kinds: blankKinds(), say: '', sayAt: null, flow: [], pending: new Map(), background: new Map(),
+      turnSteps: 0, run: 0, lines: 0, tests: 0, kinds: blankKinds(), say: '', sayAt: null, flow: [], pending: new Map(), background: new Map(), queue: [], summary: '',
     };
   }
   function getAgent(key) {
@@ -257,6 +292,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     a.turnSteps = 0; a.lines = 0; a.tests = 0; a.kinds = blankKinds(); a.flow = []; a.say = ''; a.sayAt = null;
     a.failing = false;
     a.pending.clear();
+    a.summary = '';
     if (title !== undefined) a.title = title;
   }
 
@@ -450,6 +486,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       case 'SessionEnd':
         // Claude Code が終わると、裏の作業も一緒に終わる
         a.background.clear();
+        a.queue = [];
         if (paneless) agents.delete(a.key);
         break;
     }
@@ -470,13 +507,18 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     onChange();
   }
   // 裏で動く作業。指示への対応が終わったあとも動き続け、終わると Claude が自分で続きを始める
-  function handleBackground(sessionId, ev) {
+  // restoredAt = ブリッジを起動し直したときに、会話記録から戻した作業の開始時刻。出来事としては知らせない
+  function handleBackground(sessionId, ev, { restoredAt = null } = {}) {
     const a = agents.get(sessionToKey.get(sessionId));
     if (!a || !ev) return;
     if (ev.start) {
       if (a.background.has(ev.start.id)) return;
-      a.background.set(ev.start.id, { kind: ev.start.kind, label: ev.start.label, startedAt: now() });
+      const { id, ...rest } = ev.start;
+      const b = { ...rest, startedAt: restoredAt === null ? now() : restoredAt, steps: 0, activity: '' };
+      if (restoredAt !== null && (now() - restoredAt > RESTORE_MAX_AGE_MS || expired(b))) return;
+      a.background.set(id, b);
       if (a.background.size > BACKGROUND_MAX) a.background.delete(a.background.keys().next().value);
+      if (restoredAt !== null) { onChange(); return; }
       pushFeed(a.name, `${BACKGROUND_LABEL[ev.start.kind]}を開始: ${ev.start.label}`, 'think');
       send('background', a, { phase: 'start', work: ev.start.kind, label: ev.start.label, left: a.background.size });
     } else if (ev.end) {
@@ -487,6 +529,43 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
       const how = ok ? '完了' : ev.end.status === 'failed' ? '失敗' : '停止';
       pushFeed(a.name, `${BACKGROUND_LABEL[b.kind]}が${how}: ${b.label}`, ok ? 'done' : 'error');
       send('background', a, { phase: 'end', work: b.kind, label: b.label, status: ev.end.status, seconds: Math.round((now() - b.startedAt) / 1000), left: a.background.size });
+    } else if (ev.note) {
+      const b = a.background.get(ev.note.id);
+      if (!b) return;
+      b.activity = ev.note.text;
+    } else {
+      return;
+    }
+    onChange();
+  }
+  const expired = (b) => b.kind === 'monitor' && !b.persistent && b.timeoutMs > 0 && now() - b.startedAt > b.timeoutMs + MONITOR_GRACE_MS;
+  // サブエージェントが中でしている操作（サブエージェント自身の会話記録から読む）
+  function handleSubagent(sessionId, id, { steps, activity }) {
+    const a = agents.get(sessionToKey.get(sessionId));
+    const b = a && a.background.get(id);
+    if (!b || (b.steps === steps && b.activity === activity)) return;
+    b.steps = steps;
+    b.activity = activity;
+    onChange();
+  }
+  function openSubagents(sessionId) {
+    const a = agents.get(sessionToKey.get(sessionId));
+    return a ? [...a.background].filter(([, b]) => b.kind === 'agent').map(([id]) => id) : [];
+  }
+  function handleSide(sessionId, ev) {
+    const a = agents.get(sessionToKey.get(sessionId));
+    if (!a || !ev) return;
+    if (ev.queue) {
+      const q = ev.queue;
+      if (q.op === 'add') { a.queue.push(q.user); if (a.queue.length > QUEUE_MAX) a.queue.shift(); }
+      else if (q.op === 'take') a.queue.shift();
+      else { const i = a.queue.indexOf(q.user); if (i >= 0) a.queue.splice(i, 1); }
+    } else if (ev.compact) {
+      const text = ev.compact.seconds ? `会話を要約しました（${ev.compact.seconds} 秒）` : '会話を要約しました';
+      pushFlow(a, { kind: 'op', text, ok: true });
+      pushFeed(a.name, text, 'think');
+    } else if (ev.summary) {
+      a.summary = plainText(ev.summary).slice(0, SUMMARY_MAX);
     } else {
       return;
     }
@@ -562,11 +641,13 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     const order = { wait: 0, error: 2, think: 2, edit: 2, run: 2, test: 2, done: 3, idle: 4 };
     const rank = (x) => (x.state === 'done' && x.group === 'need' ? 1 : order[x.state]);
     const list = [...agents.values()].map((a) => {
+      for (const [id, b] of a.background) if (expired(b)) a.background.delete(id);
       const state = displayState(a);
       const ask = a.status === 'blocked' ? currentAsk(a) : null;
       return {
         key: a.key, pane: a.pane, name: a.name, branch: a.branch, state, group: groupOf(a, state),
-        background: [...a.background].map(([id, b]) => ({ id, ...b })),
+        background: [...a.background].map(([id, b]) => ({ id, kind: b.kind, label: b.label, startedAt: b.startedAt, steps: b.steps, activity: b.activity })),
+        queued: a.queue.filter(Boolean).length, summary: a.summary,
         title: a.title, herdrTitle: a.terminalTitle, place: a.place,
         activity: a.activity, notice: a.status === 'blocked' ? waitNotice(a, ask) : '',
         ask: ask && ask.canRespond ? ask.text : '', canRespond: canRespond(a.key),
@@ -634,7 +715,7 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     return true;
   }
 
-  return { handleHook, handleDerived, handleBackground, addNarration, setHerdrAgents, setPaneStatus, recordResponse, canRespond, tick, snapshot, exportStats, importStats, agents, dayKey: () => today.day };
+  return { handleHook, handleDerived, handleBackground, handleSubagent, openSubagents, handleSide, addNarration, setHerdrAgents, setPaneStatus, recordResponse, canRespond, tick, snapshot, exportStats, importStats, agents, dayKey: () => today.day };
 }
 
 // 同じ内容が短い間に続けて届いたら、2 通目以降を知らせる。二重に入ったフックでステップを倍に数えないため
@@ -657,4 +738,4 @@ function createRepeatFilter({ windowMs = REPEAT_WINDOW_MS, now = Date.now } = {}
   };
 }
 
-module.exports = { createCore, createRepeatFilter, REPEAT_WINDOW_MS, herdrPlace, backgroundEvent, dayKeyOf, plainText, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, SMALL_MARK_STEPS, TURN_MARK_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };
+module.exports = { createCore, createRepeatFilter, REPEAT_WINDOW_MS, herdrPlace, backgroundEvent, sideEvent, describe, dayKeyOf, plainText, isTestCommand, countPassedTests, changedLines, MILESTONE_STEPS, SMALL_MARK_STEPS, TURN_MARK_STEPS, STREAK_MARKS, GOAL_START, GOAL_INCREMENT };

@@ -19,7 +19,7 @@
 
 会話記録のファイルは、herdr の `agent_session.value`（またはフックの `session_id`）をファイル名として探す。ID の形（UUID）に合わないものは読まない。ボードを開いた時点より前の内容は数えず、最後の説明文だけを末尾から拾う。サブエージェントの発言（`isSidechain`）・補助行（`isMeta`）・要約の差し込みは使わない。
 
-### 裏で動く作業（サブエージェント・バックグラウンドのコマンド）
+### 裏で動く作業（サブエージェント・バックグラウンドのコマンド・見張り）
 
 フックを増やさず、会話記録だけから読む（フックを増やすと、利用者がフックを入れ直すまで出ない。フックの有無で数え方が変わることもない）。
 
@@ -27,12 +27,27 @@
 |---|---|
 | サブエージェントの開始 | 道具の結果の行で `toolUseResult.status` が `async_launched`、`toolUseResult.agentId` がある。内容は `toolUseResult.description` |
 | バックグラウンドのコマンドの開始 | 道具の結果の行に `toolUseResult.backgroundTaskId` がある（裏で動かす指定のほか、長く掛かって自動で裏に回ったコマンドも同じ形）。内容は呼び出しの `description`、無ければコマンドの 1 行目 |
-| 終了 | `type` が `queue-operation`、`operation` が `enqueue` で、`content` が `<task-notification>` を含み、`<task-id>` と `<status>`（`completed` / `failed` / `killed`）を持つ行。`<status>` のない通知は途中経過なので使わない |
+| 見張り（Monitor）の開始 | 道具の結果の行に `toolUseResult.taskId` と `toolUseResult.timeoutMs` がある。内容は呼び出しの `description`、無ければコマンドの 1 行目 |
+| 見張りの途中経過 | 終了と同じ形の通知で、`<task-id>` はあるが `<status>` がない行。中身は `<event>`（無ければ `<summary>`） |
+| 終了 | `type` が `queue-operation`、`operation` が `enqueue` で、`content` が `<task-notification>` を含み、`<task-id>` と `<status>`（`completed` / `failed` / `killed`）を持つ行 |
 | 止めた | 道具の結果の行で `toolUseResult.task_id` と `toolUseResult.task_type` がある（止める操作の結果）。失敗した停止は使わない |
 
 - 実測（2026-10-10、直近 3 日の会話記録 84 本）: サブエージェントの開始 20 回はすべて終了の通知があり、通知の `<task-id>` は `agentId` と一致した。バックグラウンドのコマンドの開始 188 回は、終了の通知 170 回と止める操作 18 回で、終わりの残らないものは 0 回だった。終了までは中央値 389 秒・上位 1 割で 3,660 秒
+### 順番待ちの指示・会話の要約・ここまでのまとめ
+
+| 出すもの | 会話記録の行 |
+|---|---|
+| 順番待ちの指示の数 | `type` が `queue-operation` の行。`enqueue` で列に足し、`dequeue` で先頭を取り、`remove` で 1 件外す。数えるのは `content` が `<` で始まらないもの（`<` で始まるものは通知やサブエージェントの報告）。実測（直近 3 日）: `enqueue` 381 回、`dequeue` 218 回、`remove` 161 回 |
+| 会話を要約しました | `type` が `system`、`subtype` が `compact_boundary` の行。掛かった時間は `compactMetadata.durationMs`。実測: 62 回。要約の最中を示す行は無い（直前の行との間隔は中央値 1 秒） |
+| ここまでのまとめ | `type` が `system`、`subtype` が `away_summary` の行の `content`（400 文字まで）。実測: 189 回 |
+
+- 順番待ちの数は、ブリッジが起動したあとの行だけで数える（起動より前から待っている指示は数に入らない）
+
 - 終了の通知は、指示と同じ形（`UserPromptSubmit`）でも届く。そのときの指示の題は、通知の中身ではなく「裏で動いていた作業の結果を受けて続行」にする
-- ブリッジが起動する前に始まった作業は出さない（会話記録をさかのぼって読まないため。終わりの行だけが届いたものは捨てる）
+- 見張りの実測（2026-10-10、直近 3 日）: 開始 14 回のうち、終了の通知 9 回・止める操作 3 回・終わりの残らないもの 2 回。常駐でない見張りは、決めた時間（`timeoutMs`）に 60 秒足した時刻を過ぎたら消す
+- サブエージェントの中身は、サブエージェント自身の会話記録（`<会話記録と同じ場所>/<セッションID>/subagents/agent-<ID>.jsonl`）から読む。動いている分だけを毎秒追い、道具の呼び出し 1 回を 1 操作と数え、最後の呼び出しを「いまの操作」にする。実測（直近 3 日）: サブエージェントの記録 29 本に、道具の呼び出しが 1,227 回あった。ステップには足さない
+- ブリッジを起動し直したときは、そのセッションの会話記録を先頭から最後まで読み、始まって終わっていない作業を元の開始時刻で戻す（数百 MB になることがあるので、流し読みにし、該当しそうな行だけを JSON として読む）。戻した分は出来事として知らせない
+- 戻すのは、開始から 24 時間以内のものだけ。実測（30 日分の開始 561 回）: 終わりの記録が無い 5 回は、どれも開始から 42 時間以上あとまで記録が続いていた（Claude Code を起動し直すなどで、実際には動いていない）。実際に動いた時間は中央値 5.6 分・上位 1% で 1,192 分・最大 4,441 分で、24 時間を超えて動く作業は戻らない
 - サブエージェントの中で始まった作業（`isSidechain` の行）は数えない
 - Claude Code が終わったとき（`SessionEnd`）と、ペインが herdr から消えたときは、残っている分を消す。終わりの行が書かれないまま Claude Code が落ちると、ペインが消えるまで残る
 - 1 セッションに持つのは 50 件まで（超えたら古いものから捨てる）
@@ -109,5 +124,5 @@
 `GET /stream` に、1 行 1 件の JSON を `data:` で送る。
 
 - スナップショット（`type: "snapshot"`、変化があったとき、最大で毎秒）: セッション一覧、今日の数、目標、最近の出来事。時間とともに進む表示（経過・待ち時間・連続のバー）は、時刻を渡して画面側で進める
-- イベント（`type: "event"`、起きた瞬間）: `kind` が `step` / `turn_mark` / `mark` / `task` / `tests` / `milestone` / `goal` / `streak` / `streak_reset` / `approved` / `blocked` / `error` / `mission` / `background`。`background` は `phase`（`start` / `end`）・`work`（`agent` / `command`）・`label`・`left`（まだ動いている件数）、終わりでは `status` と `seconds` も持つ。`step` は `run`（そのセッションの連続数。音の高さに使う）・`stepKind`（内訳の種類）・`first`（いまの指示でその種類の最初の 1 回か）、`task` は `steps` と `seconds`、`tests` は `passed`（読み取れた通過件数）と `recovered`（失敗のあとの通過か）を持つ。`tests` は通過件数が読み取れたときか、失敗のあとに通ったときだけ出す。`turn_mark` は `turnSteps`、`mark` は `steps` と `next`（次の大きな区切り）を持ち、どちらも同じステップの `step` より後に送る
+- イベント（`type: "event"`、起きた瞬間）: `kind` が `step` / `turn_mark` / `mark` / `task` / `tests` / `milestone` / `goal` / `streak` / `streak_reset` / `approved` / `blocked` / `error` / `mission` / `background`。スナップショットの各セッションは `background`（`id`・`kind`・`label`・`startedAt`・`steps`・`activity`）・`queued`・`summary` を持つ。`background` は `phase`（`start` / `end`）・`work`（`agent` / `command`）・`label`・`left`（まだ動いている件数）、終わりでは `status` と `seconds` も持つ。`step` は `run`（そのセッションの連続数。音の高さに使う）・`stepKind`（内訳の種類）・`first`（いまの指示でその種類の最初の 1 回か）、`task` は `steps` と `seconds`、`tests` は `passed`（読み取れた通過件数）と `recovered`（失敗のあとの通過か）を持つ。`tests` は通過件数が読み取れたときか、失敗のあとに通ったときだけ出す。`turn_mark` は `turnSteps`、`mark` は `steps` と `next`（次の大きな区切り）を持ち、どちらも同じステップの `step` より後に送る
   - UI はスナップショットで表示を更新し、イベントで演出だけを起こす
