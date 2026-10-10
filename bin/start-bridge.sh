@@ -17,12 +17,15 @@ is_running() {
   [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null
 }
 
+# 止めたブリッジの合言葉を残すと、「ボードを開く」が使えない URL を作る。合言葉も消し、ポートが空くまで待つ
+STOP_TRIES=30
 stop_bridge() {
   if is_running; then
     kill "$(cat "$PIDFILE")" 2>/dev/null || true
-    sleep 0.3
+    i=0
+    while is_running && [ "$i" -lt "$STOP_TRIES" ]; do sleep 0.1; i=$((i + 1)); done
   fi
-  rm -f "$PIDFILE"
+  rm -f "$PIDFILE" "$HOME/.dopadopa/token"
 }
 
 case "${1:-}" in
