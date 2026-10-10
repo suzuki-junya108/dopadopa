@@ -274,7 +274,8 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
     if (!status || status === a.status) return;
     const prev = a.status;
     a.status = status;
-    a.activeAt = now();
+    // 初めて見たセッションは、いつからその状態なのか分からない。動いていたかのような時刻を作らない
+    if (prev !== 'unknown' || status === 'working') a.activeAt = now();
     if (status === 'blocked') {
       a.blockedSince = now();
       const ask = currentAsk(a);
@@ -487,7 +488,8 @@ function createCore({ now = Date.now, streakMs = DEFAULT_STREAK_MS, emit = () =>
   // herdr の done は「終わったが、まだ見ていない」、idle は「見た」。見ていない完了は、あなたの対応が要るものとして上に出す
   function groupOf(a, state) {
     if (state === 'wait' || a.status === 'done') return 'need';
-    return state === 'error' || WORKING_STATES.has(state) ? 'work' : 'rest';
+    // Stop が届いてから herdr が見た・見ていないを知らせるまでの短い間は、動いているものの中に置いたままにする（行き先が決まる前に動かさない）
+    return a.status === 'working' || state === 'error' || WORKING_STATES.has(state) ? 'work' : 'rest';
   }
 
   function snapshot() {

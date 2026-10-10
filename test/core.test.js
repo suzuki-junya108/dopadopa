@@ -414,3 +414,27 @@ test('herdr の題名は指示が届いても残り、場所の名前はタブ�
   assert.equal(herdrPlace({}), '');
   assert.equal(herdrPlace(), '');
 });
+
+test('許可待ちと、終わってまだ見ていないセッションを、対応が要るものとして先に並べる', () => {
+  const { core, clock } = setup();
+  const all = (statuses) => statuses.map((st, i) => herdr('p' + (i + 1), st, { name: 'abcde'[i] }));
+  core.setHerdrAgents(all(['working', 'working', 'working', 'working', 'idle']));
+  prompt(core, 'p1', 'x'); clock.t += 1000;
+  prompt(core, 'p2', 'x'); clock.t += 1000;
+  prompt(core, 'p3', 'x'); clock.t += 1000;
+  prompt(core, 'p4', 'x'); clock.t += 1000;
+  stop(core, 'p1'); stop(core, 'p2');
+  assert.equal(agentOf(core, 'p1').group, 'work', 'herdr が見た・見ていないを知らせるまでは動かさない');
+  // herdr の done は「まだ見ていない」、idle は「見た」
+  core.setHerdrAgents(all(['done', 'idle', 'blocked', 'working', 'idle']));
+  const groups = core.snapshot().agents.map((a) => `${a.name}:${a.group}:${a.state}`);
+  assert.deepEqual(groups, ['c:need:wait', 'a:need:done', 'd:work:think', 'b:rest:done', 'e:rest:idle']);
+});
+
+test('ブリッジを起動し直して完了の時刻が無くても、herdr が done と言うセッションは完了として出す', () => {
+  const { core } = setup();
+  core.setHerdrAgents([herdr('p1', 'done')]);
+  const a = agentOf(core, 'p1');
+  assert.equal(a.state, 'done');
+  assert.equal(a.group, 'need');
+});

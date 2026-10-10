@@ -84,9 +84,9 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .rows{display:flex;flex-wrap:wrap;gap:8px 12px;padding:0 10px 8px 0}
 .sect,.row{flex:0 0 100%;min-width:0}
 .empty{color:var(--sub);font-weight:800;padding:32px 16px;text-align:center}
-.sect{display:flex;align-items:baseline;gap:10px;margin-top:2px;font-family:var(--f-head);font-size:15px;color:var(--soft)}
+.sect{display:flex;align-items:baseline;gap:10px;margin:2px 0 0;font-weight:400;font-family:var(--f-head);font-size:15px;color:var(--soft)}
 .sect b{font-family:var(--f-num);font-weight:400;font-size:18px;color:var(--text)}
-.sect.need{font-size:24px;line-height:1.2;color:var(--wait);gap:0}
+.sect.need{display:block;font-size:24px;line-height:1.2;color:var(--wait)}
 .sect.need b{display:inline-block;font-size:36px;line-height:1;margin:0 8px;color:var(--wait)}
 .sect.need.clear{color:var(--done)}
 .row{--c:var(--mute);--fg:#1A0838;position:relative;display:grid;grid-template-columns:minmax(0,1.25fr) 156px 96px minmax(0,2.3fr) 168px auto;align-items:center;gap:14px;background:var(--card);border:3px solid #000;box-shadow:6px 6px 0 var(--c);border-radius:18px;padding:8px 14px;transition:transform .2s cubic-bezier(.2,.9,.3,1.6)}
@@ -94,8 +94,8 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .row:has(.pop,.party,.stamp,.bit){z-index:3}
 .row.sel{box-shadow:8px 8px 0 #FFFFFF}
 .row.is-wait{background:var(--wait);color:#2A1200;animation:waitpulse 1s ease-in-out infinite}
-.row.zap{animation:zap .5s ease-out}
-.row.boing{animation:boing .7s cubic-bezier(.2,.9,.3,1.8)}
+.row.zap{animation:rowzap .5s ease-out}
+.row.boing{animation:rowboing .7s cubic-bezier(.2,.9,.3,1.8)}
 .row.hot2{box-shadow:9px 9px 0 var(--c)}
 .row.hot3{box-shadow:12px 12px 0 var(--test)}
 .rclip{position:absolute;inset:0;border-radius:15px;overflow:hidden;pointer-events:none}
@@ -119,14 +119,14 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 .row.is-wait .rsub,.row.is-wait .rsince,.row.is-wait .ract,.row.is-wait .big{color:#2A1200}
 .row.is-wait .rnow{border-left-color:#2A1200}
 .row.is-wait button:focus-visible{outline-color:#000}
-.row.rest.tight{flex:1 1 300px;max-width:440px;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'who chip' 'who since';gap:2px 10px;padding:6px 12px}
-.row.rest.tight .selbtn{grid-area:who}
-.row.rest.tight .rchip{grid-area:chip;justify-content:flex-end}
-.row.rest.tight .rsince{grid-area:since}
-.row.rest.tight .chip{font-size:12px;padding:3px 9px;animation:none}
-.row.rest.tight .rnow,.row.rest.tight .rsteps,.row.rest.tight .btns{display:none}
-.row.rest.tight .pop{right:14px}
-.row.rest.tight .stamp{right:14px}
+.row.rest{flex:1 1 300px;max-width:440px;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'who chip' 'who since';gap:2px 10px;padding:6px 12px}
+.row.rest .selbtn{grid-area:who}
+.row.rest .rchip{grid-area:chip;justify-content:flex-end}
+.row.rest .rsince{grid-area:since}
+.row.rest .chip{font-size:12px;padding:3px 9px;animation:none}
+.row.rest .rnow,.row.rest .rsteps,.row.rest .btns{display:none}
+.row.rest .pop{right:14px}
+.row.rest .stamp{right:14px}
 .cross{position:absolute;top:50%;left:0;white-space:nowrap;font-family:var(--f-head);font-size:34px;line-height:1;color:var(--test);-webkit-text-stroke:2px #000;paint-order:stroke fill;animation:cross 1.5s cubic-bezier(.2,.7,.4,1) forwards}
 .cherdr{font-size:18px;font-weight:800;line-height:1.4;color:var(--soft);overflow-wrap:anywhere}
 .cbranch{font-family:var(--f-mono);font-size:12px;color:var(--sub);overflow-wrap:anywhere}
@@ -314,6 +314,8 @@ button:focus-visible{outline:3px solid #FFFFFF;outline-offset:3px}
 @keyframes runner{from{transform:translateX(-100%)}to{transform:translateX(560%)}}
 @keyframes cross{0%{opacity:0;transform:translate(-100%,-50%) skewX(-12deg)}15%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translate(120vw,-50%) skewX(-12deg)}}
 @keyframes zap{0%{filter:brightness(1.9);transform:scale(1.035)}100%{filter:brightness(1);transform:scale(1)}}
+@keyframes rowzap{0%{filter:brightness(1.9);transform:scale(1.012)}100%{filter:brightness(1);transform:scale(1)}}
+@keyframes rowboing{0%{transform:scale(.975)}50%{transform:scale(1.015) rotate(.25deg)}100%{transform:scale(1)}}
 @keyframes sparkfly{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1.2)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(.5)}}
 @keyframes eq{from{transform:scaleY(.72)}to{transform:scaleY(1.08)}}
 @keyframes drop{0%{opacity:0;transform:translateY(-46px) rotate(-18deg) scale(1.6)}100%{opacity:1;transform:translateY(0) rotate(0) scale(1)}}
@@ -548,8 +550,6 @@ const num = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 let snap = null;
 let clockOffset = 0;
 let selectedKey = null;
-// 試作用: 指示を待っている行を 1 行に畳むか（?tight=1）
-const tightRest = new URLSearchParams(location.search).get('tight') === '1';
 let soundOn = false;
 let audio = null;
 let shakeOn = true;
@@ -937,7 +937,8 @@ function herdrLine(a) {
 }
 function createRow(a) {
   if (a.head) {
-    const el = h('h2', 'sect'); el.style.margin = '0'; el.style.fontWeight = '400';
+    // 冒頭の 1 文は読み上げで知らせたいので、見出しではなく status にする
+    const el = h(a.head === 'need' ? 'div' : 'h2', 'sect');
     el.append(h('span'), h('b'), h('span'));
     if (a.head === 'need') el.setAttribute('role', 'status');
     return el;
@@ -996,7 +997,6 @@ function updateRow(el, a) {
   el.classList.toggle('is-wait', a.state === 'wait');
   el.classList.toggle('is-work', WORKING.has(a.state));
   el.classList.toggle('rest', a.group === 'rest');
-  el.classList.toggle('tight', tightRest);
   const where = herdrLine(a);
   r.sel.setAttribute('aria-label', `${[a.name, where].filter(Boolean).join(' ')} の詳細を表示`);
   r.sel.setAttribute('aria-pressed', String(a.key === selectedKey));
